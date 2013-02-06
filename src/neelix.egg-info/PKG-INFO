@@ -1,0 +1,15 @@
+Metadata-Version: 1.0
+Name: neelix
+Version: 0.2
+Summary: http://go/neelix
+
+Neelix is a versatile visual correlation tool for different kinds of
+time-series metrics like Java Garbage Collection, CPU, I/O, Application
+throughput etc.
+
+Home-page: http://go/neelix
+Author: Ritesh Maheshwari
+Author-email: rmaheshw@linkedin.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: any

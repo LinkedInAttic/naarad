@@ -1,0 +1,221 @@
+--- neelix	(revision 112413)
++++ neelix	(working copy)
+@@ -1,6 +1,7 @@
+ #!/usr/bin/env python
+ """Neelix is a command line tool for parsing and visually correlating different metrics. For details, please read wiki: http://go/neelix"""
+ 
++import argparse
+ import ConfigParser
+ import datetime
+ import os
+@@ -32,19 +33,20 @@
+   """
+   home_directory = os.getenv('HOME')
+   template_file = os.path.join(home_directory, '.neelix', 'templates.txt')
++  print 'INFO: Adding templates from: ' + template_file
+   if os.path.exists(template_file):
+     with open(template_file,'r') as FH:
+       for line in FH:
+         template, url = [ word.strip() for word in line.split() ]
+         if linkedin.neelix.metric.is_valid_url(url):
+-          print "ERROR: This line in .neelix/templates.txt does not contain correct URL." + line + ". Continuing."
++          print 'ERROR: This line in .neelix/templates.txt does not contain correct URL.' + line + '. Continuing.'
+           continue
+         if not template.startswith('template:'):
+-          print "ERROR: Template name in this line in .neelix/templates.txt does not follow the convention. Start the name with 'template:' please."
++          print 'ERROR: Template name in this line in .neelix/templates.txt does not follow the convention. Start the name with "template:" please.'
+           continue
+         if template in template_urls:
+-          print "INFO: Template " + template + " exists as pre-defined in Neelix. Overriding the pre-defined template name."
+-        print "INFO: Adding template " + template
++          print 'INFO: Template ' + template + ' exists as pre-defined in Neelix. Overriding the pre-defined template name.'
++        print 'INFO: Adding template ' + template
+         template_urls[template] = url
+ 
+ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, metric_string_list, perfrepo, graphing_library):
+@@ -57,16 +59,12 @@
+     if metric.collect():
+       if metric.parse():
+         metric.calc()
+-        if metric.metric_type.startswith('SAR'):
+-          print "Using graphing_library: " + graphing_library
+-          metric_html_string = metric.graph(perfrepo, graphing_library)
+-        else:
+-          metric_html_string = metric.graph(perfrepo)
++        metric_html_string = metric.graph(graphing_library)
+         metric_string_list.append(metric_html_string)
+       else:
+-        print "Parsing failed for metric: ", metric.label
++        print 'Parsing failed for metric: ', metric.label
+     else:
+-      print "Fetch/Collect failed for metric: ", metric.label
++      print 'Fetch/Collect failed for metric: ', metric.label
+ 
+ def transform_ts(start, end, timezone="PDT"):
+   """
+@@ -123,54 +121,57 @@
+   variables_dict = {}
+   bin_path = os.path.dirname( __file__ )
+ 
+-  read_neelix_templates()
++  arg_parser = argparse.ArgumentParser()
+ 
+-  cli.add_argument('config', help="file with specifications for each metric and graphs")
+-  cli.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
+-  cli.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
+-  cli.add_argument('-k', '--sshkey_location', help="full path to your ssh key (for fetching files from remote hosts)")
+-  cli.add_argument('-p', '--passphrase', help="your ssh key passphrase")
+-  cli.add_argument('-host', '--hostname', help="Default remote host for downloading logs from. hostname specified in config takes precedence over this")
+-  cli.add_argument('-V', '--variables', action="append", help="User defined variables (in form key=value) for substitution in the config file. Config should have the variable names in format %(key)s")
+-  cli.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
++  arg_parser.add_argument('config', help="file with specifications for each metric and graphs")
++  arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
++  arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
++  arg_parser.add_argument('-k', '--sshkey_location', help="full path to your ssh key (for fetching files from remote hosts)")
++  arg_parser.add_argument('-p', '--passphrase', help="your ssh key passphrase")
++  arg_parser.add_argument('-host', '--hostname', help="Default remote host for downloading logs from. hostname specified in config takes precedence over this")
++  arg_parser.add_argument('-V', '--variables', action="append", help="User defined variables (in form key=value) for substitution in the config file. Config should have the variable names in format %(key)s")
++  arg_parser.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
+   #TODO(rmaheshw) : Print a list of all templates supported with descriptions
+   #cli.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
+ 
+-  with cli.run() as c:
++  args = arg_parser.parse_args()
++
++  if args:
++    read_neelix_templates()
+     # Print template config
+-    if c.args.show_config:
+-      tmp_file = linkedin.neelix.metric.download_file(template_urls[c.args.config])
++    if args.show_config:
++      tmp_file = linkedin.neelix.metric.download_file(template_urls[args.config])
+       with open(tmp_file, 'r') as FH:
+         print "----"
+         print FH.read()
+       sys.exit("----")
+ 
+     # Download config if its a URL
+-    if linkedin.neelix.metric.is_valid_url(c.args.config):
+-      optfile = linkedin.neelix.metric.download_file(c.args.config)
+-    elif c.args.config.startswith("template:"):
++    if linkedin.neelix.metric.is_valid_url(args.config):
++      optfile = linkedin.neelix.metric.download_file(args.config)
++    elif args.config.startswith("template:"):
+       #Its a template
+-      if c.args.config in template_urls.keys():
+-        print "INFO: Using template " + c.args.config
+-        optfile = linkedin.neelix.metric.download_file(template_urls[c.args.config])
++      if args.config in template_urls.keys():
++        print "INFO: Using template " + args.config
++        optfile = linkedin.neelix.metric.download_file(template_urls[args.config])
+       else:
+-        sys.exit("ERROR: Template " + c.args.config + " not found. Exiting...")
++        sys.exit("ERROR: Template " + args.config + " not found. Exiting...")
+       with open(optfile, 'r') as FH:
+         print "Config file used looks like this:"
+         print "-------------"
+         print FH.read()
+         print "-------------"
+     else:
+-      optfile = c.args.config
++      optfile = args.config
+ 
+-    indir_default = c.args.input_dir
+-    outdir_default = c.args.output_dir
+-    ssh_key_location = c.args.sshkey_location
+-    passphrase = c.args.passphrase
+-    hostname = c.args.hostname
++    indir_default = args.input_dir
++    outdir_default = args.output_dir
++    ssh_key_location = args.sshkey_location
++    passphrase = args.passphrase
++    hostname = args.hostname
+     #user defined variables in form "key=value"
+-    if c.args.variables:
+-      for var in c.args.variables:
++    if args.variables:
++      for var in args.variables:
+         words = var.split('=')
+         variables_dict[words[0]] = words[1]
+ 
+@@ -211,10 +212,6 @@
+           label = section
+           if access == "ssh" and config_obj.has_option(section, 'hostname'):
+             hostname = config_obj.get(section, 'hostname')
+-          if config_obj.has_option(section, 'outdir'):
+-            outdir = config_obj.get(section, 'outdir')
+-          else:
+-            outdir = None
+           if config_obj.has_option(section, 'ts_start'):
+             ts_start = config_obj.get(section, 'ts_start')
+           else:
+@@ -231,7 +228,7 @@
+           print "Exception: " , sys.exc_info()[0], "; Something wrong with the format of the config file in section:", section
+           sys.exit(0)
+         if section == 'SAR-*':
+-          sar_metrics = linkedin.neelix.metric.get_all_sar_objects(metrics, infile, access, outdir, label, ts_start, ts_end, None)
++          sar_metrics = linkedin.neelix.metric.get_all_sar_objects(metrics, infile, access, outdir_default, label, ts_start, ts_end, None)
+           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
+             for metric in sar_metrics:
+               metric.ignore = True
+@@ -240,9 +237,9 @@
+           if section.startswith('GC'):
+             gc_options_string = config_obj.get(section, 'gc-options')
+             gc_options = gc_options_string.split()
+-            new_metric = GCMetric(section, infile, access, outdir, label, ts_start, ts_end, gc_options)
++            new_metric = GCMetric(section, infile, access, outdir_default, label, ts_start, ts_end, gc_options)
+           elif section.startswith('SAR'):
+-            new_metric = SARMetric(section, infile, access, outdir, label, ts_start, ts_end, None)
++            new_metric = SARMetric(section, infile, access, outdir_default, label, ts_start, ts_end, None)
+             if config_obj.has_option(section, 'devices'):
+               devices_string = config_obj.get(section, 'devices')
+               devices = devices_string.split()
+@@ -253,7 +250,7 @@
+               options = options_string.split()
+               new_metric.options = options
+           elif section.startswith('INNOTOP'):
+-            new_metric = INNOMetric(section, infile, access, outdir, label, ts_start, ts_end, None)
++            new_metric = INNOMetric(section, infile, access, outdir_default, label, ts_start, ts_end, None)
+             if config_obj.has_option(section, 'devices'):
+               devices_string = config_obj.get(section, 'devices')
+               devices = devices_string.split()
+@@ -273,14 +270,14 @@
+               resolution = config_obj.get(section, 'resolution')
+             else:
+               resolution = None
+-            new_metric = IngraphsMetric(section, infile, access, outdir, label, ts_start, ts_end, ingraphs_type, ingraphs_type_val, consolidate, resolution)
++            new_metric = IngraphsMetric(section, infile, access, outdir_default, label, ts_start, ts_end, ingraphs_type, ingraphs_type_val, consolidate, resolution)
+           elif config_obj.has_option(section, 'columns'):
+             columns = config_obj.get(section, 'columns')
+             if config_obj.has_option(section, 'sep'):
+               sep = config_obj.get(section, 'sep')
+             else:
+               sep = ','
+-            new_metric = Metric(section, infile, access, outdir, label, ts_start, ts_end)
++            new_metric = Metric(section, infile, access, outdir_default, label, ts_start, ts_end)
+             new_metric.columns = columns.split(',')
+             new_metric.sep = sep
+             if config_obj.has_option(section, 'titles'):
+@@ -294,7 +291,7 @@
+             new_metric.titles = dict(zip(new_metric.columns, titles.split(',')))
+             new_metric.ylabels = dict(zip(new_metric.columns, ylabels.split(',')))
+           else:
+-            new_metric = Metric(section, infile, access, outdir, label, ts_start, ts_end)
++            new_metric = Metric(section, infile, access, outdir_default, label, ts_start, ts_end)
+           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
+             new_metric.ignore = True
+           if config_obj.has_option(section, 'calc_metrics'):
+@@ -317,6 +314,8 @@
+     # TODO: Use Jinja templates
+     if outdir_default:
+       print "Report.html and the plots will be in:", outdir_default
++    else:
++      sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
+     html_string = []
+     metric_string_list = []
+     if graph_timezone:
+@@ -335,3 +334,4 @@
+     linkedin.neelix.metric.generate_html_report(outdir_default, ''.join(html_string))
+     if outdir_default:
+       print "Report generated at {0}".format( os.path.join(outdir_default, "Report.html") )
++

@@ -1,0 +1,224 @@
+#!/usr/bin/env python
+"""Neelix is a command line tool for parsing and visually correlating different metrics. For details, please read wiki: http://go/neelix"""
+
+import ConfigParser
+import datetime
+import os
+import sys
+import threading
+
+import linkedin.cli
+
+import linkedin.neelix.metric
+from linkedin.neelix.metric import Metric
+from linkedin.neelix.gc_metric import GCMetric
+from linkedin.neelix.innotop_metric import INNOMetric
+from linkedin.neelix.sar_metric import SARMetric
+from linkedin.neelix.ingraphs_metric import IngraphsMetric
+
+version = "0.5"
+
+def get_now_string():
+  now_timestamp = datetime.datetime.now()
+  now_timestamp_string = now_timestamp.strftime("%Y-%m-%d %H:%M:%S")
+  return now_timestamp_string
+
+def convert_human_end_time(time_string):
+  # Should be mostly 'now'
+  if time_string == "now":
+    return get_now_string()
+  else:
+    print "\"end\" option entered is not \"now\". FAILING"
+
+def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, metric_string_list, perfrepo):
+  metric.graph_timezone = graph_timezone
+  if metric.outdir is None:
+    metric.outdir = os.path.normpath(outdir_default)
+  if not indir_default is None:
+    metric.infile = os.path.join(indir_default, metric.infile)
+  if not metric.ignore:
+    if metric.collect():
+      if metric.parse():
+        metric.calc()
+        metric_html_string = metric.graph(perfrepo)
+        metric_string_list.append(metric_html_string)
+
+@linkedin.cli.entrypoint
+def main(cli):
+  metrics = []
+  crossplots = []
+  filler = '-999' # Using Wai's filler value for graph skipping. At some point we should use something more standard, may be put nothing TODO
+  indir_default = None
+  perfrepo = None
+  hostname = None
+  graph_timezone = "UTC"
+  bin_path = os.path.dirname( __file__ )
+
+  cli.add_argument('config', help="file with specifications for each metric and graphs")
+  cli.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
+  cli.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
+  cli.add_argument('-k', '--sshkey_location', help="full path to your ssh key (for fetching files from remote hosts)")
+  cli.add_argument('-p', '--passphrase', help="your ssh key passphrase")
+  cli.add_argument('-host', '--hostname', help="Default remote host for downloading logs from. hostname specified in config takes precedence over this")
+
+  with cli.run() as c:
+    optfile = c.args.config
+    indir_default = c.args.input_dir
+    outdir_default = c.args.output_dir
+    ssh_key_location = c.args.sshkey_location
+    passphrase = c.args.passphrase
+    hostname = c.args.hostname
+
+    if not os.path.exists(optfile):
+      print "ERROR: Config file", optfile, "doesn't exist"
+      sys.exit(0)
+
+    # Parse the config file
+    # TODO: Use linkedin config
+    # TODO: Refactor the config parsing code
+    config_obj = ConfigParser.ConfigParser()
+    config_obj.read(optfile)
+    for section in config_obj.sections():
+      if section == 'GRAPH':
+        if config_obj.has_option(section, 'graphs'):
+          graphs_string = config_obj.get(section, 'graphs')
+          crossplots = graphs_string.split()
+        # Supporting both outdir and output_dir
+        if config_obj.has_option(section, 'outdir'):
+          outdir_default = config_obj.get(section, 'outdir')
+          #print "in config outdir_default", outdir_default
+        if config_obj.has_option(section, 'output_dir'):
+          outdir_default = config_obj.get(section, 'output_dir')
+        if config_obj.has_option(section, 'input_dir'):
+          indir_default = config_obj.get(section, 'input_dir')
+        if config_obj.has_option(section, 'graph_timezone'):
+          graph_timezone = config_obj.get(section, 'graph_timezone')
+          if graph_timezone not in ("UTC", "PST"):
+            print "Unsupported timezone", graph_timezone, "specified in option graph_timezone"
+            print "Will use UTC instead"
+            graph_timezone = "UTC"
+      else:
+        # Metric sections
+        try:
+          infile = config_obj.get(section, 'infile')
+          access = config_obj.get(section, 'access')
+          label = section
+          if access == "ssh" and config_obj.has_option(section, 'hostname'):
+            hostname = config_obj.get(section, 'hostname')
+          if config_obj.has_option(section, 'outdir'):
+            outdir = config_obj.get(section, 'outdir')
+          else:
+            outdir = None
+          if config_obj.has_option(section, 'ts_start'):
+            ts_start = config_obj.get(section, 'ts_start')
+          else:
+            ts_start = None
+          if config_obj.has_option(section, 'ts_end'):
+            ts_end = config_obj.get(section, 'ts_end')
+          else:
+            ts_end = None
+          if config_obj.has_option(section, 'precision'):
+            precision = config_obj.get(section, 'precision')
+          else:
+            precision = None
+        except:
+          print "Exception: " , sys.exc_info()[0], "; Something wrong with the format of the config file in section:", section
+          sys.exit(0)
+        if section == 'SAR-*':
+          sar_metrics = linkedin.neelix.metric.get_all_sar_objects(metrics, infile, access, outdir, label, ts_start, ts_end, None)
+          if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
+            for metric in sar_metrics:
+              metric.ignore = True
+          metrics.extend(sar_metrics)
+        else:
+          if section == 'GC':
+            gc_options_string = config_obj.get(section, 'gc-options')
+            gc_options = gc_options_string.split()
+            new_metric = GCMetric(section, infile, access, outdir, label, ts_start, ts_end, gc_options)
+          elif 'SAR' in section:
+            new_metric = SARMetric(section, infile, access, outdir, label, ts_start, ts_end, None)
+            if config_obj.has_option(section, 'devices'):
+              devices_string = config_obj.get(section, 'devices')
+              devices = devices_string.split()
+              print devices
+              new_metric.devices = devices
+            if config_obj.has_option(section, 'options'):
+              options_string = config_obj.get(section, 'options')
+              options = options_string.split()
+              new_metric.options = options
+          elif 'INNOTOP' in section:
+            new_metric = INNOMetric(section, infile, access, outdir, label, ts_start, ts_end, None)
+            if config_obj.has_option(section, 'devices'):
+              devices_string = config_obj.get(section, 'devices')
+              devices = devices_string.split()
+              new_metric.devices = devices
+            if config_obj.has_option(section, 'options'):
+              options_string = config_obj.get(section, 'options')
+              options = options_string.split()
+              new_metric.options = options
+          elif 'INGRAPHS' in section:
+            ingraphs_type = config_obj.get(section, 'type')
+            ingraphs_type_val = config_obj.get(section, 'type_val')
+            if config_obj.has_option(section, 'consolidate'):
+              consolidate = config_obj.get(section, 'consolidate')
+            else:
+              consolidate = None
+            if config_obj.has_option(section, 'resolution'):
+              resolution = config_obj.get(section, 'resolution')
+            else:
+              resolution = None
+            new_metric = IngraphsMetric(section, infile, access, outdir, label, ts_start, ts_end, ingraphs_type, ingraphs_type_val, consolidate, resolution)
+          elif config_obj.has_option(section, 'columns'):
+            columns = config_obj.get(section, 'columns')
+            if config_obj.has_option(section, 'sep'):
+              sep = config_obj.get(section, 'sep')
+            else:
+              sep = ','
+            new_metric = Metric(section, infile, access, outdir, label, ts_start, ts_end)
+            new_metric.columns = columns.split(',')
+            new_metric.sep = sep
+            if config_obj.has_option(section, 'titles'):
+              titles = config_obj.get(section, 'titles')
+            else:
+              titles = columns
+            if config_obj.has_option(section, 'ylabels'):
+              ylabels = config_obj.get(section, 'ylabels')
+            else:
+              ylabels = columns
+            new_metric.titles = dict(zip(new_metric.columns, titles.split(',')))
+            new_metric.ylabels = dict(zip(new_metric.columns, ylabels.split(',')))
+          else:
+            new_metric = Metric(section, infile, access, outdir, label, ts_start, ts_end)
+          if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
+            new_metric.ignore = True
+          if config_obj.has_option(section, 'calc_metrics'):
+            new_metric.calc_metrics = config_obj.get(section, 'calc_metrics')
+          if access == "ssh":
+            new_metric.hostname = hostname
+            new_metric.ssh_key_location = ssh_key_location
+            new_metric.passphrase = passphrase
+          new_metric.bin_path = bin_path
+          new_metric.precision = precision
+          metrics.append(new_metric)
+
+    # get metric log data, parse and graph
+    # TODO: Use Jinja templates
+    if outdir_default:
+      print "Report.html and the plots will be in:", outdir_default
+    html_string = []
+    metric_string_list = []
+    print "X-axis will be displayed in timezone:", graph_timezone
+    threads = []
+    for metric in metrics:
+      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, perfrepo))
+      thread.start()
+      threads.append(thread)
+    for t in threads:
+      t.join()
+    cross_plotting_html_string = linkedin.neelix.metric.nway_plotting(crossplots, perfrepo, metrics, outdir_default, filler)
+    html_string.append(cross_plotting_html_string)
+    html_string.append("<h1>Single Metrics</h1>\n")
+    html_string.extend(metric_string_list)
+    linkedin.neelix.metric.generate_html_report(outdir_default, ''.join(html_string))
+    if outdir_default:
+      print "Report generated at {0}".format( os.path.join(outdir_default, "Report.html") )

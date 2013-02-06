@@ -1,0 +1,78 @@
+import os
+from linkedin.neelix.metric import Metric
+import linkedin.neelix.metric
+from linkedin import ingraphs
+import datetime
+import pytz
+from pytz import timezone
+
+class IngraphsMetric(Metric):
+  """ Class for Ingraphs rrds, deriving from class Metric """
+  calc_metrics = None
+  def __init__(self, metric_type, infile, inaccess, outdir, label, ts_start, ts_end, type, type_val, consolidate, resolution):
+    Metric.__init__(self, metric_type, infile, inaccess, outdir, label, ts_start, ts_end)
+    self.type = type
+    self.type_val = type_val
+    self.resolution = resolution
+    self.consolidate = consolidate
+    self.csvfiles = []
+    #inGraphs data is always in PDT
+    self.timezone = "PDT"
+
+  def collect(self):
+    """Fetch data from ingraphs and also parse to split out csvs """
+    if self.inaccess != 'ingraphs':
+      print "Incorrect access", self.access, "set for Ingraphs metric. Cannot process this metric further"
+      return False
+    print "Fetching and parsing ingraphs data: ", self.infile
+    client = ingraphs.IngraphsClient()
+    out_csv = self.get_csv()
+    ingraphs_type = self.type
+    #determine which type of data retrieval function to call
+    if ingraphs_type == 'service':
+      data_retrieval_func = client.service_data
+    elif ingraphs_type == 'host':
+      data_retrieval_func = client.host_data
+    elif ingraphs_type == 'tag':
+      data_retrieval_func = client.tag_data
+    else:
+      print "ingraphs type can be either service, tag or host. Given:", ingraphs_type
+      return False
+    #retrieve data and append into form high charts can understand
+    rrd = self.infile
+    ingraphs_response = data_retrieval_func(self.type_val, rrd, start=self.ts_start, end=self.ts_end, consolidate=self.consolidate, resolution=self.resolution)
+    # Assuming only one timeseries returned
+    if self.consolidate:
+      data = ingraphs_response['data'][self.consolidate]
+    else:
+      data = ingraphs_response['data'][self.type_val]
+    with open(out_csv, 'w') as FH:
+      self.csvfiles.append(out_csv)
+      for ts in sorted(data):
+        if data[ts] is None:
+          print "InGraphs: Skipping None data"
+          continue
+        #TODO(rmaheshw): Decide if you want to use reconcile_timezones method here or not
+        dt = datetime.datetime.fromtimestamp(float(ts))
+        #Initializing ts_string with local timezone conversion
+        ts_string = dt.strftime("%Y-%m-%d %H:%M:%S.%f")
+        if self.graph_timezone == "UTC":
+          utc = pytz.utc
+          pst = timezone('US/Pacific')
+          dt = pst.localize(dt)
+          ts_string = dt.astimezone(utc).strftime("%Y-%m-%d %H:%M:%S.%f")
+        elif self.graph_timezone == "PST" or self.graph_timezone == "PDT":
+          ts_string = dt.strftime("%Y-%m-%d %H:%M:%S.%f")
+        FH.write(ts_string)
+        FH.write(',')
+        FH.write(str(data[ts]))
+        FH.write('\n')
+    return True
+
+  def get_csv(self):
+    out_csv = os.path.join(self.outdir, "{0}.csv".format(self.metric_type))
+    return out_csv
+
+  def parse(self):
+    return True
+
