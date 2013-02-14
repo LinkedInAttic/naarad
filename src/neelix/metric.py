@@ -3,6 +3,7 @@ from collections import defaultdict
 import datetime
 #from matplotlib import pyplot as plt, dates as mdates
 #import numpy as np
+import logging
 import os
 import pytz
 from pytz import timezone
@@ -11,6 +12,8 @@ import sys
 import threading
 import time
 import urllib
+
+logger = logging.getLogger('neelix.Metric')
 
 ##########################
 # GLOBAL FUNCTIONS
@@ -31,7 +34,7 @@ def is_valid_url(url):
       r'(?::\d+)?' # optional port
       r'(?:/?|[/?]\S+)$', re.IGNORECASE)
   if regex.match(url):
-    print "URL given as config"
+    logger.info( "URL given as config")
     return True
   else:
     return False
@@ -188,8 +191,7 @@ def generate_html_report(output_directory, html_string):
     htmlf.write(footer)
 
 def tscsv_nway_file_merge(outfile, filelist, filler):
-  print 'called nway merge with'
-  print filelist
+  logger.info('called nway merge with %s', filelist)
   with open(outfile, 'w') as outf:
     filehandlers = [None] * len(filelist)
     currlines = [None] * len(filelist)
@@ -197,7 +199,7 @@ def tscsv_nway_file_merge(outfile, filelist, filler):
       try:
         filehandlers[i] = open(filelist[i], 'r')
       except IOError:
-        print 'Cannot open:', filelist[i]
+        logger.error('Cannot open: ' +  filelist[i])
         return
       currlines[i] = filehandlers[i].readline().strip()
     while True:
@@ -254,7 +256,8 @@ def nway_plotting(crossplots, metrics, output_directory, filler):
       merged_plotfile = get_merged_png_name(vals)
 
       tscsv_nway_file_merge(merged_filename, csv_files, filler)
-      Metric.graphing_modules['jfreechart'].graph_csv_n(output_directory, merged_filename, plot_title, png_name, vals)
+      #Metric.graphing_modules['matplotlib'].graph_csv_n(output_directory, merged_filename, plot_title, png_name, vals)
+      Metric.graphing_modules['matplotlib'].graph_csv_new(output_directory, csv_files, plot_title, png_name, vals)
 
       img_tag = "<h3><a name=\"{0}\"></a>{1}</h3><img src={2} />".format(png_name, plot_title, merged_plotfile)
       link_tag = "<li><a href=\"#{0}\">{1}</a></li>".format(png_name, plot_title)
@@ -288,6 +291,7 @@ class Metric(object):
   ignore = False
   timezone = "PDT"
   metric_description = defaultdict(lambda: 'None')
+  options = None
 
   def __init__ (self, metric_type, infile, access, output_directory, label, ts_start, ts_end, **other_options):
     self.metric_type = metric_type
@@ -323,29 +327,28 @@ class Metric(object):
   def collect_local(self):
     return os.path.exists(self.infile)
 
-  #def fetch_log(self):
-  #  fetcher = LogFetcher(self.outdir, password=self.passphrase, key=self.ssh_key_location)
-  #  remotedir, filename = os.path.split(self.infile)
-  #  re_filename = re.compile(filename + '$')
-  #  print 'Fetching log:', self.hostname, remotedir, re_filename.pattern, self.outdir, filename
-  #  dir_list = fetcher.fetch_logs_by_host([self.hostname], remotedir, re_filename)
-  #  self.infile = os.path.join(dir_list[0]['path'], filename)
-  #  if dir_list[0]['is_fetched']:
-  #    return self.collect_local()
-  #  else:
-  #    return None
+#  def fetch_log(self):
+#    fetcher = LogFetcher(self.outdir, password=self.passphrase, key=self.ssh_key_location)
+#    remotedir, filename = os.path.split(self.infile)
+#    re_filename = re.compile(filename + '$')
+#    logger.info('Fetching log: %s %s %s %s %s', self.hostname, remotedir, re_filename.pattern, self.outdir, filename)
+#    dir_list = fetcher.fetch_logs_by_host([self.hostname], remotedir, re_filename)
+#    self.infile = os.path.join(dir_list[0]['path'], filename)
+#    if dir_list[0]['is_fetched']:
+#      return self.collect_local()
+#    else:
+#      return None
 
   def collect(self):
     if self.access == 'local':
       return self.collect_local()
-    # Ritesh - no ssh yet
     #elif self.access == 'ssh':
     #  #Also change start and end times to UTC if fetching from PROD
     #  if '.prod.' in self.hostname:
     #    self.timezone = "UTC"
     #  return self.fetch_log()
     else:
-      print "WARNING: access is set to other than local or ssh for metric", self.label
+      logger.warn("WARNING: access is set to other than local or ssh for metric", self.label)
       return False
 
   def get_csv(self, column):
@@ -354,7 +357,7 @@ class Metric(object):
     return csv
 
   def parse(self):
-    print "Working on", self.infile
+    logger.info("Working on" + self.infile)
     with open(self.infile, 'r') as infile:
       data = {}
       for line in infile:
@@ -365,9 +368,9 @@ class Metric(object):
         if len(words) == 0:
           continue
         if len(words) < len(self.columns):
-          print "ERROR: Number of columns given in config is more than number of columns present in file {0}\n".format(self.infile)
-          sys.exit(1)
-        ts = linkedin.neelix.metric.reconcile_timezones(words[0], self.timezone, self.graph_timezone)
+          logger.error("ERROR: Number of columns given in config is more than number of columns present in file {0}\n".format(self.infile))
+          return False
+        ts = neelix.metric.reconcile_timezones(words[0], self.timezone, self.graph_timezone)
         for i in range(len(self.columns)):
           out_csv = self.get_csv(self.columns[i])
           if out_csv in data:
@@ -393,9 +396,9 @@ class Metric(object):
       p = re.compile('(\w+)\((.+)\)')
       calc_type = p.match(expr).group(1)
       old_metric = p.match(expr).group(2)
-      print newmetric, expr, old_metric, calc_type
+      logger.debug('In calc() : %s %s %s %s', newmetric, expr, old_metric, calc_type)
       if not calc_type in ('rate', 'diff'):
-        print "ERROR: Invalid calc_metric type {0} defined in config".format(calc_type)
+        logger.error("ERROR: Invalid calc_metric type {0} defined in config".format(calc_type))
         continue
       old_metric_csv = self.get_csv(old_metric)
       new_metric_csv = self.get_csv(newmetric)
@@ -423,13 +426,13 @@ class Metric(object):
             NEW_FH.write(str(new_metric_val))
             NEW_FH.write('\n')
 
-  def graph(self, graphing_library = 'js'):
+  def graph(self, graphing_library = 'matplotlib'):
     html_string = []
     html_string.append('<h1>Metric: {0}</h1>\n'.format(self.metric_type))
     graphed = False
     if self.metric_type.startswith('GC'):
-      graphing_library = 'jfreechart'
-    print 'Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label)
+      graphing_library = 'matplotlib'
+    logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
     for out_csv in self.csv_files:
       csv_filename = os.path.basename(out_csv)
       # The last element is .csv, don't need that in the name of the chart
@@ -442,6 +445,6 @@ class Metric(object):
         if graphed:
           img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p><img src={image_name}.png />\n'.format(title=graph_title, description=self.metric_description[column], image_name=graph_title)
         else:
-          img_tag = '<h3>No data for this metric</h3>'
+          img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p>No data for this metric\n'.format(title=graph_title, description=self.metric_description[column])
         html_string.append(img_tag)
     return '\n'.join(html_string)

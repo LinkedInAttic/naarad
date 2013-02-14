@@ -1,8 +1,11 @@
 import neelix.metric
+import logging
 import os
 import datetime
 
 from neelix.metric import Metric
+
+logger = logging.getLogger('neelix.INNOMetric')
 
 class INNOMetric(Metric):
   C_MAX_COMMANDS = 10
@@ -19,7 +22,7 @@ class INNOMetric(Metric):
     return os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.metric_type, command, column))
 
   def parse(self):
-    print "Working on innotop metric:", self.infile
+    logger.info("Working on innotop metric: %s", self.infile)
     if self.metric_type == "INNOTOP-C":
       return self.parse_innotop_mode_c()
     elif self.metric_type == "INNOTOP-M":
@@ -31,7 +34,6 @@ class INNOMetric(Metric):
     with open(self.infile, 'r') as infh:
       headerline = infh.readline()
       columns = headerline.split()[2:]
-      #print "columns:",columns
       outfilehandlers = {}
       for line in infh:
         l = line.strip().split(' ', 1)
@@ -41,8 +43,8 @@ class INNOMetric(Metric):
         try:
           nameval = l[1].strip().split('\t', 1)
         except IndexError:
-          print "Badly formatted line:", line
-          print "Expected tab separated values"
+          logger.warn("Badly formatted line: %s", line)
+          logger.warn("Expected tab separated values")
           continue
         command = nameval[0]
         if command not in outfilehandlers:
@@ -52,7 +54,6 @@ class INNOMetric(Metric):
           # TODO(rmaheshw) : Use collections.defaultdict instead to avoid initializing dicts
           outfilehandlers[command] = {}
         words = nameval[1].split('\t')
-        #print command, words, ts
         for i in range(len(words)):
           if self.options and columns[i] not in self.options:
             continue
@@ -96,8 +97,6 @@ class INNOMetric(Metric):
         last_ts = words[0].strip().replace('T', ' ')
         if not neelix.metric.is_number(words[1]):
           thisrowcolumns[max_row_quot] = words[1:]
-          #print thisrowcolumns[max_row_quot]
-          #print "row", max_row_quot, " len:", len(words[1:])
           for column in words[1:]:
             if self.options and column not in self.options:
               continue
@@ -107,7 +106,6 @@ class INNOMetric(Metric):
           max_row_quot += 1
         else:
           break
-      #print "max_row_quot after pre-proc is", max_row_quot
       #infh.seek(0)
       # Real Processing
       for line in infh:
@@ -121,7 +119,7 @@ class INNOMetric(Metric):
         try:
           words = l[1].strip().split('\t')
         except IndexError:
-          print "Bad line:", line
+          logger.warn("Bad line: %s", line)
           continue
         # special case for -I (iostat) option
         # skipping all the 'thread' lines
@@ -134,8 +132,6 @@ class INNOMetric(Metric):
           if quot >= len(thisrowcolumns):
             continue
           columns = thisrowcolumns[quot]
-          #print "len columns:", len(columns), " len words:", len(words), "quot", quot
-          #print ts, words
           if len(words) > len(columns):
             continue
           for i in range(len(words)):
@@ -152,7 +148,6 @@ class INNOMetric(Metric):
                 log_seq_no = int(words[i])
               elif column == "log_flushed_to":
                 check_pt_age = log_seq_no -  int(words[i])
-                #print check_pt_age, "check_pt_age"
                 tup = [ts, str(check_pt_age)]
                 data["check_pt_age"].append(tup)
             tup = [ts, words[i]]
@@ -185,7 +180,6 @@ class INNOMetric(Metric):
         is_header = True
         for word in words:
           if neelix.metric.is_number(word):
-            print "is_not_header", line1
             last_ts = words[0].strip().replace('T', ' ')
             is_header = False
             break # from this loop
@@ -200,13 +194,12 @@ class INNOMetric(Metric):
 
       # Real Processing
       if not last_ts:
-        print "last_ts not set, looks like there is no data in file", self.infile
+        logger.warn("last_ts not set, looks like there is no data in file %s", self.infile)
         return True
       infh.seek(0)
       is_bad_line = False
       outfilehandlers = {}
       for line in infh:
-        #print "real proc", line
         l = line.strip().split(' ', 1)
         # Blank line
         if len(l) <= 1:
@@ -219,7 +212,7 @@ class INNOMetric(Metric):
         try:
           words = nameval[1].split('\t')
         except IndexError:
-          print "Bad line:", line
+          logger.warn("Bad line: %s", line)
           continue
         valrow += 1
         command = nameval[0]
@@ -229,11 +222,11 @@ class INNOMetric(Metric):
         columns = thisrowcolumns[quot]
         for i in range(len(words)):
           if len(words) > len(columns):
-            print "Mismatched number of columns:", line
-            print len(words), len(columns)
+            logger.warn("Mismatched number of columns: %s", line)
+            logger.warn("%d %d", len(words), len(columns))
             break
           if words[i] in columns:
-            print "Skipping line:", line
+            logger.warn("Skipping line: %s", line)
             valrow -= 1
             break
           if self.options and columns[i] not in self.options:

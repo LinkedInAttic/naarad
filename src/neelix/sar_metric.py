@@ -1,7 +1,10 @@
+import logging
 import os
 from neelix.metric import Metric
 import neelix.metric
 import datetime
+
+logger = logging.getLogger('neelix.SARMetric')
 
 class SARMetric(Metric):
   """ Class for SAR cpuusage logs, deriving from class Metric """
@@ -23,7 +26,7 @@ class SARMetric(Metric):
 
   def parse(self):
   # Multiple day span not supported. Assumes time is between 0:00 AM to 11:59 PM, or 0:00 to 23:59
-    print "Working on SAR metric:", self.infile
+    logger.info("Working on SAR metric: %s", self.infile)
     if not os.path.isdir(self.outdir):
       os.makedirs(self.outdir)
     with open(self.infile, 'r') as infile:
@@ -37,8 +40,8 @@ class SARMetric(Metric):
           year = int(datesar[2]) + 2000
           datesar[2] = str(year)
       except IndexError:
-        print "Header not found for file:", self.infile
-        print line
+        logger.error("Header not found for file: %s", self.infile)
+        logger.error("line: %s", line)
         return False
       date = datesar[2] + '-' + datesar[0] + '-' + datesar[1]
       infile.readline()   #skip blank line
@@ -69,7 +72,7 @@ class SARMetric(Metric):
         ts = neelix.metric.convert_to_24hr_format( ' '.join(words[0:ts_end_index]) )
         if last_ts:
           if last_ts.startswith("23:") and ts.startswith("00:"):
-            print "Date rolling over"
+            logger.info("Date rolling over")
             old_datetime = datetime.datetime.strptime(date, "%Y-%m-%d")
             new_datetime = old_datetime + datetime.timedelta(days=1)
             date = new_datetime.strftime("%Y-%m-%d")

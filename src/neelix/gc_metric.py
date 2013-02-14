@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 import pytz
 from pytz import timezone
@@ -7,6 +8,8 @@ import threading
 
 from neelix.metric import Metric
 import neelix.metric
+
+logger = logging.getLogger('neelix.GCMetric')
 
 class GCMetric(Metric):
   """ Class for GC logs, deriving from class Metric """
@@ -68,7 +71,7 @@ class GCMetric(Metric):
     awk_cmd = os.path.join(self.bin_path, 'print-jvm-gc-stats')
     cmd = awk_cmd + ' -v plot=' + sub_metric + ' -v interval=1 ' + no_age_file + ' > ' +  outfile
     thread_id = threading.current_thread().ident;
-    print "Thread #", thread_id, "- Parsing a GC metric with cmd: " + cmd
+    logger.info("Thread # %d - Parsing a GC metric with cmd: %s", thread_id, cmd)
     os.system(cmd)
     outcsv = self.get_csv(sub_metric)
     with open(outcsv, 'w') as csvf:
@@ -135,8 +138,8 @@ class GCMetric(Metric):
             try:
               ts = float(words[1].rstrip(':'))
             except:
-              print "Unexpected error:", sys.exc_info()[0]
-              print "at line:", line
+              logger.warn("Unexpected error: %s", sys.exc_info()[0])
+              logger.warn("at line: %s", line)
             else:
               if not ts in stop:
                 stop[ts] = 0
@@ -161,7 +164,7 @@ class GCMetric(Metric):
         outfile = os.path.join(self.outdir, self.metric_type + '-' + x + '-out.txt')
         awk_cmd = os.path.join(self.bin_path, 'print-jvm-gc-stats')
         cmd = awk_cmd + ' -v plot=' + x + ' -v interval=1 ' + no_age_file + ' > ' +  outfile
-        print "Parsing a GC metric: " + cmd
+        logger.info("Parsing a GC metric: " + cmd)
         os.system(cmd)
         count = 0
         outcsv = self.get_csv(x)
@@ -197,6 +200,6 @@ class GCMetric(Metric):
         thread.start()
         threads.append(thread)
       for t in threads:
-        print "Waiting for thread", t.ident, "to finish...."
+        logger.info("Waiting for thread %d to finish.... ", t.ident)
         t.join()
     return True

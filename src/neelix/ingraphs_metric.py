@@ -1,10 +1,13 @@
+import logging
 import os
-from linkedin.neelix.metric import Metric
-import linkedin.neelix.metric
+from neelix.metric import Metric
+import neelix.metric
 from linkedin import ingraphs
 import datetime
 import pytz
 from pytz import timezone
+
+logger = logging.getLogger('neelix.IngraphsMetric')
 
 class IngraphsMetric(Metric):
   """ Class for Ingraphs rrds, deriving from class Metric """
@@ -21,9 +24,9 @@ class IngraphsMetric(Metric):
   def collect(self):
     """Fetch data from ingraphs and also parse to split out csvs """
     if self.access != 'ingraphs':
-      print "Incorrect access", self.access, "set for Ingraphs metric. Cannot process this metric further"
+      logger.error("Incorrect access" + self.access + "set for Ingraphs metric. Cannot process this metric further")
       return False
-    print "Fetching and parsing ingraphs data: ", self.infile
+    logger.info("Fetching and parsing ingraphs data: %s", self.infile)
     client = ingraphs.IngraphsClient()
     out_csv = self.get_csv()
     ingraphs_type = self.type
@@ -35,7 +38,7 @@ class IngraphsMetric(Metric):
     elif ingraphs_type == 'tag':
       data_retrieval_func = client.tag_data
     else:
-      print "ingraphs type can be either service, tag or host. Given:", ingraphs_type
+      logger.error("ingraphs type can be either service, tag or host. Given: %s", ingraphs_type)
       return False
     #retrieve data and append into form high charts can understand
     rrd = self.infile
@@ -49,7 +52,7 @@ class IngraphsMetric(Metric):
       self.csv_files.append(out_csv)
       for ts in sorted(data):
         if data[ts] is None:
-          print "InGraphs: Skipping None data"
+          logger.info("InGraphs: Skipping None data")
           continue
         #TODO(rmaheshw): Decide if you want to use reconcile_timezones method here or not
         dt = datetime.datetime.fromtimestamp(float(ts))
@@ -74,4 +77,3 @@ class IngraphsMetric(Metric):
 
   def parse(self):
     return True
-

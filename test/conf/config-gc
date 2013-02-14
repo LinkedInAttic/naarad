@@ -1,0 +1,17 @@
+[GC]
+ignore=1
+infile=/home/rmaheshw/Projects/GC-log-tool/loggc-small
+#gc-options=appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM cmsCP cmsCS cmsCR safept apptime
+gc-options=appstop gen0 GC
+access=local
+
+#[SAR-paging]
+##ignore=1
+#access=local
+#infile=/home/rmaheshw/8threads_nonbulk_day2only/server_logs/sar.paging.out
+#ignore_single_graphs=1
+
+[GRAPH]
+outdir=/home/rmaheshw/tmp/neelix-out/gc
+graphs=GC.appstop,GC.gen0
+#graphing_library=matplotlib

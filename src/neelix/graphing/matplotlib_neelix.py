@@ -11,9 +11,6 @@ def convert_to_mdate(date_str):
     mdate = mdates.strpdate2num('%Y-%m-%d %H:%M:%S')(date_str)
   return mdate
 
-def convert_to_float(value):
-
-
 def graph_csv_new(output_directory, csv_files, plot_title, output_filename, columns, y_label=None, precision=None, graph_height="600", graph_width="1500", graph_type="line", graph_color="black"):
   y_label = y_label or plot_title
   fig = plt.figure()

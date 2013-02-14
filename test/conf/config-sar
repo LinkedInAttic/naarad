@@ -1,0 +1,27 @@
+[SAR-device]
+#ignore=1
+access=local
+infile=/home/rmaheshw/8threads_nonbulk_day2only/server_logs/sar.device.out
+devices=sda sdb
+options=tps rd_sec/s %util
+
+[SAR-cpuusage]
+ignore=1
+access=local
+infile=/home/rmaheshw/8threads_nonbulk_day2only/server_logs/sar.cpuusage.out
+#ts_start=2012-02-23 22:05:00
+#ts_end=2012-02-23 23:00:00
+
+[SAR-memory]
+ignore=1
+access=local
+infile=/home/rmaheshw/8threads_nonbulk_day2only/server_logs/sar.memory.out
+#ts_start=2012-02-23 22:05:00
+#ts_end=2012-02-23 23:00:00
+[GRAPH]
+outdir=/home/rmaheshw/tmp/neelix-out/sar
+#graphs=SAR-cpuusage.all.%sys,GC.alloc
+#graphs=SAR-paging.majflt/s,GC.alloc
+#graph_timezone=PDT
+#graphing_library=matplotlib
+graphing_library=js
