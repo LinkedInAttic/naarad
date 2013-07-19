@@ -1,0 +1,4 @@
+2012-03-30T22:34:30 mysql_thread_id	timestring	user	hostname	victim	time	undo_log_entries	lock_structs	query_text
+2012-03-30T22:34:30 mysql_thread_id	waiting	lock_mode	db	tbl	index	special	insert_intention
+
+
