@@ -22,7 +22,11 @@ from neelix.innotop_metric import INNOMetric
 from neelix.sar_metric import SARMetric
 from neelix.graphing import dygraphs
 
-from neelix.neelix_imports import metric_classes, graphing_modules
+try:
+  from neelix.neelix_imports import metric_classes, graphing_modules
+except ImportError:
+  metric_classes = {}
+  graphing_modules = {}
 
 #Neelix pre-defined
 metric_classes['GC'] = GCMetric
