@@ -1,5 +1,5 @@
 # Neelix #
-Neelix is a command line tool that parses and graphs timeseries data for better visual correlation. It can be used for performance debugging for your service/application. You collect data for the metrics you want to monitor and:
+Neelix is a highly configurable command line tool that parses and plots timeseries data for better visual correlation. It can be used for performance debugging for your service/application. You collect data for the metrics you want to monitor and:
 
 * Neelix parses JVM Garbage Collection (GC), System (SAR) and Mysql (Innotop) logs
 * Neelix reads other metrics you have pre-processed and written in CSV format
