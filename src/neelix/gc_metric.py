@@ -68,7 +68,7 @@ class GCMetric(Metric):
 
   def parse_val_types(self, sub_metric, no_age_file):
     outfile = os.path.join(self.outdir, self.metric_type + '-' + sub_metric + '-out.txt')
-    awk_cmd = os.path.join(self.bin_path, 'print-jvm-gc-stats')
+    awk_cmd = os.path.join(self.bin_path, 'PrintGCStats')
     cmd = awk_cmd + ' -v plot=' + sub_metric + ' -v interval=1 ' + no_age_file + ' > ' +  outfile
     thread_id = threading.current_thread().ident;
     logger.info("Thread # %d - Parsing a GC metric with cmd: %s", thread_id, cmd)
@@ -162,7 +162,7 @@ class GCMetric(Metric):
         if not x in self.gc_options:
           continue
         outfile = os.path.join(self.outdir, self.metric_type + '-' + x + '-out.txt')
-        awk_cmd = os.path.join(self.bin_path, 'print-jvm-gc-stats')
+        awk_cmd = os.path.join(self.bin_path, 'PrintGCStats')
         cmd = awk_cmd + ' -v plot=' + x + ' -v interval=1 ' + no_age_file + ' > ' +  outfile
         logger.info("Parsing a GC metric: " + cmd)
         os.system(cmd)

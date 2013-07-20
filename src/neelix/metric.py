@@ -142,40 +142,6 @@ def get_merged_plot_link_name(vals):
 def get_merged_png_name(vals):
   return '-'.join(vals) + '.png'
 
-#def convert_to_mdate(s):
-#  try:
-#    d = mdates.strpdate2num('%Y-%m-%d %H:%M:%S.%f')(s)
-#  except:
-#    d = mdates.strpdate2num('%Y-%m-%d %H:%M:%S')(s)
-#  return d
-
-#def graph_csv_matplotlib(output_directory, csv_file, plot_title, output_filename, y_label=None, precision=None, graph_height="600", graph_width="1500", graph_type="line", graph_color="black"):
-#  """ Single metric graphing function using matplotlib"""
-#  if not os.path.getsize(csv_file):
-#    return False
-#  y_label = y_label or plot_title
-#  days, impressions = np.loadtxt(csv_file, unpack=True, delimiter=",", converters={ 0: convert_to_mdate})
-#  fig = plt.figure()
-#  fig.set_size_inches(float(graph_width) / 80, float(graph_height) / 80)
-#  if graph_type == "line":
-#    line_style = "-"
-#    marker = None
-#  else:
-#    marker = "."
-#    line_style = None
-#
-#  plt.plot_date(x=days, y=impressions, linestyle=line_style, marker=marker, color=graph_color)
-#  plt.title(plot_title)
-#  plt.ylabel(y_label)
-#  plt.grid(True)
-#  # Get current axis and its xtick labels
-#  labels = plt.gca().get_xticklabels()
-#  for label in labels:
-#    label.set_rotation(30)
-#  plot_file_name = os.path.join(output_directory, output_filename + ".png")
-#  fig.savefig(plot_file_name)
-#  return True
-
 def generate_html_report(output_directory, html_string):
   htmlfilename = os.path.join(output_directory, 'Report.html')
   with open(htmlfilename, 'w') as htmlf:
@@ -256,7 +222,6 @@ def nway_plotting(crossplots, metrics, output_directory, filler):
       merged_plotfile = get_merged_png_name(vals)
 
       tscsv_nway_file_merge(merged_filename, csv_files, filler)
-      #Metric.graphing_modules['matplotlib'].graph_csv_n(output_directory, merged_filename, plot_title, png_name, vals)
       Metric.graphing_modules['matplotlib'].graph_csv_new(output_directory, csv_files, plot_title, png_name, vals)
 
       img_tag = "<h3><a name=\"{0}\"></a>{1}</h3><img src={2} />".format(png_name, plot_title, merged_plotfile)
@@ -327,28 +292,11 @@ class Metric(object):
   def collect_local(self):
     return os.path.exists(self.infile)
 
-#  def fetch_log(self):
-#    fetcher = LogFetcher(self.outdir, password=self.passphrase, key=self.ssh_key_location)
-#    remotedir, filename = os.path.split(self.infile)
-#    re_filename = re.compile(filename + '$')
-#    logger.info('Fetching log: %s %s %s %s %s', self.hostname, remotedir, re_filename.pattern, self.outdir, filename)
-#    dir_list = fetcher.fetch_logs_by_host([self.hostname], remotedir, re_filename)
-#    self.infile = os.path.join(dir_list[0]['path'], filename)
-#    if dir_list[0]['is_fetched']:
-#      return self.collect_local()
-#    else:
-#      return None
-
   def collect(self):
     if self.access == 'local':
       return self.collect_local()
-    #elif self.access == 'ssh':
-    #  #Also change start and end times to UTC if fetching from PROD
-    #  if '.prod.' in self.hostname:
-    #    self.timezone = "UTC"
-    #  return self.fetch_log()
     else:
-      logger.warn("WARNING: access is set to other than local or ssh for metric", self.label)
+      logger.warn("WARNING: access is set to other than local for metric", self.label)
       return False
 
   def get_csv(self, column):

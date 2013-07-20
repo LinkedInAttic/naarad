@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Neelix is a command line tool for parsing and visually correlating different metrics. For details, please read wiki: http://go/neelix"""
+"""Neelix is a command line tool for parsing and visually correlating different metrics."""
 
 import argparse
 import ConfigParser
@@ -37,12 +37,13 @@ graphing_modules['dygraphs'] = dygraphs
 graphing_modules['js'] = dygraphs
 graphing_modules['javascript'] = dygraphs
 
-version = "0.9"
+version = "0.1"
 
+template_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'templates'))
 template_urls = {
-    "template:gc": "http://svn.corp.linkedin.com/perfrepo/trunk/perfcode/neelix/templates/config-gc",
-    "template:sar": "http://svn.corp.linkedin.com/perfrepo/trunk/perfcode/neelix/templates/config-sar",
-    "template:innotop": "http://svn.corp.linkedin.com/perfrepo/trunk/perfcode/neelix/templates/config-inno"
+    "template:gc": os.path.join(template_dir,"config-gc"),
+    "template:sar": os.path.join(template_dir,"config-sar"),
+    "template:innotop": os.path.join(template_dir,"config-inno")
     }
 
 logger = logging.getLogger('neelix')
@@ -109,8 +110,7 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
 
 def transform_ts(start, end, timezone="PDT"):
   """
-    Transform ingraphs-like time specification to real datetime string.
-    Neelix will assume everything is in PDT unless log is being fetched from production, in which case it will be UTC
+    Transform time specification to real datetime string.
 
     :param string start: start timestamp in format YYYY-mm-DD HH:MM:SS or 'end-X((days|day|hours|hour)'
     :param string end: end timestamp in format YYYY-mm-DD HH:MM:SS or 'now'
@@ -118,7 +118,7 @@ def transform_ts(start, end, timezone="PDT"):
     :return: A tuple of start timestamp and end timestamps transformed from inGraphs like specification to YYYY-mm-DD HH:MM:SS formats
   """
   ts_pattern = "\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
-  #If timestamp is not in YYYY-mm-DD HH:MM:SS format, then it must be in inGraphs format
+  #If timestamp is not in YYYY-mm-DD HH:MM:SS format, then it must be in RRDTool format
   if not re.match(ts_pattern, end):
     if end == "now":
       if timezone in ("PDT", "PST"):
@@ -143,7 +143,7 @@ def transform_ts(start, end, timezone="PDT"):
       start_ts = end_ts - delta
       start_ts_str = datetime.datetime.strftime(start_ts, "%Y-%m-%d %H:%M:%S")
     else:
-      #TODO(rmaheshw): Add support for minutes and chaining like end-1day2hours5minutes
+      #TODO(Ritesh): Add support for minutes and chaining like end-1day2hours5minutes
       sys.exit("Start timestamp supported with only YYYY-mm-DD HH:MM:SS or 'end-x(days|day|hours|hour)' formats. Please fix config. Exiting...")
   else:
     start_ts_str = start
@@ -152,26 +152,21 @@ def transform_ts(start, end, timezone="PDT"):
 def main():
   metrics = []
   crossplots = []
-  #Ritesh filler = '-999' # Using Wai's filler value for graph skipping. At some point we should use something more standard, may be put nothing TODO
-  filler = '' # Using Wai's filler value for graph skipping. At some point we should use something more standard, may be put nothing TODO
+  filler = '' 
   graph_timezone = None
   graphing_library = 'matplotlib'
   variables_dict = {}
   bin_path = os.path.dirname( __file__ )
-
 
   arg_parser = argparse.ArgumentParser()
 
   arg_parser.add_argument('config', help="file with specifications for each metric and graphs")
   arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
   arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
-  arg_parser.add_argument('-k', '--sshkey_location', help="full path to your ssh key (for fetching files from remote hosts)")
-  arg_parser.add_argument('-p', '--passphrase', help="your ssh key passphrase")
-  arg_parser.add_argument('-host', '--hostname', help="Default remote host for downloading logs from. hostname specified in config takes precedence over this")
   arg_parser.add_argument('-V', '--variables', action="append", help="User defined variables (in form key=value) for substitution in the config file. Config should have the variable names in format %%(key)s")
   arg_parser.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
   arg_parser.add_argument('-l', '--log', help="log level")
-  #TODO(rmaheshw) : Print a list of all templates supported with descriptions
+  #TODO(Ritesh) : Print a list of all templates supported with descriptions
   #arg_parser.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
 
   args = arg_parser.parse_args()
@@ -194,7 +189,7 @@ def main():
     elif args.config.startswith("template:"):
       #Its a template
       if args.config in template_urls.keys():
-        logger.info('Using template ' + args.config)
+        logger.info('Using template ' + args.config + ' used from ' + template_urls[args.config] )
         optfile = neelix.metric.download_file(template_urls[args.config])
       else:
         sys.exit("ERROR: Template " + args.config + " not found. Exiting...")
@@ -208,9 +203,6 @@ def main():
 
     indir_default = args.input_dir
     outdir_default = args.output_dir
-    ssh_key_location = args.sshkey_location
-    passphrase = args.passphrase
-    hostname = args.hostname
     #user defined variables in form "key=value"
     if args.variables:
       for var in args.variables:
@@ -218,7 +210,7 @@ def main():
         variables_dict[words[0]] = words[1]
 
     if not os.path.exists(optfile):
-      sys.exit("ERROR: Config file " + optfile + " doesn't exist. If this is a URL, please use the fully qualified domain name (E.g., rmaheshw-ld.linkedin.biz instead of rmaheshw-ld)\nExiting....")
+      sys.exit("ERROR: Config file " + optfile + " doesn't exist. If this is a URL, please use the fully qualified domain name\nExiting....")
 
     # Parse the config file
     # TODO: Refactor the config parsing code
@@ -254,13 +246,9 @@ def main():
           config_obj.remove_option(section, 'infile')
           label = section
           if config_obj.has_option(section, 'access'):
+            #TODO: Support remote access
             access = config_obj.get(section, 'access')
             config_obj.remove_option(section, 'access')
-            if access == 'ssh':
-              if config_obj.has_option(section, 'hostname'):
-                hostname = config_obj.get(section, 'hostname')
-              else:
-                sys.exit('ERROR: specify hostname if access is ssh for metric ' + section)
           if config_obj.has_option(section, 'ts_start'):
             ts_start = config_obj.get(section, 'ts_start')
             config_obj.remove_option(section, 'ts_start')
@@ -290,18 +278,8 @@ def main():
             new_metric.ignore = True
           if config_obj.has_option(section, 'calc_metrics'):
             new_metric.calc_metrics = config_obj.get(section, 'calc_metrics')
-          if access == "ssh":
-            new_metric.hostname = hostname
-            new_metric.ssh_key_location = ssh_key_location
-            new_metric.passphrase = passphrase
           new_metric.bin_path = bin_path
           new_metric.precision = precision
-          #Transforming inGraphs style timestamp specification
-          if 'INGRAPHS' not in section:
-            if access == "ssh" and ".prod." in hostname:
-              new_metric.ts_start, new_metric.ts_end = transform_ts(ts_start, ts_end, "UTC")
-            #else:
-            #  new_metric.ts_start, new_metric.ts_end = transform_ts(ts_start, ts_end, "PDT")
           metrics.append(new_metric)
 
     # get metric log data, parse and graph
