@@ -1,7 +1,6 @@
 [GC]
-infile=/home/rmaheshw/Projects/GC-log-tool/loggc-small
+infile=/home/ritesh/logs/gc.log
 gc-options=appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM cmsCP cmsCS cmsCR safept apptime
 access=local
 
 [GRAPH]
-graphs=GC.appstop,GC.gen0

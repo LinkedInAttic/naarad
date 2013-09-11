@@ -1,6 +1,6 @@
 [MYSQL]
 #ignore=1
-infile=/home/rmaheshw/8threads_nonbulk_day2only/mytopStats/mytop.Queries.out
+infile=/home/ritesh/mytopStats/mytop.Queries.out
 access=local
 columns=queries
 ylabels=qps
@@ -9,7 +9,7 @@ sep=,
 
 [MYSQL-buffer]
 #ignore=1
-infile=/home/rmaheshw/8threads_nonbulk_day2only/mytopStats/mytop.BufferPool.out
+infile=/home/ritesh/mytopStats/mytop.BufferPool.out
 access=local
 columns=%free %dirty
 titles=MYSQL_Buffer MYSQL_Buffer
@@ -17,9 +17,5 @@ ylabels=percent,percent
 sep=,
 
 [GRAPH]
-outdir=/home/rmaheshw/tmp/neelix-out/others
-#perfrepo=/home/rmaheshw/workspace/perfrepo/perfrepo
-#graphs=SAR.device.sda.rd_sec/s,SAR.device.sdb.wr_sec/s SAR.paging.%vmeff,SAR.paging.pgfree/s
-#graphs=SAR-paging.pgfree/s,all MYSQL.queries,all
-#graphs=MYSQL.queries,GC.GC SAR-paging.pgfree/s,MYSQL.queries
+outdir=/home/ritesh/neelix-out/others
 graphing_library=js

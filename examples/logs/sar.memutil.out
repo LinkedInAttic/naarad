@@ -1,4 +1,4 @@
-Linux 2.6.32-131.4.1.el6.x86_64 (esv4-app133.stg) 	02/23/2012 	_x86_64_	(24 CPU)
+Linux 2.6.32 (machine1) 	02/23/2012 	_x86_64_	(24 CPU)
 
 09:29:18 PM kbmemfree kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit
 09:29:20 PM  10366144  39128596     79.06     40668  32974320  36140388     73.02

@@ -1,4 +1,4 @@
-Linux 2.6.32-131.4.1.el6.x86_64 (esv4-app133.stg) 	02/23/2012 	_x86_64_	(24 CPU)
+Linux 2.6.32 (machine1) 	02/23/2012 	_x86_64_	(24 CPU)
 
 09:29:18 PM     CPU      %usr     %nice      %sys   %iowait    %steal      %irq     %soft    %guest     %idle
 09:29:20 PM     all      1.13      0.00      0.40      3.53      0.00      0.00      0.02      0.00     94.92
