@@ -1,3 +1,4 @@
+from collections import defaultdict
 import datetime
 import logging
 import os
@@ -24,8 +25,9 @@ class GCMetric(Metric):
         self.gc_options = val.split()
       else:
         setattr(self, key, val)
-    metric_description = {
-      "gen0" :" young gen collection time, excluding gc_prologue & gc_epilogue.",
+    self.metric_description = {
+      "appstop" :"approximate application stop times",
+      "gen0" :" young gen collection time, excluding gc_prologue & gc_epilogue",
       "gen0t" :" young gen collection time, including gc_prologue & gc_epilogue",
       "gen0usr" :" young gen collection time in cpu user secs",
       "gen0sys" :" young gen collection time in cpu sys secs",

@@ -255,7 +255,6 @@ class Metric(object):
   beginning_date = None
   ignore = False
   timezone = "PDT"
-  metric_description = defaultdict(lambda: 'None')
   options = None
 
   def __init__ (self, metric_type, infile, access, output_directory, label, ts_start, ts_end, **other_options):
@@ -272,6 +271,7 @@ class Metric(object):
     self.titles_string = None
     self.ylabels_string = None
     self.csv_files = []
+    self.metric_description = defaultdict(lambda: 'None')
     if other_options:
       for (key,val) in other_options.iteritems():
         setattr(self, key, val)
