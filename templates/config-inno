@@ -1,28 +1,21 @@
 [INNOTOP-R]
-#ignore=1
 infile=records.out
-options=num_inserts queries_in_queue num_reads
 access=local
 
 [INNOTOP-M]
-#ignore=1
 infile=replication.out
 access=local
 
 [INNOTOP-I]
-#ignore=1
 infile=iostat.out
 access=local
 
 [INNOTOP-C]
-#ignore=1
 infile=command.out
 access=local
 
 [INNOTOP-B]
-#ignore=1
 access=local
 infile=buffer.out
 
 [GRAPH]
-graphing_library=dygraphs
