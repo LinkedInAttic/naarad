@@ -1,38 +1,38 @@
-# Neelix #
-Neelix is a highly configurable command line tool that parses and plots timeseries data for better visual correlation. It can be used for performance debugging for your service/application. You collect data for the metrics you want to monitor and:
+# Naarad #
+Naarad is a highly configurable command line tool that parses and plots timeseries data for better visual correlation. It can be used for performance debugging for your service/application. You collect data for the metrics you want to monitor and:
 
-* Neelix parses JVM Garbage Collection (GC), System (SAR) and Mysql (Innotop) logs
-* Neelix reads other metrics you have pre-processed and written in CSV format
-* Neelix plots the metrics you specify.
+* Naarad parses JVM Garbage Collection (GC), System (SAR) and Mysql (Innotop) logs
+* Naarad reads other metrics you have pre-processed and written in CSV format
+* Naarad plots the metrics you specify.
 
-The power of Neelix is in its configurablity. You can use it to glance at various metrics and then choose the important metrics to plot to visually correlate the metrics together. An example use-case is when your application's throughput dropped, you want to know if it was because of some GC activity or a spike in CPU usage or disk I/O. Neelix can help you investigate such issue better.
+The power of Naarad is in its configurablity. You can use it to glance at various metrics and then choose the important metrics to plot to visually correlate the metrics together. An example use-case is when your application's throughput dropped, you want to know if it was because of some GC activity or a spike in CPU usage or disk I/O. Naarad can help you investigate such issue better.
 
 ## Features ##
 
 * Configurable input format, so you can specify which metrics to inspect. GC, SAR and Innotop logs supported currently, with support for more metrics coming in near future. 
-* Logs for the supported metrics are parsed by Neelix.
+* Logs for the supported metrics are parsed by Naarad.
 * Also supports generic metric logs in csv format. 
 * Pick 'n Choose which metrics to plot together for visual correlation.
 * Html report with all the plots for a visual inspection of your application's performance profile.
 
 ## How is it different? ##
 
-Many tools and frameworks like Zenoss, rrdtool etc have solved the use-case of metric collection, parsing and plotting. Neelix has an overlap in functionality with these tools, but the main advantage of neelix is in its flexibility, which lets it be a powerful tool for performance investigations. Neelix users are performance experts who need to look for 'needle in a haystack'. Neelix was built to support this use-case. 
+Many tools and frameworks like Zenoss, rrdtool etc have solved the use-case of metric collection, parsing and plotting. Naarad has an overlap in functionality with these tools, but the main advantage of naarad is in its flexibility, which lets it be a powerful tool for performance investigations. Naarad users are performance experts who need to look for 'needle in a haystack'. Naarad was built to support this use-case. 
 
 # Installation #
 
-1. Check out Neelix code:
+1. Check out Naarad code:
 
-        git clone git://gitli.corp.linkedin.com/neelix/neelix.git
+        git clone git://gitli.corp.linkedin.com/naarad/naarad.git
 
 2. Make sure you have python, [pip](http://www.pip-installer.org/en/latest/installing.html) and awk.
 3. Install the necessary Python libraries using PIP.
 
-        cd neelix; pip install -r requirements.txt
+        cd naarad; pip install -r requirements.txt
 
 # Usage #
 
-Neelix needs a config file that lists all the metrics and the graphing options. Example config files can be found in neelix/examples/conf directory. Here is a sample config:
+Naarad needs a config file that lists all the metrics and the graphing options. Example config files can be found in naarad/examples/conf directory. Here is a sample config:
 
 <pre>
 [GC]
@@ -45,16 +45,16 @@ access=local
 infile=/home/rmaheshw/logs/sar.cpuusage.out
  
 [GRAPH]
-outdir=/home/rmaheshw/neelix-out
+outdir=/home/rmaheshw/naarad-out
 </pre>
 
  The config is in INI format with each section describing details about each metric and a special section called GRAPH specifying details about the graphing options.
 
- Once you have a config describing all your metrics, parsing and plotting needs, just call neelix with the config file as its argument and it should produce all the plots in a basic html report in the outdir specified in config
+ Once you have a config describing all your metrics, parsing and plotting needs, just call naarad with the config file as its argument and it should produce all the plots in a basic html report in the outdir specified in config
 
-<pre> neelix config</pre>
+<pre> naarad config</pre>
  
- Neelix can also take command line arguments: -i or --input_dir and -o or --output_dir. If input_dir is specified, all the infile options in the config are assumed to be relative to input_dir. User can also specify output_dir on command line and skip specifying the outdir option in the config. But if outdir is specified in the config, that takes precedence.
+ Naarad can also take command line arguments: -i or --input_dir and -o or --output_dir. If input_dir is specified, all the infile options in the config are assumed to be relative to input_dir. User can also specify output_dir on command line and skip specifying the outdir option in the config. But if outdir is specified in the config, that takes precedence.
 
  So you could have a shorter config file:
 
@@ -74,26 +74,26 @@ graphs=GC.GC,all GC.cmsRM,GC.cmsIM,GC.gen0t GC.promo,GC.alloc
 
 And run it as:
 
-<pre> neelix config -i /home/rmaheshw/logs -o /home/rmaheshw/neelix-out</pre>
+<pre> naarad config -i /home/rmaheshw/logs -o /home/rmaheshw/naarad-out</pre>
 
 ## Templates ##
 
-Neelix comes with pre-built configs that you can use directly for simple cases. The templates are for GC and SAR, and can be used as:
+Naarad comes with pre-built configs that you can use directly for simple cases. The templates are for GC and SAR, and can be used as:
 
-<pre>bin/neelix --i test/data/logs/ -o ~/tmp/neelix template:gc</pre>
-<pre>bin/neelix --i test/data/logs/ -o ~/tmp/neelix template:sar</pre>
+<pre>bin/naarad --i test/data/logs/ -o ~/tmp/naarad template:gc</pre>
+<pre>bin/naarad --i test/data/logs/ -o ~/tmp/naarad template:sar</pre>
 
 ## User-defined Templates ##
 
-For repeated usage, you can also define your own configs in $HOME/.neelix/templates.txt and use them in command line. The format of templates.txt should be something like this (template name followed by template location):
+For repeated usage, you can also define your own configs in $HOME/.naarad/templates.txt and use them in command line. The format of templates.txt should be something like this (template name followed by template location):
 
-<pre>template:conf1 http://your-webserver.org/neelix-conf/config1 
-template:conf2 http://your-webserver.org/neelix-conf/config2
+<pre>template:conf1 http://your-webserver.org/naarad-conf/config1 
+template:conf2 http://your-webserver.org/naarad-conf/config2
 </pre>
 
 
 ## Calculated metrics ##
-Neelix supports basic calculation over a single metric. In particular, it supports calculating rate and diff.
+Naarad supports basic calculation over a single metric. In particular, it supports calculating rate and diff.
 
 * rate - calculate rate of a metric defined as difference in 2 consecutive data points divided by the time difference. Or, (V[n+1) - V[n])/(T[n+1] - T[n])
 * diff - calculate diff if a metric, defined as the difference in 2 consecutive data points. Or, (V[n+1) - V[n])
@@ -110,26 +110,26 @@ calc_metrics=alloc-rate=rate(alloc) promo-rate=rate(promo) alloc-diff=diff(alloc
 
 # Examples #
 
-Some logs and config files are included in the source code. You can run these commands to try neelix out. 
+Some logs and config files are included in the source code. You can run these commands to try naarad out. 
 
 GC example:
 
-<pre>bin/neelix -i examples/logs/ -o ~/tmp/neelix examples/conf/config-gc</pre>
+<pre>bin/naarad -i examples/logs/ -o ~/tmp/naarad examples/conf/config-gc</pre>
 
-This generates a results in ~/tmp/neelix. Fire up a browser to view ~/tmp/neelix/Report.html to see all the plots in one place.
+This generates a results in ~/tmp/naarad. Fire up a browser to view ~/tmp/naarad/Report.html to see all the plots in one place.
 
 SAR example:
 
-<pre>bin/neelix -i test/data/logs/ -o ~/tmp/neelix test/conf/config-sar </pre>
+<pre>bin/naarad -i test/data/logs/ -o ~/tmp/naarad test/conf/config-sar </pre>
 
 View Results.html in firefox (Chrome complains about cross-domain issues). Note that the sar config specifies plotting graphs using dygraphs.
 
 ## Screenshots ##
 
-Here are some example screenshots of reports produced by Neelix:
+Here are some example screenshots of reports produced by Naarad:
 
-* SAR ![report](examples/screenshots/neelix-sar-screenshot.png)
-* GC ![report](examples/screenshots/neelix-gc-screenshot.png)
+* SAR ![report](examples/screenshots/naarad-sar-screenshot.png)
+* GC ![report](examples/screenshots/naarad-gc-screenshot.png)
 
 # Supported Metrics #
 
@@ -156,7 +156,7 @@ sep=,
 
 [GRAPH]
 graphs=MYAPP-PERF.throughput,MYAPP-PERF.latency
-outdir=/home/rmaheshw/neelix-out
+outdir=/home/rmaheshw/naarad-out
 </code></pre>
 
 ## Garbage Collection (GC) ##
@@ -199,7 +199,7 @@ access=local
 </code></pre>
 
 ## System metrics using sar ##
-Neelix supports various `sar` metrics, each one as its own metric. Supported metrics and the corresponding command needed to collect them are listed here: 
+Naarad supports various `sar` metrics, each one as its own metric. Supported metrics and the corresponding command needed to collect them are listed here: 
 
 * SAR-cpuusage using command: `sar -u ALL 1`
 * SAR-device using command: `sar -d 1`

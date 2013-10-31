@@ -15,15 +15,15 @@ import time
 # Add src directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')))
 
-import neelix.metric
-from neelix.metric import Metric
-from neelix.gc_metric import GCMetric
-from neelix.innotop_metric import INNOMetric
-from neelix.sar_metric import SARMetric
-from neelix.graphing import dygraphs
+import naarad.metric
+from naarad.metric import Metric
+from naarad.gc_metric import GCMetric
+from naarad.innotop_metric import INNOMetric
+from naarad.sar_metric import SARMetric
+from naarad.graphing import dygraphs
 
 try:
-  from neelix.neelix_imports import metric_classes, graphing_modules
+  from naarad.naarad_imports import metric_classes, graphing_modules
 except ImportError:
   metric_classes = {}
   graphing_modules = {}
@@ -46,10 +46,10 @@ template_urls = {
     "template:innotop": os.path.join(template_dir,"config-inno")
     }
 
-logger = logging.getLogger('neelix')
+logger = logging.getLogger('naarad')
 
 def init_logging(log_level):
-  log_file = 'neelix.log'
+  log_file = 'naarad.log'
   # clear the log file
   with open(log_file, 'w'):
     pass
@@ -69,22 +69,22 @@ def init_logging(log_level):
   logger.addHandler(fh)
   logger.addHandler(ch)
 
-def read_neelix_templates():
+def read_naarad_templates():
   """
-    Read $HOME/.neelix/templates.txt file to read user-defined template keys and related URLs
+    Read $HOME/.naarad/templates.txt file to read user-defined template keys and related URLs
   """
   home_directory = os.getenv('HOME')
-  template_file = os.path.join(home_directory, '.neelix', 'templates.txt')
+  template_file = os.path.join(home_directory, '.naarad', 'templates.txt')
   logger.info('Adding templates from: ' + template_file)
   if os.path.exists(template_file):
     with open(template_file,'r') as FH:
       for line in FH:
         template, url = [word.strip() for word in line.split()]
-        if neelix.metric.is_valid_url(url):
-          logger.warning('This line in .neelix/templates.txt does not contain correct URL.' + line + '. Continuing.')
+        if naarad.metric.is_valid_url(url):
+          logger.warning('This line in .naarad/templates.txt does not contain correct URL.' + line + '. Continuing.')
           continue
         if not template.startswith('template:'):
-          logger.warning('Template name in this line in .neelix/templates.txt does not follow the convention. Start the name with "template:" please.')
+          logger.warning('Template name in this line in .naarad/templates.txt does not follow the convention. Start the name with "template:" please.')
           continue
         if template in template_urls:
           logger.info('Template ' + template + ' exists as pre-defined in Neelix. Overriding the pre-defined template name.')
@@ -174,23 +174,23 @@ def main():
   init_logging(args.log)
 
   if args:
-    read_neelix_templates()
+    read_naarad_templates()
     # Print template config
     if args.show_config:
-      tmp_file = neelix.metric.download_file(template_urls[args.config])
+      tmp_file = naarad.metric.download_file(template_urls[args.config])
       with open(tmp_file, 'r') as FH:
         print "----"
         print FH.read()
       sys.exit("----")
 
     # Download config if its a URL
-    if neelix.metric.is_valid_url(args.config):
-      optfile = neelix.metric.download_file(args.config)
+    if naarad.metric.is_valid_url(args.config):
+      optfile = naarad.metric.download_file(args.config)
     elif args.config.startswith("template:"):
       #Its a template
       if args.config in template_urls.keys():
         logger.info('Using template ' + args.config + ' used from ' + template_urls[args.config] )
-        optfile = neelix.metric.download_file(template_urls[args.config])
+        optfile = naarad.metric.download_file(template_urls[args.config])
       else:
         sys.exit("ERROR: Template " + args.config + " not found. Exiting...")
       with open(optfile, 'r') as FH:
@@ -262,7 +262,7 @@ def main():
         except:
           sys.exit("Exception: " , sys.exc_info()[0], "; Something wrong with the format of the config file in section:", section)
         if section == 'SAR-*':
-          sar_metrics = neelix.metric.get_all_sar_objects(metrics, infile, access, outdir_default, label, ts_start, ts_end, None)
+          sar_metrics = naarad.metric.get_all_sar_objects(metrics, infile, access, outdir_default, label, ts_start, ts_end, None)
           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
             for metric in sar_metrics:
               metric.ignore = True
@@ -305,11 +305,11 @@ def main():
       threads.append(thread)
     for t in threads:
       t.join()
-    cross_plotting_html_string = neelix.metric.nway_plotting(crossplots, metrics, outdir_default, filler)
+    cross_plotting_html_string = naarad.metric.nway_plotting(crossplots, metrics, outdir_default, filler)
     html_string.append(cross_plotting_html_string)
     html_string.append("<h1>Single Metrics</h1>\n")
     html_string.extend(metric_string_list)
-    neelix.metric.generate_html_report(outdir_default, ''.join(html_string))
+    naarad.metric.generate_html_report(outdir_default, ''.join(html_string))
     if outdir_default:
       logger.info('Report generated at {0}'.format( os.path.join(outdir_default, 'Report.html') ))
 

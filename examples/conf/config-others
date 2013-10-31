@@ -17,5 +17,5 @@ ylabels=percent,percent
 sep=,
 
 [GRAPH]
-outdir=/home/ritesh/neelix-out/others
+outdir=/home/ritesh/naarad-out/others
 graphing_library=js

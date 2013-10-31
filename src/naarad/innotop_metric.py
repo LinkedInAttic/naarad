@@ -1,11 +1,11 @@
-import neelix.metric
+import naarad.metric
 import logging
 import os
 import datetime
 
-from neelix.metric import Metric
+from naarad.metric import Metric
 
-logger = logging.getLogger('neelix.INNOMetric')
+logger = logging.getLogger('naarad.INNOMetric')
 
 class INNOMetric(Metric):
   C_MAX_COMMANDS = 10
@@ -60,7 +60,7 @@ class INNOMetric(Metric):
           if columns[i] not in outfilehandlers[command]:
             outfilehandlers[command][columns[i]] = open(self.get_csv_C(command, columns[i]), 'w')
             self.csv_files.append(self.get_csv_C(command, columns[i]))
-          ts = neelix.metric.reconcile_timezones(ts, self.timezone, self.graph_timezone)
+          ts = naarad.metric.reconcile_timezones(ts, self.timezone, self.graph_timezone)
           outfilehandlers[command][columns[i]].write(ts+',')
           outfilehandlers[command][columns[i]].write(words[i])
           outfilehandlers[command][columns[i]].write('\n')
@@ -86,7 +86,7 @@ class INNOMetric(Metric):
           while True:
             line1 = infh.readline()
             words = line1.split()
-            if neelix.metric.is_number(words[1]):
+            if naarad.metric.is_number(words[1]):
               line1 = infh.readline()
             else:
               break
@@ -95,7 +95,7 @@ class INNOMetric(Metric):
         # Skip next line
         infh.readline()
         last_ts = words[0].strip().replace('T', ' ')
-        if not neelix.metric.is_number(words[1]):
+        if not naarad.metric.is_number(words[1]):
           thisrowcolumns[max_row_quot] = words[1:]
           for column in words[1:]:
             if self.options and column not in self.options:
@@ -123,9 +123,9 @@ class INNOMetric(Metric):
           continue
         # special case for -I (iostat) option
         # skipping all the 'thread' lines
-        if words[0] == "thread" or (neelix.metric.is_number(words[0]) and "thread" in words[1]):
+        if words[0] == "thread" or (naarad.metric.is_number(words[0]) and "thread" in words[1]):
           continue
-        if neelix.metric.is_number(words[0]):
+        if naarad.metric.is_number(words[0]):
           valrow += 1
           quot = valrow % max_row_quot
           # Special case for -R, skipping all 'thread' value lines
@@ -141,7 +141,7 @@ class INNOMetric(Metric):
             # Converting -- to 0, seen this for buf_pool_hit_rate
             if words[i] == "--":
               words[i] = "0"
-            ts = neelix.metric.reconcile_timezones(ts, self.timezone, self.graph_timezone)
+            ts = naarad.metric.reconcile_timezones(ts, self.timezone, self.graph_timezone)
             # Calculating check point age
             if self.metric_type == "INNOTOP-I":
               if column == "log_seq_no":
@@ -179,7 +179,7 @@ class INNOMetric(Metric):
         infh.readline()
         is_header = True
         for word in words:
-          if neelix.metric.is_number(word):
+          if naarad.metric.is_number(word):
             last_ts = words[0].strip().replace('T', ' ')
             is_header = False
             break # from this loop
@@ -234,7 +234,7 @@ class INNOMetric(Metric):
           if columns[i] not in outfilehandlers[command]:
             outfilehandlers[command][columns[i]] = open(self.get_csv_C(command, columns[i]),  'w')
             self.csv_files.append(self.get_csv_C(command, columns[i]))
-          ts = neelix.metric.reconcile_timezones(ts, self.timezone, self.graph_timezone)
+          ts = naarad.metric.reconcile_timezones(ts, self.timezone, self.graph_timezone)
           outfilehandlers[command][columns[i]].write(ts+',')
           outfilehandlers[command][columns[i]].write(words[i])
           outfilehandlers[command][columns[i]].write('\n')

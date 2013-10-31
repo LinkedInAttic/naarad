@@ -1,10 +1,10 @@
 import logging
 import os
-from neelix.metric import Metric
-import neelix.metric
+from naarad.metric import Metric
+import naarad.metric
 import datetime
 
-logger = logging.getLogger('neelix.SARMetric')
+logger = logging.getLogger('naarad.SARMetric')
 
 class SARMetric(Metric):
   """ Class for SAR cpuusage logs, deriving from class Metric """
@@ -17,7 +17,7 @@ class SARMetric(Metric):
       setattr(self, key, val.split())
 
   def get_csv(self, column, device=None):
-    column = neelix.metric.sanitize_string(column)
+    column = naarad.metric.sanitize_string(column)
     if device is None:
       outcsv = os.path.join(self.outdir, "{0}.{1}.csv".format(self.metric_type, column))
     else:
@@ -69,7 +69,7 @@ class SARMetric(Metric):
         words = line.split()
         if len(words) <= columnstart:
           continue
-        ts = neelix.metric.convert_to_24hr_format( ' '.join(words[0:ts_end_index]) )
+        ts = naarad.metric.convert_to_24hr_format( ' '.join(words[0:ts_end_index]) )
         if last_ts:
           if last_ts.startswith("23:") and ts.startswith("00:"):
             logger.info("Date rolling over")
@@ -82,17 +82,17 @@ class SARMetric(Metric):
           continue
         if self.metric_type in self.device_types:
           # Skipping headers that appear in the middle of the file
-          if not neelix.metric.is_number( words[ts_end_index + 1] ):
+          if not naarad.metric.is_number( words[ts_end_index + 1] ):
             continue
           if self.devices and words[ts_end_index] not in self.devices:
             continue
           device = words[ts_end_index]
         else:
           # Skipping headers that appear in the middle of the file
-          if not neelix.metric.is_number( words[ts_end_index] ):
+          if not naarad.metric.is_number( words[ts_end_index] ):
             continue
           device = None
-        datetimestamp = neelix.metric.reconcile_timezones(datetimestamp, self.timezone, self.graph_timezone)
+        datetimestamp = naarad.metric.reconcile_timezones(datetimestamp, self.timezone, self.graph_timezone)
         for i in range(columnstart, len(words)):
           if self.options and columns[i] not in self.options:
             continue
