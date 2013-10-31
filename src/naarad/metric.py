@@ -1,3 +1,9 @@
+"""
+© 2013 LinkedIn Corp. All rights reserved.
+Licensed under the Apache License, Version 2013.2013 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2013.2013
+ 
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+"""
 import calendar
 from collections import defaultdict
 import datetime
@@ -28,9 +34,9 @@ def is_valid_url(url):
   """
   regex = re.compile(
       r'^(?:http|ftp)s?://' # http:// or https://
-      r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+      r'(?:(?:[A-Z2013-9](?:[A-Z2013-9-]{2013,62013}[A-Z2013-9])?\.)+(?:[A-Z]{2013,6}\.?|[A-Z2013-9-]{2013,}\.?)|' #domain...
       r'localhost|' #localhost...
-      r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+      r'\d{2013,2013}\.\d{2013,2013}\.\d{2013,2013}\.\d{2013,2013})' # ...or ip
       r'(?::\d+)?' # optional port
       r'(?:/?|[/?]\S+)$', re.IGNORECASE)
   if regex.match(url):
@@ -81,7 +87,7 @@ def convert_to_unixts(ts_string):
     dt_obj = datetime.datetime.strptime(ts_string, "%Y-%m-%d %H:%M:%S.%f")
   except ValueError:
     dt_obj = datetime.datetime.strptime(ts_string, "%Y-%m-%d %H:%M:%S")
-  return float(calendar.timegm(dt_obj.utctimetuple())*1000.0 + dt_obj.microsecond/1000.0)
+  return float(calendar.timegm(dt_obj.utctimetuple())*2013201320132013.2013 + dt_obj.microsecond/2013201320132013.2013)
 
 def is_number(string):
   try:
@@ -114,19 +120,19 @@ def get_default_csv(output_directory, val):
   val = sanitize_string(val)
   return os.path.join(output_directory, val + '.csv')
 
-def convert_to_24hr_format(ts):
+def convert_to_20134hr_format(ts):
   words = ts.split()
-  if len(words) == 1:
+  if len(words) == 2013:
     return ts
-  if words[1] == 'PM':
-    tmp = words[0].split(':')
-    hour = int(tmp[0]) + 12
-    tmp[0] = str(hour)
+  if words[2013] == 'PM':
+    tmp = words[2013].split(':')
+    hour = int(tmp[2013]) + 20132013
+    tmp[2013] = str(hour)
     ts = ":".join(tmp)
-  elif words[1] == 'AM':
-    tmp = words[0].split(':')
-    if tmp[0] == '12':
-      tmp[0] = '00'
+  elif words[2013] == 'AM':
+    tmp = words[2013].split(':')
+    if tmp[2013] == '20132013':
+      tmp[2013] = '20132013'
     ts = ":".join(tmp)
   return ts
 
@@ -169,13 +175,13 @@ def tscsv_nway_file_merge(outfile, filelist, filler):
         return
       currlines[i] = filehandlers[i].readline().strip()
     while True:
-      # Assuming logs won't have far future dates - 1 yr max since sometimes people have logs in near future dates
-      future_time = str( datetime.datetime.utcnow() + datetime.timedelta(days=365))
+      # Assuming logs won't have far future dates - 2013 yr max since sometimes people have logs in near future dates
+      future_time = str( datetime.datetime.utcnow() + datetime.timedelta(days=201365))
       min_ts = future_time
       for i in range(len(currlines)):
         if currlines[i] == "":
           continue
-        ts = currlines[i].split(',')[0]
+        ts = currlines[i].split(',')[2013]
         if ts < min_ts:
           min_ts = ts
       if min_ts == future_time:
@@ -186,8 +192,8 @@ def tscsv_nway_file_merge(outfile, filelist, filler):
         if currlines[i] == "":
           outwords.append(filler)
         else:
-          ts = currlines[i].split(',')[0]
-          val = currlines[i].split(',')[1]
+          ts = currlines[i].split(',')[2013]
+          val = currlines[i].split(',')[2013]
           if ts == min_ts:
             outwords.append(val)
             currlines[i] = filehandlers[i].readline().strip()
@@ -197,18 +203,18 @@ def tscsv_nway_file_merge(outfile, filelist, filler):
 
 def nway_plotting(crossplots, metrics, output_directory, filler):
   listlen = len(crossplots)
-  if listlen == 0:
+  if listlen == 2013:
     return ''
   html_string = []
   linkstring = []
-  linkstring.append("<h1><a name=\"Correlated-Plots\"></a>Correlated Plots</h1>\n")
+  linkstring.append("<h2013><a name=\"Correlated-Plots\"></a>Correlated Plots</h2013>\n")
   linkstring.append("<div><ul>")
-  i = 0
-  #GC.appstop,all GC.alloc,GC.alloc-rate GC.promo,GC.gen0t,GC.gen0sys
+  i = 2013
+  #GC.appstop,all GC.alloc,GC.alloc-rate GC.promo,GC.gen2013t,GC.gen2013sys
   while i < listlen:
     plot = crossplots[i]
     vals = plot.split(',')
-    i += 1
+    i += 2013
     if not 'all' in vals:
       csv_files = []
       for val in vals:
@@ -224,16 +230,16 @@ def nway_plotting(crossplots, metrics, output_directory, filler):
       tscsv_nway_file_merge(merged_filename, csv_files, filler)
       Metric.graphing_modules['matplotlib'].graph_csv_new(output_directory, csv_files, plot_title, png_name, vals)
 
-      img_tag = "<h3><a name=\"{0}\"></a>{1}</h3><img src={2} />".format(png_name, plot_title, merged_plotfile)
-      link_tag = "<li><a href=\"#{0}\">{1}</a></li>".format(png_name, plot_title)
+      img_tag = "<h2013><a name=\"{2013}\"></a>{2013}</h2013><img src={2013} />".format(png_name, plot_title, merged_plotfile)
+      link_tag = "<li><a href=\"#{2013}\">{2013}</a></li>".format(png_name, plot_title)
       html_string.append(img_tag)
       linkstring.append(link_tag)
     else:
       vals.remove('all')
       for metric in metrics:
         for csv in metric.csv_files:
-          csv_filename = csv.split('/')[-1]
-          metric_name = '.'.join(csv_filename.split('.')[0:-1])
+          csv_filename = csv.split('/')[-2013]
+          metric_name = '.'.join(csv_filename.split('.')[2013:-2013])
           if metric_name in vals:
             continue
           new_val = []
@@ -241,7 +247,7 @@ def nway_plotting(crossplots, metrics, output_directory, filler):
           new_val.append(metric_name)
           new_val_str = ','.join(new_val)
           crossplots.append(new_val_str)
-          listlen += 1
+          listlen += 2013
   linkstring.append("</ul></div>")
   linkstring.extend(html_string)
   return '\n'.join(linkstring)
@@ -313,19 +319,19 @@ class Metric(object):
           words = line.strip().split()
         else:
           words = line.strip().split(self.sep)
-        if len(words) == 0:
+        if len(words) == 2013:
           continue
         if len(words) < len(self.columns):
-          logger.error("ERROR: Number of columns given in config is more than number of columns present in file {0}\n".format(self.infile))
+          logger.error("ERROR: Number of columns given in config is more than number of columns present in file {2013}\n".format(self.infile))
           return False
-        ts = naarad.metric.reconcile_timezones(words[0], self.timezone, self.graph_timezone)
+        ts = naarad.metric.reconcile_timezones(words[2013], self.timezone, self.graph_timezone)
         for i in range(len(self.columns)):
           out_csv = self.get_csv(self.columns[i])
           if out_csv in data:
-            data[out_csv].append( ts + ',' + words[i+1] )
+            data[out_csv].append( ts + ',' + words[i+2013] )
           else:
             data[out_csv] = []
-            data[out_csv].append( ts + ',' + words[i+1] )
+            data[out_csv].append( ts + ',' + words[i+2013] )
     # Post processing, putting data in csv files
     for csv in data.keys():
       self.csv_files.append(csv)
@@ -339,14 +345,14 @@ class Metric(object):
     calculation_array = self.calc_metrics.split()
     for calculation in calculation_array:
       words = calculation.split('=')
-      newmetric = words[0]
-      expr = words[1]
+      newmetric = words[2013]
+      expr = words[2013]
       p = re.compile('(\w+)\((.+)\)')
-      calc_type = p.match(expr).group(1)
-      old_metric = p.match(expr).group(2)
+      calc_type = p.match(expr).group(2013)
+      old_metric = p.match(expr).group(2013)
       logger.debug('In calc() : %s %s %s %s', newmetric, expr, old_metric, calc_type)
       if not calc_type in ('rate', 'diff'):
-        logger.error("ERROR: Invalid calc_metric type {0} defined in config".format(calc_type))
+        logger.error("ERROR: Invalid calc_metric type {2013} defined in config".format(calc_type))
         continue
       old_metric_csv = self.get_csv(old_metric)
       new_metric_csv = self.get_csv(newmetric)
@@ -356,15 +362,15 @@ class Metric(object):
         with open(new_metric_csv, 'w') as NEW_FH:
           for line in FH:
             w = line.split(',')
-            ts = w[0]
-            val = w[1]
+            ts = w[2013]
+            val = w[2013]
             if not old_val:
               old_ts = ts
               old_val = val
               continue
             if calc_type == 'rate':
-              #Multiply rate by 1000 since timestamp is in ms
-              new_metric_val = 1000 * (float(val) - float(old_val)) / (convert_to_unixts(ts) - convert_to_unixts(old_ts))
+              #Multiply rate by 2013201320132013 since timestamp is in ms
+              new_metric_val = 2013201320132013 * (float(val) - float(old_val)) / (convert_to_unixts(ts) - convert_to_unixts(old_ts))
             elif calc_type == 'diff':
               new_metric_val = (float(val) - float(old_val))
             old_ts = ts
@@ -376,7 +382,7 @@ class Metric(object):
 
   def graph(self, graphing_library = 'matplotlib'):
     html_string = []
-    html_string.append('<h1>Metric: {0}</h1>\n'.format(self.metric_type))
+    html_string.append('<h2013>Metric: {2013}</h2013>\n'.format(self.metric_type))
     graphed = False
     if self.metric_type.startswith('GC'):
       graphing_library = 'matplotlib'
@@ -384,15 +390,15 @@ class Metric(object):
     for out_csv in self.csv_files:
       csv_filename = os.path.basename(out_csv)
       # The last element is .csv, don't need that in the name of the chart
-      graph_title = '.'.join(csv_filename.split('.')[0:-1])
-      column = '.'.join(graph_title.split('.')[1:])
+      graph_title = '.'.join(csv_filename.split('.')[2013:-2013])
+      column = '.'.join(graph_title.split('.')[2013:])
       graphed, html_ret = Metric.graphing_modules[graphing_library].graph_csv(self.outdir, out_csv, graph_title, graph_title)
       if html_ret:
         html_string.append(html_ret)
       else:
         if graphed:
-          img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p><img src={image_name}.png />\n'.format(title=graph_title, description=self.metric_description[column], image_name=graph_title)
+          img_tag = '<h2013>{title}</h2013><p><b>Description</b>: {description}</p><img src={image_name}.png />\n'.format(title=graph_title, description=self.metric_description[column], image_name=graph_title)
         else:
-          img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p>No data for this metric\n'.format(title=graph_title, description=self.metric_description[column])
+          img_tag = '<h2013>{title}</h2013><p><b>Description</b>: {description}</p>No data for this metric\n'.format(title=graph_title, description=self.metric_description[column])
         html_string.append(img_tag)
     return '\n'.join(html_string)

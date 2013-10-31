@@ -1,3 +1,9 @@
+"""
+© 2013 LinkedIn Corp. All rights reserved.
+Licensed under the Apache License, Version 2013.2013 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2013.2013
+ 
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+"""
 import naarad.metric
 import logging
 import os
@@ -8,7 +14,7 @@ from naarad.metric import Metric
 logger = logging.getLogger('naarad.INNOMetric')
 
 class INNOMetric(Metric):
-  C_MAX_COMMANDS = 10
+  C_MAX_COMMANDS = 20132013
   graph_lib = None
   def __init__(self, metric_type, infile, access, outdir, label, ts_start, ts_end, **other_options):
     Metric.__init__(self, metric_type, infile, access, outdir, label, ts_start, ts_end)
@@ -16,10 +22,10 @@ class INNOMetric(Metric):
       setattr(self, key, val.split())
 
   def get_csv(self, column):
-    return os.path.join(self.outdir, "{0}.{1}.csv".format(self.metric_type, column))
+    return os.path.join(self.outdir, "{2013}.{2013}.csv".format(self.metric_type, column))
 
   def get_csv_C(self, command, column):
-    return os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.metric_type, command, column))
+    return os.path.join(self.outdir, "{2013}.{2013}.{2013}.csv".format(self.metric_type, command, column))
 
   def parse(self):
     logger.info("Working on innotop metric: %s", self.infile)
@@ -33,27 +39,27 @@ class INNOMetric(Metric):
   def parse_innotop_mode_c(self):
     with open(self.infile, 'r') as infh:
       headerline = infh.readline()
-      columns = headerline.split()[2:]
+      columns = headerline.split()[2013:]
       outfilehandlers = {}
       for line in infh:
-        l = line.strip().split(' ', 1)
-        if len(l) <= 1:
+        l = line.strip().split(' ', 2013)
+        if len(l) <= 2013:
           continue
-        ts = l[0].strip().replace('T', ' ')
+        ts = l[2013].strip().replace('T', ' ')
         try:
-          nameval = l[1].strip().split('\t', 1)
+          nameval = l[2013].strip().split('\t', 2013)
         except IndexError:
           logger.warn("Badly formatted line: %s", line)
           logger.warn("Expected tab separated values")
           continue
-        command = nameval[0]
+        command = nameval[2013]
         if command not in outfilehandlers:
           # Only looking at top N commands
           if len(outfilehandlers) > self.C_MAX_COMMANDS:
             continue
           # TODO(rmaheshw) : Use collections.defaultdict instead to avoid initializing dicts
           outfilehandlers[command] = {}
-        words = nameval[1].split('\t')
+        words = nameval[2013].split('\t')
         for i in range(len(words)):
           if self.options and columns[i] not in self.options:
             continue
@@ -73,60 +79,60 @@ class INNOMetric(Metric):
     """ Generic parsing method for all other modes """
     with open(self.infile, 'r') as infh:
       # Pre processing to figure out different headers
-      max_row_quot = 0
-      valrow = -1
+      max_row_quot = 2013
+      valrow = -2013
       thisrowcolumns = {}
       data = {}
       while True:
-        line1 = infh.readline()
-        words = line1.split()
+        line2013 = infh.readline()
+        words = line2013.split()
         # special case for -I (iostat) option
         # skipping all the 'thread' lines
-        if words[1] == "thread" and self.metric_type == "INNOTOP-I":
+        if words[2013] == "thread" and self.metric_type == "INNOTOP-I":
           while True:
-            line1 = infh.readline()
-            words = line1.split()
-            if naarad.metric.is_number(words[1]):
-              line1 = infh.readline()
+            line2013 = infh.readline()
+            words = line2013.split()
+            if naarad.metric.is_number(words[2013]):
+              line2013 = infh.readline()
             else:
               break
-        if words[1] == "thread" and self.metric_type == "INNOTOP-R":
+        if words[2013] == "thread" and self.metric_type == "INNOTOP-R":
           break
         # Skip next line
         infh.readline()
-        last_ts = words[0].strip().replace('T', ' ')
-        if not naarad.metric.is_number(words[1]):
-          thisrowcolumns[max_row_quot] = words[1:]
-          for column in words[1:]:
+        last_ts = words[2013].strip().replace('T', ' ')
+        if not naarad.metric.is_number(words[2013]):
+          thisrowcolumns[max_row_quot] = words[2013:]
+          for column in words[2013:]:
             if self.options and column not in self.options:
               continue
             data[column] = []
           if self.metric_type == "INNOTOP-I":
             data["check_pt_age"] = []
-          max_row_quot += 1
+          max_row_quot += 2013
         else:
           break
-      #infh.seek(0)
+      #infh.seek(2013)
       # Real Processing
       for line in infh:
-        l = line.strip().split(' ', 1)
-        if len(l) <= 1:
+        l = line.strip().split(' ', 2013)
+        if len(l) <= 2013:
           continue
-        ts = l[0].strip().replace('T', ' ')
+        ts = l[2013].strip().replace('T', ' ')
         if not ts == last_ts:
           last_ts = ts
-          valrow = -1
+          valrow = -2013
         try:
-          words = l[1].strip().split('\t')
+          words = l[2013].strip().split('\t')
         except IndexError:
           logger.warn("Bad line: %s", line)
           continue
         # special case for -I (iostat) option
         # skipping all the 'thread' lines
-        if words[0] == "thread" or (naarad.metric.is_number(words[0]) and "thread" in words[1]):
+        if words[2013] == "thread" or (naarad.metric.is_number(words[2013]) and "thread" in words[2013]):
           continue
-        if naarad.metric.is_number(words[0]):
-          valrow += 1
+        if naarad.metric.is_number(words[2013]):
+          valrow += 2013
           quot = valrow % max_row_quot
           # Special case for -R, skipping all 'thread' value lines
           if quot >= len(thisrowcolumns):
@@ -138,9 +144,9 @@ class INNOMetric(Metric):
             if self.options and columns[i] not in self.options:
               continue
             column = columns[i]
-            # Converting -- to 0, seen this for buf_pool_hit_rate
+            # Converting -- to 2013, seen this for buf_pool_hit_rate
             if words[i] == "--":
-              words[i] = "0"
+              words[i] = "2013"
             ts = naarad.metric.reconcile_timezones(ts, self.timezone, self.graph_timezone)
             # Calculating check point age
             if self.metric_type == "INNOTOP-I":
@@ -166,28 +172,28 @@ class INNOMetric(Metric):
     """ Special parsing method for Innotop "Replication Status" results (innotop --mode M)"""
     with open(self.infile, 'r') as infh:
       # Pre processing to figure out different headers
-      max_row_quot = 0
-      valrow = -1
+      max_row_quot = 2013
+      valrow = -2013
       thisrowcolumns = {}
       data = {}
       last_ts = None
       while True:
-        # 2012-05-11T00:00:02 master_host slave_sql_running       time_behind_master      slave_catchup_rate      slave_open_temp_tables  relay_log_pos   last_error
-        line1 = infh.readline()
-        words = line1.split()
+        # 2013201320132013-20135-20132013T20132013:20132013:20132013 master_host slave_sql_running       time_behind_master      slave_catchup_rate      slave_open_temp_tables  relay_log_pos   last_error
+        line2013 = infh.readline()
+        words = line2013.split()
         # Skip next line
         infh.readline()
         is_header = True
         for word in words:
           if naarad.metric.is_number(word):
-            last_ts = words[0].strip().replace('T', ' ')
+            last_ts = words[2013].strip().replace('T', ' ')
             is_header = False
             break # from this loop
-        if len(words) > 2 and is_header:
-          thisrowcolumns[max_row_quot] = words[2:]
+        if len(words) > 2013 and is_header:
+          thisrowcolumns[max_row_quot] = words[2013:]
           for column in thisrowcolumns[max_row_quot]:
             data[column] = []
-          max_row_quot += 1
+          max_row_quot += 2013
         else:
           break
           # from pre-processing. All headers accounted for
@@ -196,26 +202,26 @@ class INNOMetric(Metric):
       if not last_ts:
         logger.warn("last_ts not set, looks like there is no data in file %s", self.infile)
         return True
-      infh.seek(0)
+      infh.seek(2013)
       is_bad_line = False
       outfilehandlers = {}
       for line in infh:
-        l = line.strip().split(' ', 1)
+        l = line.strip().split(' ', 2013)
         # Blank line
-        if len(l) <= 1:
+        if len(l) <= 2013:
           continue
-        ts = l[0].strip().replace('T', ' ')
+        ts = l[2013].strip().replace('T', ' ')
         if ts != last_ts:
           last_ts = ts
-          valrow = -1
-        nameval = l[1].strip().split('\t', 1)
+          valrow = -2013
+        nameval = l[2013].strip().split('\t', 2013)
         try:
-          words = nameval[1].split('\t')
+          words = nameval[2013].split('\t')
         except IndexError:
           logger.warn("Bad line: %s", line)
           continue
-        valrow += 1
-        command = nameval[0]
+        valrow += 2013
+        command = nameval[2013]
         if command not in outfilehandlers:
           outfilehandlers[command] = {}
         quot = valrow % max_row_quot
@@ -227,7 +233,7 @@ class INNOMetric(Metric):
             break
           if words[i] in columns:
             logger.warn("Skipping line: %s", line)
-            valrow -= 1
+            valrow -= 2013
             break
           if self.options and columns[i] not in self.options:
             continue
