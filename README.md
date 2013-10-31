@@ -207,4 +207,3 @@ Neelix supports various `sar` metrics, each one as its own metric. Supported met
 * SAR-memutil using command: `sar -r 1`
 * SAR-paging using command: `sar -B 1`
 * SAR-swapping using command: `sar -W 1`
-
