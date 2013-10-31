@@ -80,7 +80,7 @@ def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=N
   fig.set_size_inches(float(graph_width) / 80, float(graph_height) / 80)
   if graph_type == "line":
     line_style = "-"
-    marker = None
+    marker = " "
   else:
     marker = "."
     line_style = None
