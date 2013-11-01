@@ -21,11 +21,11 @@ import time
 # Add src directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')))
 
-import naarad.metric
-from naarad.metric import Metric
-from naarad.gc_metric import GCMetric
-from naarad.innotop_metric import INNOMetric
-from naarad.sar_metric import SARMetric
+import naarad.utils
+from naarad.metrics.metric import Metric
+from naarad.metrics.gc_metric import GCMetric
+from naarad.metrics.innotop_metric import INNOMetric
+from naarad.metrics.sar_metric import SARMetric
 from naarad.graphing import dygraphs
 
 try:
@@ -86,7 +86,7 @@ def read_naarad_templates():
     with open(template_file,'r') as FH:
       for line in FH:
         template, url = [word.strip() for word in line.split()]
-        if naarad.metric.is_valid_url(url):
+        if naarad.utils.is_valid_url(url):
           logger.warning('This line in .naarad/templates.txt does not contain correct URL.' + line + '. Continuing.')
           continue
         if not template.startswith('template:'):
@@ -183,20 +183,20 @@ def main():
     read_naarad_templates()
     # Print template config
     if args.show_config:
-      tmp_file = naarad.metric.download_file(template_urls[args.config])
+      tmp_file = naarad.utils.download_file(template_urls[args.config])
       with open(tmp_file, 'r') as FH:
         print "----"
         print FH.read()
       sys.exit("----")
 
     # Download config if its a URL
-    if naarad.metric.is_valid_url(args.config):
-      optfile = naarad.metric.download_file(args.config)
+    if naarad.utils.is_valid_url(args.config):
+      optfile = naarad.utils.download_file(args.config)
     elif args.config.startswith("template:"):
       #Its a template
       if args.config in template_urls.keys():
         logger.info('Using template ' + args.config + ' used from ' + template_urls[args.config] )
-        optfile = naarad.metric.download_file(template_urls[args.config])
+        optfile = naarad.utils.download_file(template_urls[args.config])
       else:
         sys.exit("ERROR: Template " + args.config + " not found. Exiting...")
       with open(optfile, 'r') as FH:
@@ -268,7 +268,7 @@ def main():
         except:
           sys.exit("Exception: " , sys.exc_info()[0], "; Something wrong with the format of the config file in section:", section)
         if section == 'SAR-*':
-          sar_metrics = naarad.metric.get_all_sar_objects(metrics, infile, access, outdir_default, label, ts_start, ts_end, None)
+          sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, access, outdir_default, label, ts_start, ts_end, None)
           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
             for metric in sar_metrics:
               metric.ignore = True
@@ -311,11 +311,11 @@ def main():
       threads.append(thread)
     for t in threads:
       t.join()
-    cross_plotting_html_string = naarad.metric.nway_plotting(crossplots, metrics, outdir_default, filler)
+    cross_plotting_html_string = naarad.utils.nway_plotting(crossplots, metrics, outdir_default, filler)
     html_string.append(cross_plotting_html_string)
     html_string.append("<h1>Single Metrics</h1>\n")
     html_string.extend(metric_string_list)
-    naarad.metric.generate_html_report(outdir_default, ''.join(html_string))
+    naarad.utils.generate_html_report(outdir_default, ''.join(html_string))
     if outdir_default:
       logger.info('Report generated at {0}'.format( os.path.join(outdir_default, 'Report.html') ))
 

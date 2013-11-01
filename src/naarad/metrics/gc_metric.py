@@ -14,10 +14,10 @@ from pytz import timezone
 import sys
 import threading
 
-from naarad.metric import Metric
-import naarad.metric
+from naarad.metrics.metric import Metric
+import naarad.utils
 
-logger = logging.getLogger('naarad.GCMetric')
+logger = logging.getLogger('naarad.metrics.GCMetric')
 
 class GCMetric(Metric):
   """ Class for GC logs, deriving from class Metric """
@@ -91,7 +91,7 @@ class GCMetric(Metric):
           begin_ts = str( self.get_clock_from_jvmts(self.beginning_date, self.beginning_ts, words[0]) )
           if self.ts_out_of_range(begin_ts):
             continue
-          begin_ts = naarad.metric.reconcile_timezones(begin_ts, self.timezone, self.graph_timezone)
+          begin_ts = naarad.utils.reconcile_timezones(begin_ts, self.timezone, self.graph_timezone)
           csvf.write(begin_ts + ',')
           csvf.write(words[1])
           csvf.write('\n')
