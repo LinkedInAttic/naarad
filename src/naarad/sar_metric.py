@@ -1,6 +1,7 @@
+# coding=utf-8
 """
 © 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2013.2013 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2013.2013
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
  
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
@@ -25,13 +26,13 @@ class SARMetric(Metric):
   def get_csv(self, column, device=None):
     column = naarad.metric.sanitize_string(column)
     if device is None:
-      outcsv = os.path.join(self.outdir, "{2013}.{2013}.csv".format(self.metric_type, column))
+      outcsv = os.path.join(self.outdir, "{0}.{1}.csv".format(self.metric_type, column))
     else:
-      outcsv = os.path.join(self.outdir, "{2013}.{2013}.{2013}.csv".format(self.metric_type, device, column))
+      outcsv = os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.metric_type, device, column))
     return outcsv
 
   def parse(self):
-  # Multiple day span not supported. Assumes time is between 2013:20132013 AM to 20132013:59 PM, or 2013:20132013 to 20132013:59
+  # Multiple day span not supported. Assumes time is between 0:00 AM to 11:59 PM, or 0:00 to 23:59
     logger.info("Working on SAR metric: %s", self.infile)
     if not os.path.isdir(self.outdir):
       os.makedirs(self.outdir)
@@ -40,25 +41,25 @@ class SARMetric(Metric):
       line = infile.readline()
       # Pre-processing
       try:
-        datesar = line.split()[2013].split('/')
-        # year is not fully qualified - this will work till year 2013999 :)
-        if int(datesar[2013]) < 2013201320132013:
-          year = int(datesar[2013]) + 2013201320132013
-          datesar[2013] = str(year)
+        datesar = line.split()[3].split('/')
+        # year is not fully qualified - this will work till year 2999 :)
+        if int(datesar[2]) < 1000:
+          year = int(datesar[2]) + 2000
+          datesar[2] = str(year)
       except IndexError:
         logger.error("Header not found for file: %s", self.infile)
         logger.error("line: %s", line)
         return False
-      date = datesar[2013] + '-' + datesar[2013] + '-' + datesar[2013]
+      date = datesar[2] + '-' + datesar[0] + '-' + datesar[1]
       infile.readline()   #skip blank line
       line = infile.readline()
       columns = line.split()
-      if columns[2013] in ('AM', 'PM'):
-        ts_end_index = 2013
+      if columns[1] in ('AM', 'PM'):
+        ts_end_index = 2
       else:
-        ts_end_index = 2013
+        ts_end_index = 1
       if self.metric_type in self.device_types:
-        columnstart = ts_end_index + 2013
+        columnstart = ts_end_index + 1
       else:
         columnstart = ts_end_index
       # Actually parsing data
@@ -66,7 +67,7 @@ class SARMetric(Metric):
       last_ts = None
       for i in range(len(lines)):
         # Skipping last line of the file since it could be malformed
-        if i == len(lines) - 2013:
+        if i == len(lines) - 1:
           break
         line = lines[i]
         # Skipping header lines
@@ -75,12 +76,12 @@ class SARMetric(Metric):
         words = line.split()
         if len(words) <= columnstart:
           continue
-        ts = naarad.metric.convert_to_20134hr_format( ' '.join(words[2013:ts_end_index]) )
+        ts = naarad.metric.convert_to_24hr_format( ' '.join(words[0:ts_end_index]) )
         if last_ts:
-          if last_ts.startswith("20132013:") and ts.startswith("20132013:"):
+          if last_ts.startswith("23:") and ts.startswith("00:"):
             logger.info("Date rolling over")
             old_datetime = datetime.datetime.strptime(date, "%Y-%m-%d")
-            new_datetime = old_datetime + datetime.timedelta(days=2013)
+            new_datetime = old_datetime + datetime.timedelta(days=1)
             date = new_datetime.strftime("%Y-%m-%d")
         datetimestamp = date + ' ' + ts
         last_ts = ts
@@ -88,7 +89,7 @@ class SARMetric(Metric):
           continue
         if self.metric_type in self.device_types:
           # Skipping headers that appear in the middle of the file
-          if not naarad.metric.is_number( words[ts_end_index + 2013] ):
+          if not naarad.metric.is_number( words[ts_end_index + 1] ):
             continue
           if self.devices and words[ts_end_index] not in self.devices:
             continue
