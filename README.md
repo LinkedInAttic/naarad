@@ -36,16 +36,16 @@ Naarad needs a config file that lists all the metrics and the graphing options. 
 
 <pre>
 [GC]
-infile=/home/rmaheshw/logs/gc.log
+infile=/home/ritesh/logs/gc.log
 gc-options=GC appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM
 access=local
 
 [SAR-cpuusage]
 access=local
-infile=/home/rmaheshw/logs/sar.cpuusage.out
+infile=/home/ritesh/logs/sar.cpuusage.out
  
 [GRAPH]
-outdir=/home/rmaheshw/naarad-out
+outdir=/home/ritesh/naarad-out
 </pre>
 
  The config is in INI format with each section describing details about each metric and a special section called GRAPH specifying details about the graphing options.
@@ -74,7 +74,7 @@ graphs=GC.GC,all GC.cmsRM,GC.cmsIM,GC.gen0t GC.promo,GC.alloc
 
 And run it as:
 
-<pre> naarad config -i /home/rmaheshw/logs -o /home/rmaheshw/naarad-out</pre>
+<pre> naarad config -i /home/ritesh/logs -o /home/ritesh/naarad-out</pre>
 
 ## Templates ##
 
@@ -101,7 +101,7 @@ Naarad supports basic calculation over a single metric. In particular, it suppor
 These metrics can be defined by adding a calc_metrics option in metric definition. Example config:
 
 <pre>[GC]
-infile=/home/rmaheshw/logs/loggc-small
+infile=/home/ritesh/logs/loggc-small
 gc-options=alloc promo
 access=local
 calc_metrics=alloc-rate=rate(alloc) promo-rate=rate(promo) alloc-diff=diff(alloc)
@@ -156,7 +156,7 @@ sep=,
 
 [GRAPH]
 graphs=MYAPP-PERF.throughput,MYAPP-PERF.latency
-outdir=/home/rmaheshw/naarad-out
+outdir=/home/ritesh/naarad-out
 </code></pre>
 
 ## Garbage Collection (GC) ##
@@ -193,7 +193,7 @@ The following sub-metrics can be specified for GC:
 So, e.g., you can specify all GC options using this section:
 
 <pre><code>[GC]
-infile=/home/rmaheshw/logs/gc.log
+infile=/home/ritesh/logs/gc.log
 gc-options=GC alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS cmsCM cmsCS csmCR apptime safept gen1t gen1i
 access=local
 </code></pre>
