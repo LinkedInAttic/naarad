@@ -128,8 +128,8 @@ View Results.html in firefox (Chrome complains about cross-domain issues). Note 
 
 Here are some example screenshots of reports produced by Naarad:
 
-* SAR ![report](examples/screenshots/naarad-sar-screenshot.png)
-* GC ![report](examples/screenshots/naarad-gc-screenshot.png)
+* SAR ![report](examples/screenshots/naarad-sar-screenshots.png)
+* GC ![report](examples/screenshots/naarad-gc-screenshots.png)
 
 # Supported Metrics #
 
