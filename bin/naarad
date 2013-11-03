@@ -311,6 +311,8 @@ def main():
       threads.append(thread)
     for t in threads:
       t.join()
+    for metric in metrics:
+      metric.calculate_stats()
     cross_plotting_html_string = naarad.utils.nway_plotting(crossplots, metrics, outdir_default, filler)
     html_string.append(cross_plotting_html_string)
     html_string.append("<h1>Single Metrics</h1>\n")

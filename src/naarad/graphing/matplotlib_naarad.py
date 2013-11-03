@@ -39,7 +39,7 @@ def graph_csv_new(output_directory, csv_files, plot_title, output_filename, colu
   # Get current axis and its xtick labels
   labels = plt.gca().get_xticklabels()
   for label in labels:
-    label.set_rotation(30)
+    label.set_rotation(20)
   plot_file_name = os.path.join(output_directory, output_filename + ".png")
   fig.savefig(plot_file_name)
   plt.close()

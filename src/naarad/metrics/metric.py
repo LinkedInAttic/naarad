@@ -9,6 +9,7 @@ import calendar
 from collections import defaultdict
 import datetime
 import logging
+import numpy as np
 import os
 import pytz
 from pytz import timezone
@@ -89,6 +90,7 @@ class Metric(object):
           logger.error("ERROR: Number of columns given in config is more than number of columns present in file {0}\n".format(self.infile))
           return False
         ts = naarad.utils.reconcile_timezones(words[0], self.timezone, self.graph_timezone)
+        #self.sub_metrics = self.columns
         for i in range(len(self.columns)):
           out_csv = self.get_csv(self.columns[i])
           if out_csv in data:
@@ -102,6 +104,29 @@ class Metric(object):
       with open(csv, 'w') as fh:
         fh.write('\n'.join(data[csv]))
     return True
+
+  def calculate_stats(self):
+    data = {}
+    metric_stats_csv_file = os.path.join(self.outdir, self.metric_type + '.stats.csv')
+    with open(metric_stats_csv_file, 'w') as FH_W:
+      for csv in self.csv_files:
+        if not os.path.getsize(csv):
+          continue
+        data[csv] = []
+        column = '.'.join(csv.split('.')[1:-1])
+        with open(csv, 'r') as FH:
+          for line in FH:
+            words = line.split(',')
+            data[csv].append(float(words[1]))
+        #hist, bin_edges = np.histogram(data[csv],100)
+        mean = np.mean(data[csv])
+        std = np.std(data[csv])
+        percentiles = {}
+        for i in range(5, 100, 5):
+          percentiles[i] = np.percentile(data[csv], i)
+        to_write = [column, mean, std, percentiles[50], percentiles[75], percentiles[90], percentiles[95]]
+        to_write = map(lambda x: str(x), to_write)
+        FH_W.write(','.join(to_write) + '\n') 
 
   def calc(self):
     if not self.calc_metrics:
