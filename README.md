@@ -1,5 +1,7 @@
 # Naarad #
-Naarad is a highly configurable command line tool that parses and plots timeseries data for better visual correlation. It can be used for performance debugging for your service/application. You collect data for the metrics you want to monitor and:
+Naarad is a highly configurable system analysis tool that parses and plots timeseries data for better visual correlation. 
+It can be used for performance analysis of your service/application. 
+You collect data for the metrics you want to monitor and:
 
 * Naarad parses JVM Garbage Collection (GC), System (SAR) and Mysql (Innotop) logs
 * Naarad reads other metrics you have pre-processed and written in CSV format
