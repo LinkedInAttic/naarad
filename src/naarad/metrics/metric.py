@@ -90,7 +90,6 @@ class Metric(object):
           logger.error("ERROR: Number of columns given in config is more than number of columns present in file {0}\n".format(self.infile))
           return False
         ts = naarad.utils.reconcile_timezones(words[0], self.timezone, self.graph_timezone)
-        #self.sub_metrics = self.columns
         for i in range(len(self.columns)):
           out_csv = self.get_csv(self.columns[i])
           if out_csv in data:
