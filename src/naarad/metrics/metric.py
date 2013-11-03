@@ -5,19 +5,13 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
  
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-import calendar
 from collections import defaultdict
-import datetime
 import logging
 import numpy as np
 import os
-import pytz
-from pytz import timezone
 import re
-import sys
-import threading
-import time
-import urllib
+
+import naarad.utils
 
 logger = logging.getLogger('naarad.metrics.Metric')
 
@@ -44,7 +38,7 @@ class Metric(object):
     self.csv_files = []
     self.metric_description = defaultdict(lambda: 'None')
     if other_options:
-      for (key,val) in other_options.iteritems():
+      for (key, val) in other_options.iteritems():
         setattr(self, key, val)
       if not self.titles_string:
         self.titles_string = self.columns
@@ -71,7 +65,7 @@ class Metric(object):
       return False
 
   def get_csv(self, column):
-    col = sanitize_string(column)
+    col = naarad.utils.sanitize_string(column)
     csv = os.path.join(self.outdir, self.metric_type + '.' + col + '.csv')
     return csv
 
@@ -125,7 +119,7 @@ class Metric(object):
         percentiles = {}
         percentile_csv_file = '.'.join(csv.split('.')[0:-1]) + '.percentiles.csv'
         with open(percentile_csv_file, 'w') as FH_P:
-          for i in range(5, 100, 5):
+          for i in range(5, 101, 5):
             percentiles[i] = np.percentile(data[csv], i)
             FH_P.write("%d, %f\n" % (i, percentiles[i]))
         to_write = [column, mean, std, percentiles[50], percentiles[75], percentiles[90], percentiles[95]]
@@ -163,7 +157,7 @@ class Metric(object):
               continue
             if calc_type == 'rate':
               #Multiply rate by 1000 since timestamp is in ms
-              new_metric_val = 1000 * (float(val) - float(old_val)) / (convert_to_unixts(ts) - convert_to_unixts(old_ts))
+              new_metric_val = 1000 * (float(val) - float(old_val)) / (naarad.utils.convert_to_unixts(ts) - naarad.utils.convert_to_unixts(old_ts))
             elif calc_type == 'diff':
               new_metric_val = (float(val) - float(old_val))
             old_ts = ts

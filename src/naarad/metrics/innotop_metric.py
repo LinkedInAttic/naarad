@@ -8,7 +8,6 @@ Unless required by applicable law or agreed to in writing, software distribute
 import naarad.utils
 import logging
 import os
-import datetime
 
 from naarad.metrics.metric import Metric
 
@@ -19,7 +18,7 @@ class INNOMetric(Metric):
   graph_lib = None
   def __init__(self, metric_type, infile, access, outdir, label, ts_start, ts_end, **other_options):
     Metric.__init__(self, metric_type, infile, access, outdir, label, ts_start, ts_end)
-    for (key,val) in other_options.iteritems():
+    for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
 
   def get_csv(self, column):

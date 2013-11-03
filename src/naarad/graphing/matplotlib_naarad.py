@@ -100,7 +100,7 @@ def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=N
   # Get current axis and its xtick labels
   labels = plt.gca().get_xticklabels()
   for label in labels:
-    label.set_rotation(30)
+    label.set_rotation(20)
   plot_file_name = os.path.join(output_directory, output_filename + ".png")
   fig.savefig(plot_file_name)
   plt.close()

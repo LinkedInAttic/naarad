@@ -6,7 +6,6 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import calendar
-from collections import defaultdict
 import datetime
 import logging
 import os
@@ -14,9 +13,10 @@ import pytz
 from pytz import timezone
 import re
 import sys
-import threading
-import time
 import urllib
+
+from naarad.metrics.sar_metric import SARMetric
+from naarad.metrics.metric import Metric
 
 logger = logging.getLogger('naarad.utils')
 
@@ -48,7 +48,7 @@ def download_file(url):
   :return: local_file
   """
   try:
-    (local_file,headers) = urllib.urlretrieve(url)
+    (local_file, headers) = urllib.urlretrieve(url)
   except:
     sys.exit("ERROR: Problem downloading config file. Please check the URL (" + url + "). Exiting...")
   return local_file
