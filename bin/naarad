@@ -106,6 +106,7 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
   if not metric.ignore:
     if metric.collect():
       if metric.parse():
+        metric.calculate_stats()
         metric.calc()
         metric_html_string = metric.graph(graphing_library)
         metric_string_list.append(metric_html_string)
@@ -311,8 +312,6 @@ def main():
       threads.append(thread)
     for t in threads:
       t.join()
-    for metric in metrics:
-      metric.calculate_stats()
     cross_plotting_html_string = naarad.utils.nway_plotting(crossplots, metrics, outdir_default, filler)
     html_string.append(cross_plotting_html_string)
     html_string.append("<h1>Single Metrics</h1>\n")

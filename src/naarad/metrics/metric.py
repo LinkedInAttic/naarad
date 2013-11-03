@@ -109,10 +109,12 @@ class Metric(object):
     data = {}
     metric_stats_csv_file = os.path.join(self.outdir, self.metric_type + '.stats.csv')
     with open(metric_stats_csv_file, 'w') as FH_W:
+      FH_W.write("sub-metric, mean, std, p50, p75, p90, p95\n")
       for csv in self.csv_files:
         if not os.path.getsize(csv):
           continue
         data[csv] = []
+        #TODO: Fix this hacky way to get the sub-metrics
         column = '.'.join(csv.split('.')[1:-1])
         with open(csv, 'r') as FH:
           for line in FH:
@@ -122,11 +124,14 @@ class Metric(object):
         mean = np.mean(data[csv])
         std = np.std(data[csv])
         percentiles = {}
-        for i in range(5, 100, 5):
-          percentiles[i] = np.percentile(data[csv], i)
+        percentile_csv_file = '.'.join(csv.split('.')[0:-1]) + '.percentiles.csv'
+        with open(percentile_csv_file, 'w') as FH_P:
+          for i in range(5, 100, 5):
+            percentiles[i] = np.percentile(data[csv], i)
+            FH_P.write("%d, %f\n" % (i, percentiles[i]))
         to_write = [column, mean, std, percentiles[50], percentiles[75], percentiles[90], percentiles[95]]
         to_write = map(lambda x: str(x), to_write)
-        FH_W.write(','.join(to_write) + '\n') 
+        FH_W.write(', '.join(to_write) + '\n') 
 
   def calc(self):
     if not self.calc_metrics:
