@@ -19,7 +19,7 @@ The power of Naarad is in its configurablity. You can use it to glance at variou
 
 Many tools and frameworks like Zenoss, rrdtool etc have solved the use-case of metric collection, parsing and plotting. Naarad has an overlap in functionality with these tools, but the main advantage of naarad is in its flexibility, which lets it be a powerful tool for performance investigations. Naarad users are performance experts who need to look for 'needle in a haystack'. Naarad was built to support this use-case. 
 
-# Installation #
+## Installation ##
 
 1. Check out Naarad code:
 
