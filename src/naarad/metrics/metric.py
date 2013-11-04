@@ -69,6 +69,14 @@ class Metric(object):
     csv = os.path.join(self.outdir, self.metric_type + '.' + col + '.csv')
     return csv
 
+  def get_stats_csv(self):
+    csv = os.path.join(self.outdir, self.metric_type + '.stats.csv')
+    return csv
+
+  def get_percentiles_csv(self, data_csv):
+    percentile_csv_file = '.'.join(data_csv.split('.')[0:-1]) + '.percentiles.csv'
+    return percentile_csv_file
+
   def parse(self):
     logger.info("Working on" + self.infile)
     with open(self.infile, 'r') as infile:
@@ -100,29 +108,27 @@ class Metric(object):
 
   def calculate_stats(self):
     data = {}
-    metric_stats_csv_file = os.path.join(self.outdir, self.metric_type + '.stats.csv')
+    stats_to_calculate = ['mean', 'std'] # TODO: get input from user
+    percentiles_to_calculate = range(5,101,5) # TODO: get input from user
+    metric_stats_csv_file = self.get_stats_csv()
     with open(metric_stats_csv_file, 'w') as FH_W:
       FH_W.write("sub-metric, mean, std, p50, p75, p90, p95\n")
-      for csv in self.csv_files:
-        if not os.path.getsize(csv):
+      for csv_file in self.csv_files:
+        if not os.path.getsize(csv_file):
           continue
-        data[csv] = []
+        data[csv_file] = []
+        percentile_csv_file = self.get_percentiles_csv(csv_file)
         #TODO: Fix this hacky way to get the sub-metrics
-        column = '.'.join(csv.split('.')[1:-1])
-        with open(csv, 'r') as FH:
+        column = '.'.join(csv_file.split('.')[1:-1])
+        with open(csv_file, 'r') as FH:
           for line in FH:
             words = line.split(',')
-            data[csv].append(float(words[1]))
-        #hist, bin_edges = np.histogram(data[csv],100)
-        mean = np.mean(data[csv])
-        std = np.std(data[csv])
-        percentiles = {}
-        percentile_csv_file = '.'.join(csv.split('.')[0:-1]) + '.percentiles.csv'
+            data[csv_file].append(float(words[1]))
+        calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data[csv_file], stats_to_calculate, percentiles_to_calculate)
         with open(percentile_csv_file, 'w') as FH_P:
-          for i in range(5, 101, 5):
-            percentiles[i] = np.percentile(data[csv], i)
-            FH_P.write("%d, %f\n" % (i, percentiles[i]))
-        to_write = [column, mean, std, percentiles[50], percentiles[75], percentiles[90], percentiles[95]]
+          for percentile in sorted(calculated_percentiles.iterkeys()):
+            FH_P.write("%d, %f\n" % (percentile, calculated_percentiles[percentile]))
+        to_write = [column, calculated_stats['mean'], calculated_stats['std'], calculated_percentiles[50], calculated_percentiles[75], calculated_percentiles[90], calculated_percentiles[95]]
         to_write = map(lambda x: str(x), to_write)
         FH_W.write(', '.join(to_write) + '\n') 
 
@@ -157,7 +163,12 @@ class Metric(object):
               continue
             if calc_type == 'rate':
               #Multiply rate by 1000 since timestamp is in ms
-              new_metric_val = 1000 * (float(val) - float(old_val)) / (naarad.utils.convert_to_unixts(ts) - naarad.utils.convert_to_unixts(old_ts))
+              ts_diff = naarad.utils.convert_to_unixts(ts) - naarad.utils.convert_to_unixts(old_ts)
+              if ts_diff != 0 :
+                new_metric_val = 1000 * (float(val) - float(old_val)) / ts_diff
+              else:
+                new_metric_val = 0
+                logger.warn("rate calculation encountered zero timestamp difference")
             elif calc_type == 'diff':
               new_metric_val = (float(val) - float(old_val))
             old_ts = ts
