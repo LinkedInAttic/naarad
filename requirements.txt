@@ -1,4 +1,5 @@
-matplotlib
+pyparsing
+matplotlib=1.3.1
 numpy
 argparse
 pytz
