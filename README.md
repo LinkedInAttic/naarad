@@ -201,7 +201,7 @@ access=local
 </code></pre>
 
 ## System metrics using sar ##
-Naarad supports various [`sar`](http://en.wikipedia.org/wiki/Sar_(Unix))  metrics, each one as its own metric. Supported metrics and the corresponding command needed to collect them are listed here: 
+Naarad supports various <a href="http://en.wikipedia.org/wiki/Sar_(Unix)">`sar`</a>  metrics, each one as its own metric. Supported metrics and the corresponding command needed to collect them are listed here: 
 
 * SAR-cpuusage using command: `sar -u ALL 1`
 * SAR-device using command: `sar -d 1`
