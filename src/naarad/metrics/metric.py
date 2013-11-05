@@ -5,19 +5,17 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
  
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-import calendar
 from collections import defaultdict
-import datetime
 import logging
+import numpy 
 import os
-import pytz
-from pytz import timezone
 import re
 import sys
 import threading
 import time
 import urllib
 from naarad.graphing.plot_data import PlotData as PD
+import naarad.utils
 
 logger = logging.getLogger('naarad.metrics.Metric')
 
@@ -44,7 +42,7 @@ class Metric(object):
     self.csv_files = []
     self.metric_description = defaultdict(lambda: 'None')
     if other_options:
-      for (key,val) in other_options.iteritems():
+      for (key, val) in other_options.iteritems():
         setattr(self, key, val)
       if not self.titles_string:
         self.titles_string = self.columns
@@ -71,9 +69,17 @@ class Metric(object):
       return False
 
   def get_csv(self, column):
-    col = sanitize_string(column)
+    col = naarad.utils.sanitize_string(column)
     csv = os.path.join(self.outdir, self.metric_type + '.' + col + '.csv')
     return csv
+
+  def get_stats_csv(self):
+    csv = os.path.join(self.outdir, self.metric_type + '.stats.csv')
+    return csv
+
+  def get_percentiles_csv(self, data_csv):
+    percentile_csv_file = '.'.join(data_csv.split('.')[0:-1]) + '.percentiles.csv'
+    return percentile_csv_file
 
   def parse(self):
     logger.info("Working on" + self.infile)
@@ -103,6 +109,32 @@ class Metric(object):
       with open(csv, 'w') as fh:
         fh.write('\n'.join(data[csv]))
     return True
+
+  def calculate_stats(self):
+    data = {}
+    stats_to_calculate = ['mean', 'std'] # TODO: get input from user
+    percentiles_to_calculate = range(5,101,5) # TODO: get input from user
+    metric_stats_csv_file = self.get_stats_csv()
+    with open(metric_stats_csv_file, 'w') as FH_W:
+      FH_W.write("sub-metric, mean, std, p50, p75, p90, p95\n")
+      for csv_file in self.csv_files:
+        if not os.path.getsize(csv_file):
+          continue
+        data[csv_file] = []
+        percentile_csv_file = self.get_percentiles_csv(csv_file)
+        #TODO: Fix this hacky way to get the sub-metrics
+        column = '.'.join(csv_file.split('.')[1:-1])
+        with open(csv_file, 'r') as FH:
+          for line in FH:
+            words = line.split(',')
+            data[csv_file].append(float(words[1]))
+        calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data[csv_file], stats_to_calculate, percentiles_to_calculate)
+        with open(percentile_csv_file, 'w') as FH_P:
+          for percentile in sorted(calculated_percentiles.iterkeys()):
+            FH_P.write("%d, %f\n" % (percentile, calculated_percentiles[percentile]))
+        to_write = [column, calculated_stats['mean'], calculated_stats['std'], calculated_percentiles[50], calculated_percentiles[75], calculated_percentiles[90], calculated_percentiles[95]]
+        to_write = map(lambda x: str(x), to_write)
+        FH_W.write(', '.join(to_write) + '\n') 
 
   def calc(self):
     if not self.calc_metrics:
@@ -135,7 +167,12 @@ class Metric(object):
               continue
             if calc_type == 'rate':
               #Multiply rate by 1000 since timestamp is in ms
-              new_metric_val = 1000 * (float(val) - float(old_val)) / (convert_to_unixts(ts) - convert_to_unixts(old_ts))
+              ts_diff = naarad.utils.convert_to_unixts(ts) - naarad.utils.convert_to_unixts(old_ts)
+              if ts_diff != 0 :
+                new_metric_val = 1000 * (float(val) - float(old_val)) / ts_diff
+              else:
+                new_metric_val = 0
+                logger.warn("rate calculation encountered zero timestamp difference")
             elif calc_type == 'diff':
               new_metric_val = (float(val) - float(old_val))
             old_ts = ts

@@ -20,7 +20,7 @@ class SARMetric(Metric):
     Metric.__init__(self, metric_type, infile, access, outdir, label, ts_start, ts_end)
     self.options = None
     self.devices = None
-    for (key,val) in other_options.iteritems():
+    for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
 
   def get_csv(self, column, device=None):
