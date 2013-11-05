@@ -141,6 +141,7 @@ def graph_data(list_of_plots, output_directory, output_filename):
   graph_height, graph_width, graph_title = get_graph_metadata(list_of_plots)
 
   current_plot_count=0
+  plots_in_error = 0
   if plot_count <= 2:
     fig, axis = plt.subplots()
     fig.set_size_inches(graph_width, graph_height)
@@ -151,7 +152,8 @@ def graph_data(list_of_plots, output_directory, output_filename):
       logger.info('Processing: ' + plot.input_csv)
       if not os.path.getsize(plot.input_csv):
         logger.warning('%s is empty.', plot.input_csv)
-        return False, None
+        plots_in_error += 1
+        continue
       timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})
       if current_plot_count > 1:
         current_axis = axis.twinx()
@@ -174,7 +176,8 @@ def graph_data(list_of_plots, output_directory, output_filename):
       logger.info('Processing: ' + plot.input_csv)
       if not os.path.getsize(plot.input_csv):
         logger.warning('%s is empty.', plot.input_csv)
-        return False, None
+        plots_in_error += 1
+        continue
       timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0:convert_to_mdate})
       if current_plot_count == 1:
         current_axis = host
@@ -188,6 +191,8 @@ def graph_data(list_of_plots, output_directory, output_filename):
         current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
       else:
         current_axis.plot_date(x=timestamp, y=yval, linestyle=None, marker='.', color=get_current_color(current_plot_count))
+  if plots_in_error == plot_count:
+    return False, None
   plt.title(graph_title)
   plt.xlabel('Time')
   plt.grid(True)
