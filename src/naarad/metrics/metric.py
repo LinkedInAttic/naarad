@@ -7,9 +7,14 @@ Unless required by applicable law or agreed to in writing, software distribute
 """
 from collections import defaultdict
 import logging
+import numpy 
 import os
 import re
-
+import sys
+import threading
+import time
+import urllib
+from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
 
 logger = logging.getLogger('naarad.metrics.Metric')
@@ -181,15 +186,16 @@ class Metric(object):
     html_string = []
     html_string.append('<h1>Metric: {0}</h1>\n'.format(self.metric_type))
     graphed = False
-    if self.metric_type.startswith('GC'):
-      graphing_library = 'matplotlib'
+#    if self.metric_type.startswith('GC'):
+#      graphing_library = 'matplotlib'
     logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
     for out_csv in self.csv_files:
       csv_filename = os.path.basename(out_csv)
       # The last element is .csv, don't need that in the name of the chart
       graph_title = '.'.join(csv_filename.split('.')[0:-1])
       column = '.'.join(graph_title.split('.')[1:])
-      graphed, html_ret = Metric.graphing_modules[graphing_library].graph_csv(self.outdir, out_csv, graph_title, graph_title)
+      plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
+      graphed, html_ret = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.outdir, graph_title)
       if html_ret:
         html_string.append(html_ret)
       else:

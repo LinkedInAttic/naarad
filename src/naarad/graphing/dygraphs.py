@@ -38,3 +38,10 @@ def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=N
   #Ritesh: TODO Also generate PNGs if someone needs them separately
   return True, div_string + script_string
 
+def graph_data(list_of_plots, output_directory, output_filename):
+  if len(list_of_plots) > 0:
+    plot = list_of_plots[0]
+    success, html_string = graph_csv(output_directory=output_directory, csv_file=plot.input_csv, plot_title=plot.graph_title, output_filename=output_filename, y_label=plot.y_label, precision=None, graph_height=plot.graph_height, graph_width=plot.graph_width)
+    return success, html_string
+  else:
+      return False, None
