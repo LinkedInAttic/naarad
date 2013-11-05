@@ -7,7 +7,6 @@ Unless required by applicable law or agreed to in writing, software distribute
 """
 from collections import defaultdict
 import logging
-import numpy as np
 import os
 import re
 
