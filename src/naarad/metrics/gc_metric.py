@@ -5,12 +5,9 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
  
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-from collections import defaultdict
 import datetime
 import logging
 import os
-import pytz
-from pytz import timezone
 import sys
 import threading
 
@@ -27,7 +24,7 @@ class GCMetric(Metric):
       'cmsIM', 'cmsRM', 'cmsRS', 'GC', 'cmsCM', 'cmsCP', 'cmsCS', 'cmsCR', 'safept', 'apptime')
   def __init__ (self, metric_type, infile, access, outdir, label, ts_start, ts_end, **other_options):
     Metric.__init__(self, metric_type, infile, access, outdir, label, ts_start, ts_end)
-    for (key,val) in other_options.iteritems():
+    for (key, val) in other_options.iteritems():
       if key == 'gc-options':
         self.gc_options = val.split()
       else:
@@ -79,7 +76,7 @@ class GCMetric(Metric):
     outfile = os.path.join(self.outdir, self.metric_type + '-' + sub_metric + '-out.txt')
     awk_cmd = os.path.join(self.bin_path, 'PrintGCStats')
     cmd = awk_cmd + ' -v plot=' + sub_metric + ' -v interval=1 ' + no_age_file + ' > ' +  outfile
-    thread_id = threading.current_thread().ident;
+    thread_id = threading.current_thread().ident
     logger.info("Thread # %d - Parsing a GC metric with cmd: %s", thread_id, cmd)
     os.system(cmd)
     outcsv = self.get_csv(sub_metric)

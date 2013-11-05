@@ -6,17 +6,18 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import calendar
-from collections import defaultdict
 import datetime
 import logging
+import numpy
 import os
 import pytz
 from pytz import timezone
 import re
 import sys
-import threading
-import time
 import urllib
+
+from naarad.metrics.sar_metric import SARMetric
+from naarad.metrics.metric import Metric
 
 logger = logging.getLogger('naarad.utils')
 
@@ -48,7 +49,7 @@ def download_file(url):
   :return: local_file
   """
   try:
-    (local_file,headers) = urllib.urlretrieve(url)
+    (local_file, headers) = urllib.urlretrieve(url)
   except:
     sys.exit("ERROR: Problem downloading config file. Please check the URL (" + url + "). Exiting...")
   return local_file
@@ -247,3 +248,31 @@ def nway_plotting(crossplots, metrics, output_directory, filler):
   linkstring.extend(html_string)
   return '\n'.join(linkstring)
 
+def calculate_stats(data_list, stats_to_calculate = ['mean', 'std'], percentiles_to_calculate = []):
+  """
+  Calculate statistics for given data. 
+
+  :param list data_list: List of floats
+  :param list stats_to_calculate: List of strings with statistics to calculate. Supported stats are defined in constant stats_to_numpy_method_map 
+  :param list percentiles_to_calculate: List of floats that defined which percentiles to calculate.
+  :return: tuple of dictionaries containing calculated statistics and percentiles
+  """
+  stats_to_numpy_method_map = {
+      'mean' : numpy.mean,
+      'avg' : numpy.mean,
+      'std' : numpy.std,
+      'standard_deviation' : numpy.std
+      }
+  calculated_stats = {}
+  calculated_percentiles = {}
+  for stat in stats_to_calculate:
+    if stat in stats_to_numpy_method_map.keys():
+      calculated_stats[stat] = stats_to_numpy_method_map[stat](data_list)
+    else:
+      logger.error("Unsupported stat : " + str(stat))
+  for percentile in percentiles_to_calculate:
+    if isinstance(percentile, float) or isinstance(percentile, int):
+      calculated_percentiles[percentile] = numpy.percentile(data_list, percentile)
+    else:
+      logger.error("Unsupported percentile requested (should be int or float): " + str(percentile))
+  return calculated_stats, calculated_percentiles
