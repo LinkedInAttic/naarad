@@ -60,15 +60,15 @@ def main():
   plot5 = PlotData('test5.csv', 1, 'GC Promo', 'bps', None, 600, 1200, 'line')
 
 #Test Cases
-  test_plot([plot1],'test1','single plot with all valid csv', True)
-  test_plot([plot1, plot2],'test2','dual plot with all valid csv', True)
-  test_plot([plot1, plot2, plot3],'test3','multi plot with all valid csv', True)
-  test_plot([plot4],'test4','single plot with 1 empty csv', False)
-  test_plot([plot4, plot1],'test5','dual plot with 1 empty csv', True)
-  test_plot([plot1, plot4, plot3],'test6','multi plot with 1 empty csv', True)
-  test_plot([plot5],'test4','single plot with 1 non-existant csv', False)
-  test_plot([plot5, plot1],'test5','dual plot with 1 non-existant csv', True)
-  test_plot([plot1, plot5, plot3],'test6','multi plot with 1 non-existant csv', True)
+  test_plot([plot1], 'test1', 'single plot with all valid csv', True)
+  test_plot([plot1, plot2], 'test2', 'dual plot with all valid csv', True)
+  test_plot([plot1, plot2, plot3], 'test3', 'multi plot with all valid csv', True)
+  test_plot([plot4], 'test4', 'single plot with 1 empty csv', False)
+  test_plot([plot4, plot1], 'test5', 'dual plot with 1 empty csv', True)
+  test_plot([plot1, plot4, plot3], 'test6', 'multi plot with 1 empty csv', True)
+  test_plot([plot5], 'test4', 'single plot with 1 non-existant csv', False)
+  test_plot([plot5, plot1], 'test5', 'dual plot with 1 non-existant csv', True)
+  test_plot([plot1, plot5, plot3], 'test6', 'multi plot with 1 non-existant csv', True)
 
 
 main()
