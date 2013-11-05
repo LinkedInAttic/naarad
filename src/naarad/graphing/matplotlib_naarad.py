@@ -47,6 +47,21 @@ def get_graph_metadata(plots):
   return height/80, width/80, title
 
 
+def curate_plot_list(plots):
+  delete_nodes = []
+  for plot in plots:
+    if os.path.exists(plot.input_csv):
+      if not os.path.getsize(plot.input_csv):
+        logger.warning("%s file is empty. No plot corresponding to this file will be generated", plot.input_csv)
+        delete_nodes.append(plot)
+    else:
+      logger.warning("%s file does not exist. No plot corresponding to this file will be generated", plot.input_csv)
+      delete_nodes.append(plot)
+  for node in delete_nodes:
+    plots.remove(node)
+  return plots
+
+
 def graph_csv_new(output_directory, csv_files, plot_title, output_filename, columns, y_label=None, precision=None, graph_height="600", graph_width="1500", graph_type="line", graph_color="black"):
   y_label = y_label or plot_title
   fig = plt.figure()
@@ -139,7 +154,8 @@ def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=N
   return True, None
 
 def graph_data(list_of_plots, output_directory, output_filename):
-  plot_count = len(list_of_plots)
+  plots = curate_plot_list(list_of_plots)
+  plot_count = len(plots)
 
   if plot_count == 0:
     return True, None
@@ -152,14 +168,10 @@ def graph_data(list_of_plots, output_directory, output_filename):
     fig, axis = plt.subplots()
     fig.set_size_inches(graph_width, graph_height)
     fig.subplots_adjust(bottom=0.2)
-    for plot in list_of_plots:
+    for plot in plots:
       current_plot_count += 1
       current_axis = axis
       logger.info('Processing: ' + plot.input_csv)
-      if not os.path.getsize(plot.input_csv):
-        logger.warning('%s is empty.', plot.input_csv)
-        plots_in_error += 1
-        continue
       timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})
       if current_plot_count > 1:
         current_axis = axis.twinx()
@@ -177,13 +189,9 @@ def graph_data(list_of_plots, output_directory, output_filename):
     axis_offset = 60
     fig.subplots_adjust(right=1-0.05*plot_count, bottom=0.2)
     fig.set_size_inches(graph_width, graph_height)
-    for plot in list_of_plots:
+    for plot in plots:
       current_plot_count += 1
       logger.info('Processing: ' + plot.input_csv)
-      if not os.path.getsize(plot.input_csv):
-        logger.warning('%s is empty.', plot.input_csv)
-        plots_in_error += 1
-        continue
       timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0:convert_to_mdate})
       if current_plot_count == 1:
         current_axis = host
