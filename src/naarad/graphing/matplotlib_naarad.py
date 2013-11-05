@@ -17,6 +17,7 @@ from plot_data import *
 
 logger = logging.getLogger('naarad.graphing.matplotlib')
 
+
 def convert_to_mdate(date_str):
   try:
     mdate = mdates.strpdate2num('%Y-%m-%d %H:%M:%S.%f')(date_str)
@@ -24,9 +25,11 @@ def convert_to_mdate(date_str):
     mdate = mdates.strpdate2num('%Y-%m-%d %H:%M:%S')(date_str)
   return mdate
 
+
 def get_current_color(index):
   colors = ['g', 'b', 'y', 'r', 'c', 'm', 'k']
   return colors[index % len(colors)]
+
 
 def get_graph_metadata(plots):
   height = 0
@@ -42,6 +45,7 @@ def get_graph_metadata(plots):
     else:
       title = title + ',' + plot.graph_title
   return height/80, width/80, title
+
 
 def graph_csv_new(output_directory, csv_files, plot_title, output_filename, columns, y_label=None, precision=None, graph_height="600", graph_width="1500", graph_type="line", graph_color="black"):
   y_label = y_label or plot_title
@@ -70,6 +74,7 @@ def graph_csv_new(output_directory, csv_files, plot_title, output_filename, colu
   fig.savefig(plot_file_name)
   plt.close()
   return True, None
+
 
 def graph_csv_n(output_directory, csv_file, plot_title, output_filename, columns, y_label=None, precision=None, graph_height="600", graph_width="1500", graph_type="line", graph_color="black"):
   if not os.path.getsize(csv_file):
@@ -103,6 +108,7 @@ def graph_csv_n(output_directory, csv_file, plot_title, output_filename, columns
   fig.savefig(plot_file_name)
   plt.close()
   return True, None
+
 
 def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=None, precision=None, graph_height="600", graph_width="1500", graph_type="line", graph_color="black"):
   """ Single metric graphing function using matplotlib"""
@@ -140,7 +146,7 @@ def graph_data(list_of_plots, output_directory, output_filename):
 
   graph_height, graph_width, graph_title = get_graph_metadata(list_of_plots)
 
-  current_plot_count=0
+  current_plot_count = 0
   plots_in_error = 0
   if plot_count <= 2:
     fig, axis = plt.subplots()
@@ -168,7 +174,7 @@ def graph_data(list_of_plots, output_directory, output_filename):
   else:
     fig = plt.figure()
     host = host_subplot(111, axes_class=AA.Axes)
-    axis_offset = 0.75
+    axis_offset = 60
     fig.subplots_adjust(right=1-0.05*plot_count, bottom=0.2)
     fig.set_size_inches(graph_width, graph_height)
     for plot in list_of_plots:
@@ -194,10 +200,12 @@ def graph_data(list_of_plots, output_directory, output_filename):
   if plots_in_error == plot_count:
     return False, None
   plt.title(graph_title)
-  plt.xlabel('Time')
+  plt.xlabel('Time', fontsize=10)
+  x_date_format = mdates.DateFormatter('%H:%M:%S')
+  current_axis.xaxis.set_major_formatter(x_date_format)
   plt.grid(True)
   plt.setp(current_axis.xaxis.get_majorticklabels(), rotation=20)
   plot_file_name = os.path.join(output_directory, output_filename + ".png")
   fig.savefig(plot_file_name)
   plt.close()
-  return True,None
+  return True, None
