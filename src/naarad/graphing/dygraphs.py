@@ -7,6 +7,9 @@ Unless required by applicable law or agreed to in writing, software distribute
 """
 import os
 import random
+import logging
+
+logger = logging.getLogger('naarad.graphing.dygraph')
 
 def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=None, precision=None, graph_height="600", graph_width="1500"):
   """ Single metric graphing function """
@@ -42,6 +45,8 @@ def graph_data(list_of_plots, output_directory, output_filename):
   if len(list_of_plots) > 0:
     plot = list_of_plots[0]
     success, html_string = graph_csv(output_directory=output_directory, csv_file=plot.input_csv, plot_title=plot.graph_title, output_filename=output_filename, y_label=plot.y_label, precision=None, graph_height=plot.graph_height, graph_width=plot.graph_width)
+    if len(list_of_plots) > 1:
+      logger.warning('dygraph module currently does not support co-relation of multiple plots. Only plotting %s', plot.graph_title)
     return success, html_string
   else:
-      return False, None
+    return False, None
