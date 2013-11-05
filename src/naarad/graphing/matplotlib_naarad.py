@@ -11,7 +11,11 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
+import logging
 from plot_data import *
+
+
+logger = logging.getLogger('naarad.graphing.matplotlib')
 
 def convert_to_mdate(date_str):
   try:
@@ -144,9 +148,9 @@ def graph_data(list_of_plots, output_directory, output_filename):
     for plot in list_of_plots:
       current_plot_count += 1
       current_axis = axis
-#      print('Processing: ' + plot.input_csv)
+      logger.info('Processing: ' + plot.input_csv)
       if not os.path.getsize(plot.input_csv):
-        print(plot.input_csv + ' is empty.')
+        logger.warning('%s is empty.', plot.input_csv)
         return False, None
       timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})
       if current_plot_count > 1:
@@ -167,6 +171,10 @@ def graph_data(list_of_plots, output_directory, output_filename):
     fig.set_size_inches(graph_width, graph_height)
     for plot in list_of_plots:
       current_plot_count += 1
+      logger.info('Processing: ' + plot.input_csv)
+      if not os.path.getsize(plot.input_csv):
+        logger.warning('%s is empty.', plot.input_csv)
+        return False, None
       timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0:convert_to_mdate})
       if current_plot_count == 1:
         current_axis = host
