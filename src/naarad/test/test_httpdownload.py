@@ -2,9 +2,10 @@ import os
 import nose  
 import sys
 
-# add the path of ~/naarad/src/naarad;   the testing py is under ~/naarad/src/naarad/test 
-sys.path.insert(0,os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import httpdownload
+# add the path of ~/naarad/src;   the testing py is under ~/naarad/src/naarad/test 
+sys.path.insert(0,os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+import naarad.httpdownload as httpdownload
  
 def test_list_of_urls_no_output():
   ''' list of abus urls'''
@@ -22,6 +23,11 @@ def test_list_of_urls_no_output():
   assert os.path.exists(os.path.join(outdir, output_file)),  "File of %s does not exist! " % output_file  
   output_file = "2.html"
   assert os.path.exists(os.path.join(outdir, output_file)),  "File of %s does not exist! " % output_file
+  
+  if os.path.exists(os.path.join(outdir, "1.html")):
+    os.remove(os.path.join(outdir, "1.html"));  
+  if os.path.exists(os.path.join(outdir, "2.html")):
+    os.remove(os.path.join(outdir, "2.html"));   
     
 
 def test_list_of_urls_with_output():
@@ -42,6 +48,11 @@ def test_list_of_urls_with_output():
   output_file = "2a.html"
   assert os.path.exists(os.path.join(outdir, output_file)),  "File of %s does not exist! " % output_file
        
+  if os.path.exists(os.path.join(outdir, "1a.html")):
+    os.remove(os.path.join(outdir, "1a.html"));  
+  if os.path.exists(os.path.join(outdir, "2a.html")):
+    os.remove(os.path.join(outdir, "2a.html"));    
+      
 def test_regex_urls():
   '''a seeding url, and a regex expression of urls '''
   seed_url = "http://localhost/naarad/a.html"
@@ -63,4 +74,7 @@ def test_regex_urls():
   output_file = "2.html"
   assert os.path.exists(os.path.join(outdir, output_file)),  "File of %s does not exist! " % output_file
   
-  
+  if os.path.exists(os.path.join(outdir, "1.html")):
+    os.remove(os.path.join(outdir, "1.html"));  
+  if os.path.exists(os.path.join(outdir, "2.html")):
+    os.remove(os.path.join(outdir, "2.html"));    

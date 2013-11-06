@@ -5,9 +5,6 @@ import urllib2
 import logging
 from HTMLParser import HTMLParser
 
-# add the path of ~/naarad/src;   the testing py is under ~/naarad/src/naarad 
-sys.path.insert(0,os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import naarad.utils as utils
 
 logger = logging.getLogger('naarad.utils')
