@@ -21,14 +21,13 @@ def handle_single_url(url, outdir, outfile=None):
   """
   if not url or type(url) != str \
     or not outdir or type(outdir) != str :
-      logger.error('passed in parameters are incorrect.')
+      logger.error('passed in parameters %s %s are incorrect.' % (url, outdir))
       return
   
   if not utils.is_valid_url(url):
-    logger.error("passed in url is incorrect..")
+    logger.error("passed in url %s is incorrect." % url)
     return
     
-  # if outfile is not given, then extract the output file name from the url
   if not outfile:
     segs = url.split('/')
     outfile = segs[-1]
@@ -37,7 +36,6 @@ def handle_single_url(url, outdir, outfile=None):
   if os.path.exists(output_file):
     logger.warn("the %s already exists!" % outfile)
   
-  #download and write to output_file
   with open(output_file, "w") as fh:
     try:
       response = urllib2.urlopen(url)
@@ -47,8 +45,10 @@ def handle_single_url(url, outdir, outfile=None):
       return
 
 
-# to parse the html file, and extract href links into links[]
-class HTMLLinkExtractor(HTMLParser):  
+class HTMLLinkExtractor(HTMLParser): 
+  """
+  Helper class to parse the html file returned. It extracts href links into links[]
+  """
   def __init__(self):  
     HTMLParser.__init__(self)  
     self.flag = 0  
@@ -96,7 +96,7 @@ def get_urls_from_seed(url):
 
   # check whether the url is relative or complete
   for i in range(len(urls)):
-    if not urls[i].startswith("http"):    # a relative url ?
+    if not urls[i].startswith("http://") and not urls[i].startswith("https://"):    # a relative url ?
       urls[i] = base_url + urls[i] 
   
   return urls
@@ -122,14 +122,12 @@ def download_url_single(inputs, outdir, outfile = None):
   handle_single_url(inputs, outdir, outfile)   
 
  
-def download_url_regex(inputs, outdir, outfile = None, regex = ".*"):
+def download_url_regex(inputs, outdir, regex = ".*"):
   """ 
   Downloads http(s) urls to a local files
   :param str inputs: Required, the seed url
-  :param str regex: Optional, a regex string. If not given, then all urls will be valid
   :param str outdir: Required. the local directory to put the downloadedfiles.  
-  :param str outfile: // Optional. If this is given, the downloaded url will be renated to outfile; 
-    If this is not given, then the local file will be the original one, as given in url. 
+  :param str regex: Optional, a regex string. If not given, then all urls will be valid
   :return None
   """
   if not inputs or type(inputs) != str \
@@ -141,8 +139,8 @@ def download_url_regex(inputs, outdir, outfile = None, regex = ".*"):
       os.makedirs(outdir)
 
   files = get_urls_from_seed(inputs)
-  for f in files:	 	
+  for f in files:
     if re.compile(regex).match(f):
-      handle_single_url(f, outdir, outfile)  
+      handle_single_url(f, outdir)  
 
 

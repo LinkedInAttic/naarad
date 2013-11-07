@@ -53,7 +53,7 @@ def test_regex_urls():
   if os.path.exists(os.path.join(outdir, "2.html")):
     os.remove(os.path.join(outdir, "2.html"));    
   
-  httpdownload.download_url_regex(seed_url, outdir, None, regex)
+  httpdownload.download_url_regex(seed_url, outdir, regex)
   
   output_file = "1.html"
   assert os.path.exists(os.path.join(outdir, output_file)),  "File of %s does not exist! " % output_file  
