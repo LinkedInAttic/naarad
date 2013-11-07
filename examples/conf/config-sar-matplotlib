@@ -1,0 +1,20 @@
+[SAR-device]
+#ignore=1
+access=local
+infile=sar.device.out
+devices=sda sdb
+options=tps rd_sec/s %util
+
+[SAR-cpuusage]
+ignore=1
+access=local
+infile=sar.cpuusage.out
+#ts_start=2012-02-23 22:05:00
+#ts_end=2012-02-23 23:00:00
+
+[SAR-memory]
+access=local
+infile=sar.memory.out
+
+[GRAPH]
+graphing_library=matplotlib
