@@ -27,7 +27,8 @@ def convert_to_mdate(date_str):
 
 
 def get_current_color(index):
-  colors = ['g', 'b', 'y', 'r', 'c', 'm', 'k']
+#  colors = ['green', 'gray', 'blue', 'black', 'red', 'cyan', 'm', 'gray']
+  colors = ['#FFBF00', '#6FAC46', '#4371C3', '#7977A5', '#5A9AD5', '#A4A4A4', '#ED7C30']
   return colors[index % len(colors)]
 
 
@@ -179,7 +180,7 @@ def graph_data(list_of_plots, output_directory, output_filename):
       if plot.graph_type == 'line':
         current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
       else:
-        current_axis.plot_date(x=timestamp, y=yval, linestyle=None, marker='.', color=get_current_color(current_plot_count))
+        current_axis.plot_date(x=timestamp, y=yval, marker='.', color=get_current_color(current_plot_count))
       y_ticks = current_axis.get_yticklabels()
       for y_tick in y_ticks:
         y_tick.set_color(get_current_color(current_plot_count))

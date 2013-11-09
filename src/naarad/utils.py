@@ -276,3 +276,25 @@ def calculate_stats(data_list, stats_to_calculate = ['mean', 'std'], percentiles
     else:
       logger.error("Unsupported percentile requested (should be int or float): " + str(percentile))
   return calculated_stats, calculated_percentiles
+
+def is_valid_file(filename):
+  """
+  Check if the specifed file exists and is not empty
+
+  :param filename: full path to the file that needs to be checked
+  :return: Status, Message
+  """
+  if os.path.exists(filename):
+    if not os.path.getsize(filename):
+      logger.warning('%s : file is empty.', filename)
+      return False, '%s : file is empty.'
+  else:
+    logger.warning('%s : file does not exist.', filename)
+    return False, '%s : file does not exist.'
+  return True, ''
+
+def convert_unix_ms_to_utc(timestamp):
+      return datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S')
+
+def convert_unix_ms_to_utc_no_seconds(timestamp):
+      return datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H:%M')
