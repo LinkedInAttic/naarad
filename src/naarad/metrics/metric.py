@@ -58,28 +58,21 @@ class Metric(object):
     return os.path.exists(self.infile)
 
   def collect(self):
-    if self.access == 'local':
-      return self.collect_local()
-    elif self.access == 'http':
-      # currently self.infile is in the format of "inputdir/'url''", e.g. logs/http://host1/logpath/gc.log, 
-      # needs to remove the inputdir, so that self.infile only contains the url
-      url_index = self.infile.find("http://")
-      if url_index < 0:
-        url_index = self.infile.find("https://")
-      if url_index < 0:
-        logger.error("ERROR: the given url %s is invalid. \n" % self.infile)
-      self.infile = self.infile[url_index:]  
-        
+    # self.infile can be of several formats: for instance a local dir (e.g., /path/a.log) or an http url;  
+    # decide the case based on self.infile; 
+    # self.access is optional, can be removed. 
+    
+    if self.infile.startswith("http://") or self.infile.startswith("https://"):     
       if naarad.utils.is_valid_url(self.infile):      
         # reassign self.infile, so that it points to the local (downloaded) file
         self.infile = naarad.httpdownload.download_url_single(self.infile, self.outdir)
         return True
       else:
-        logger.error("ERROR: the given url of %s is invalid. \n" % self.infile)
+        logger.error("The given url of {0} is invalid.\n".format(self.infile))
         return False
-    else:
-      logger.warn("WARNING: access is set to other than local or http for metric", self.label)
-      return False
+    else:   
+      self.collect_local()
+      return True
 
   def get_csv(self, column):
     col = naarad.utils.sanitize_string(column)

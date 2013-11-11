@@ -21,11 +21,11 @@ def handle_single_url(url, outdir, outfile=None):
   """
   if not url or type(url) != str \
     or not outdir or type(outdir) != str :
-      logger.error('ERROR: passed in parameters %s %s are incorrect.' % (url, outdir))
+      logger.error('passed in parameters %s %s are incorrect.' % (url, outdir))
       return
   
   if not naarad.utils.is_valid_url(url):
-    logger.error("ERROR: passed in url %s is incorrect." % url)
+    logger.error("passed in url %s is incorrect." % url)
     return
     
   if not outfile:
@@ -34,14 +34,14 @@ def handle_single_url(url, outdir, outfile=None):
     
   output_file = os.path.join(outdir, outfile)
   if os.path.exists(output_file):
-    logger.warn("WARNING: the %s already exists!" % outfile)
+    logger.warn("the %s already exists!" % outfile)
   
   with open(output_file, "w") as fh:
     try:
       response = urllib2.urlopen(url)
       fh.write(response.read())
     except urllib2.HTTPError:
-      logger.error("ERROR: got HTTPError when retrieving %s" % url)
+      logger.error("got HTTPError when retrieving %s" % url)
       return
   
   return output_file
@@ -76,7 +76,7 @@ def get_urls_from_seed(url):
   """	
   
   if not url or type(url) != str or not naarad.utils.is_valid_url(url):
-    logger.error("ERROR: get_urls_from_seed() does not have valid seeding url.")
+    logger.error("get_urls_from_seed() does not have valid seeding url.")
     return   
 
   # Extract the host info of "http://host:port/" in case of href urls are elative urls (e.g., /path/gc.log)
@@ -93,7 +93,7 @@ def get_urls_from_seed(url):
     urls = hp.links
     hp.close()  
   except urllib2.HTTPError:
-    logger.error("ERROR: Got HTTPError when opening the url of %s" % url)
+    logger.error("Got HTTPError when opening the url of %s" % url)
     return urls
 
   # check whether the url is relative or complete
@@ -115,7 +115,7 @@ def download_url_single(inputs, outdir, outfile = None):
   """
   
   if not inputs or type(inputs) != str or not outdir or type(outdir) != str: 
-    logging.error("ERROR: The call parameters are invalid.")
+    logging.error("The call parameters are invalid.")
     return
   else:   
     if not os.path.exists(outdir):
@@ -135,7 +135,7 @@ def download_url_regex(inputs, outdir, regex = ".*"):
   """
   if not inputs or type(inputs) != str \
     or not outdir or type(outdir) != str: 
-    logging.error("ERROR: The call parameters are invalid.")
+    logging.error("The call parameters are invalid.")
     return
   else:   
     if not os.path.exists(outdir):
