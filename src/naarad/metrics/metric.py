@@ -11,6 +11,7 @@ import os
 import re
 
 import naarad.utils
+import naarad.httpdownload
 
 logger = logging.getLogger('naarad.metrics.Metric')
 
@@ -59,8 +60,25 @@ class Metric(object):
   def collect(self):
     if self.access == 'local':
       return self.collect_local()
+    elif self.access == 'http':
+      # currently self.infile is in the format of "inputdir/'url''", e.g. logs/http://host1/logpath/gc.log, 
+      # needs to remove the inputdir, so that self.infile only contains the url
+      url_index = self.infile.find("http://")
+      if url_index < 0:
+        url_index = self.infile.find("https://")
+      if url_index < 0:
+        logger.error("ERROR: the given url %s is invalid. \n" % self.infile)
+      self.infile = self.infile[url_index:]  
+        
+      if naarad.utils.is_valid_url(self.infile):      
+        # reassign self.infile, so that it points to the local (downloaded) file
+        self.infile = naarad.httpdownload.download_url_single(self.infile, self.outdir)
+        return True
+      else:
+        logger.error("ERROR: the given url of %s is invalid. \n" % self.infile)
+        return False
     else:
-      logger.warn("WARNING: access is set to other than local for metric", self.label)
+      logger.warn("WARNING: access is set to other than local or http for metric", self.label)
       return False
 
   def get_csv(self, column):
