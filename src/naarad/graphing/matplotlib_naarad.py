@@ -7,13 +7,12 @@ Unless required by applicable law or agreed to in writing, software distribute
 """
 import numpy
 import os
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
 import logging
-from plot_data import *
-
 
 logger = logging.getLogger('naarad.graphing.matplotlib')
 
@@ -27,8 +26,8 @@ def convert_to_mdate(date_str):
 
 
 def get_current_color(index):
-#  colors = ['green', 'gray', 'blue', 'black', 'red', 'cyan', 'm', 'gray']
-  colors = ['#FFBF00', '#6FAC46', '#4371C3', '#7977A5', '#5A9AD5', '#A4A4A4', '#ED7C30']
+  colors = ['black', 'gray', 'blue', 'm', 'red', 'cyan', 'g', 'gray']
+#  colors = ['#FFBF00', '#6FAC46', '#4371C3', '#7977A5', '#5A9AD5', '#A4A4A4', '#ED7C30']
   return colors[index % len(colors)]
 
 
@@ -43,7 +42,7 @@ def get_graph_metadata(plots):
       width = plot.graph_width
     if title == '':
       title = plot.graph_title
-    else:
+    elif title != plot.graph_title:
       title = title + ',' + plot.graph_title
   return height/80, width/80, title
 
@@ -163,20 +162,28 @@ def graph_data(list_of_plots, output_directory, output_filename):
 
   graph_height, graph_width, graph_title = get_graph_metadata(list_of_plots)
 
+  mpl.rcParams['lines.linewidth'] = 1.5
+  mpl.rcParams['xtick.labelsize'] = 8
+  mpl.rcParams['ytick.labelsize'] = 8
+  mpl.rcParams['axes.labelsize'] = 8
+  mpl.rcParams['axes.grid'] = True
+
+
   current_plot_count = 0
   plots_in_error = 0
   if plot_count <= 2:
     fig, axis = plt.subplots()
     fig.set_size_inches(graph_width, graph_height)
     fig.subplots_adjust(bottom=0.2)
+    current_axis = axis
     for plot in plots:
       current_plot_count += 1
-      current_axis = axis
       logger.info('Processing: ' + plot.input_csv)
       timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})
       if current_plot_count > 1:
         current_axis = axis.twinx()
-      current_axis.set_ylabel(plot.graph_title + '(' + plot.y_label + ')', color=get_current_color(current_plot_count))
+        current_axis.yaxis.grid(False)
+      current_axis.set_ylabel(plot.y_label, color=get_current_color(current_plot_count))
       if plot.graph_type == 'line':
         current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
       else:
@@ -187,7 +194,7 @@ def graph_data(list_of_plots, output_directory, output_filename):
   else:
     fig = plt.figure()
     host = host_subplot(111, axes_class=AA.Axes)
-    axis_offset = 60
+    axis_offset = 50
     fig.subplots_adjust(right=1-0.05*plot_count, bottom=0.2)
     fig.set_size_inches(graph_width, graph_height)
     for plot in plots:
@@ -201,7 +208,7 @@ def graph_data(list_of_plots, output_directory, output_filename):
         new_y_axis = current_axis.get_grid_helper().new_fixed_axis
         current_axis.axis['right'] = new_y_axis(loc='right', axes=current_axis, offset=((current_plot_count-2) * axis_offset, 0))
         current_axis.axis['right'].toggle(all=True)
-      current_axis.set_ylabel(plot.graph_title + '(' + plot.y_label + ')', color=get_current_color(current_plot_count))
+      current_axis.set_ylabel(plot.y_label, color=get_current_color(current_plot_count))
       if plot.graph_type == 'line':
         current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
       else:
@@ -209,11 +216,9 @@ def graph_data(list_of_plots, output_directory, output_filename):
   if plots_in_error == plot_count:
     return False, None
   plt.title(graph_title)
-  plt.xlabel('Time', fontsize=10)
+  plt.xlabel('Time')
   x_date_format = mdates.DateFormatter('%H:%M:%S')
   current_axis.xaxis.set_major_formatter(x_date_format)
-  plt.grid(True)
-  plt.setp(current_axis.xaxis.get_majorticklabels(), rotation=20)
   plot_file_name = os.path.join(output_directory, output_filename + ".png")
   fig.savefig(plot_file_name)
   plt.close()

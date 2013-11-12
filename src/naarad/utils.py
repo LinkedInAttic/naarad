@@ -298,3 +298,6 @@ def convert_unix_ms_to_utc(timestamp):
 
 def convert_unix_ms_to_utc_no_seconds(timestamp):
       return datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H:%M')
+
+def convert_unix_ms_to_utc_no_minutes(timestamp):
+      return datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H')
