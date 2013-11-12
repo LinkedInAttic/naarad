@@ -1,5 +1,5 @@
 [JMETER]
-infile=/tmp/perf-result-4.xml
+infile=perf-result.xml
 access=local
 
 [GRAPH]
