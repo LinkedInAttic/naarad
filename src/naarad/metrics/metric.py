@@ -16,6 +16,7 @@ import time
 import urllib
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
+import naarad.httpdownload
 
 logger = logging.getLogger('naarad.metrics.Metric')
 
@@ -62,11 +63,21 @@ class Metric(object):
     return os.path.exists(self.infile)
 
   def collect(self):
-    if self.access == 'local':
-      return self.collect_local()
-    else:
-      logger.warn("WARNING: access is set to other than local for metric", self.label)
-      return False
+    # self.infile can be of several formats: for instance a local dir (e.g., /path/a.log) or an http url;  
+    # decide the case based on self.infile; 
+    # self.access is optional, can be removed. 
+    
+    if self.infile.startswith("http://") or self.infile.startswith("https://"):     
+      if naarad.utils.is_valid_url(self.infile):      
+        # reassign self.infile, so that it points to the local (downloaded) file
+        self.infile = naarad.httpdownload.download_url_single(self.infile, self.outdir)
+        return True
+      else:
+        logger.error("The given url of {0} is invalid.\n".format(self.infile))
+        return False
+    else:   
+      self.collect_local()
+      return True
 
   def get_csv(self, column):
     col = naarad.utils.sanitize_string(column)
