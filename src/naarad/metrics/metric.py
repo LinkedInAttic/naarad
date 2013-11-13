@@ -70,7 +70,8 @@ class Metric(object):
     if self.infile.startswith("http://") or self.infile.startswith("https://"):     
       if naarad.utils.is_valid_url(self.infile):      
         # reassign self.infile, so that it points to the local (downloaded) file
-        self.infile = naarad.httpdownload.download_url_single(self.infile, self.outdir)
+        http_download_dir = os.path.join(self.outdir, self.label)
+        self.infile = naarad.httpdownload.download_url_single(self.infile, http_download_dir)
         return True
       else:
         logger.error("The given url of {0} is invalid.\n".format(self.infile))
