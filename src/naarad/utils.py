@@ -261,7 +261,10 @@ def calculate_stats(data_list, stats_to_calculate = ['mean', 'std'], percentiles
       'mean' : numpy.mean,
       'avg' : numpy.mean,
       'std' : numpy.std,
-      'standard_deviation' : numpy.std
+      'standard_deviation' : numpy.std,
+      'median' : numpy.median,
+      'min' : numpy.amin,
+      'max' : numpy.amax
       }
   calculated_stats = {}
   calculated_percentiles = {}
