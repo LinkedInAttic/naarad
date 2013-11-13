@@ -59,7 +59,9 @@ class GCMetric(Metric):
 
 
   def get_csv(self, sub_metric):
-    return os.path.join(self.outdir, self.metric_type + '.' +  sub_metric + '.csv')
+    outcsv = os.path.join(self.outdir, self.metric_type + '.' +  sub_metric + '.csv')
+    self.csv_column_map[outcsv] = sub_metric
+    return outcsv
 
   def get_pngname(self, sub_metric):
     return self.metric_type + '.' + sub_metric + '.png'
