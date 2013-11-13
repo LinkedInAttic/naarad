@@ -27,7 +27,6 @@ def convert_to_mdate(date_str):
 
 def get_current_color(index):
   colors = ['black', 'orange', 'steelblue', 'm', 'red', 'cyan', 'g', 'gray']
-#  colors = ['#FFBF00', '#6FAC46', '#4371C3', '#7977A5', '#5A9AD5', '#A4A4A4', '#ED7C30']
   return colors[index % len(colors)]
 
 
@@ -61,98 +60,6 @@ def curate_plot_list(plots):
     plots.remove(node)
   return plots
 
-
-def graph_csv_new(output_directory, csv_files, plot_title, output_filename, columns, y_label=None, precision=None, graph_height="600", graph_width="1500", graph_type="line", graph_color="black"):
-  y_label = y_label or plot_title
-  fig = plt.figure()
-  fig.set_size_inches(float(graph_width) / 80, float(graph_height) / 80)
-  if graph_type == "line":
-    line_style = "-"
-    marker = None
-  else:
-    marker = "."
-    line_style = None
-  colors = ['red', 'green', 'blue', 'yellow']
-  i = 0 
-  for csv_file in csv_files:
-    days, impressions = numpy.loadtxt(csv_file, unpack=True, delimiter=",", converters={ 0: convert_to_mdate})
-    plt.plot_date(x=days, y=impressions, linestyle=line_style, marker=marker, color=colors[i])
-    i+=1
-  plt.title(plot_title)
-  plt.ylabel(y_label)
-  plt.grid(True)
-  # Get current axis and its xtick labels
-  labels = plt.gca().get_xticklabels()
-  for label in labels:
-    label.set_rotation(20)
-  plot_file_name = os.path.join(output_directory, output_filename + ".png")
-  fig.savefig(plot_file_name)
-  plt.close()
-  return True, None
-
-
-def graph_csv_n(output_directory, csv_file, plot_title, output_filename, columns, y_label=None, precision=None, graph_height="600", graph_width="1500", graph_type="line", graph_color="black"):
-  if not os.path.getsize(csv_file):
-    return False, None
-  y_label = y_label or plot_title
-  fig = plt.figure()
-  fig.set_size_inches(float(graph_width) / 80, float(graph_height) / 80)
-  if graph_type == "line":
-    line_style = "-"
-    marker = None
-  else:
-    marker = "."
-    line_style = None
-
-  np_data = numpy.loadtxt(csv_file, delimiter=",", converters={ 0: convert_to_mdate})
-  np_data = np_data.transpose()
-  xdata = np_data[0]
-  ydata = [[]]*len(np_data)
-  for i in range(1,len(np_data)):
-    print i
-    ydata[i-1] = numpy.asarray(np_data[i], dtype=numpy.float)
-    plt.plot_date(x=xdata, y=ydata[i-1], linestyle=line_style, marker=marker, color=graph_color)
-  plt.title(plot_title)
-  plt.ylabel(y_label)
-  plt.grid(True)
-  # Get current axis and its xtick labels
-  labels = plt.gca().get_xticklabels()
-  for label in labels:
-    label.set_rotation(20)
-  plot_file_name = os.path.join(output_directory, output_filename + ".png")
-  fig.savefig(plot_file_name)
-  plt.close()
-  return True, None
-
-
-def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=None, precision=None, graph_height="600", graph_width="1500", graph_type="line", graph_color="black"):
-  """ Single metric graphing function using matplotlib"""
-  if not os.path.getsize(csv_file):
-    return False, None
-  y_label = y_label or plot_title
-  days, impressions = numpy.loadtxt(csv_file, unpack=True, delimiter=",", converters={ 0: convert_to_mdate})
-  fig = plt.figure()
-  fig.set_size_inches(float(graph_width) / 80, float(graph_height) / 80)
-  if graph_type == "line":
-    line_style = "-"
-    marker = " "
-  else:
-    marker = "."
-    line_style = None
-
-  plt.plot_date(x=days, y=impressions, linestyle=line_style, marker=marker, color=graph_color)
-  plt.title(plot_title)
-  plt.ylabel(y_label)
-  plt.grid(True)
-  # Get current axis and its xtick labels
-  labels = plt.gca().get_xticklabels()
-  for label in labels:
-    label.set_rotation(20)
-  plot_file_name = os.path.join(output_directory, output_filename + ".png")
-  fig.savefig(plot_file_name)
-  plt.close()
-  return True, None
-
 def graph_data(list_of_plots, output_directory, output_filename):
   plots = curate_plot_list(list_of_plots)
   plot_count = len(plots)
@@ -168,13 +75,12 @@ def graph_data(list_of_plots, output_directory, output_filename):
   mpl.rcParams['axes.labelsize'] = 8
   mpl.rcParams['axes.grid'] = True
 
-
   current_plot_count = 0
   plots_in_error = 0
   if plot_count <= 2:
     fig, axis = plt.subplots()
     fig.set_size_inches(graph_width, graph_height)
-    fig.subplots_adjust(bottom=0.2)
+    fig.subplots_adjust(left=0.05, bottom=0.1)
     current_axis = axis
     for plot in plots:
       current_plot_count += 1
@@ -195,12 +101,16 @@ def graph_data(list_of_plots, output_directory, output_filename):
     fig = plt.figure()
     host = host_subplot(111, axes_class=AA.Axes)
     axis_offset = 50
-    fig.subplots_adjust(right=1-0.05*plot_count, bottom=0.2)
+    fig.subplots_adjust(left=0.05, right=1-0.05*plot_count, bottom=0.1)
     fig.set_size_inches(graph_width, graph_height)
     for plot in plots:
       current_plot_count += 1
       logger.info('Processing: ' + plot.input_csv)
       timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0:convert_to_mdate})
+#     1. Fix matplotlib buggy auto-scale behavior when working with multiple y axis and series with low variance
+#     2. Improved visibility for tightly correlated series
+      maximum_yvalue = numpy.amax(yval) * (1.0 + 0.005 * current_plot_count)
+      minimum_yvalue = numpy.amin(yval) * (1.0 - 0.005 * current_plot_count)
       if current_plot_count == 1:
         current_axis = host
       else:
@@ -209,6 +119,7 @@ def graph_data(list_of_plots, output_directory, output_filename):
         current_axis.axis['right'] = new_y_axis(loc='right', axes=current_axis, offset=((current_plot_count-2) * axis_offset, 0))
         current_axis.axis['right'].toggle(all=True)
       current_axis.set_ylabel(plot.y_label, color=get_current_color(current_plot_count))
+      current_axis.set_ylim([minimum_yvalue, maximum_yvalue])
       if plot.graph_type == 'line':
         current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
       else:
