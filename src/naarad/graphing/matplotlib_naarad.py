@@ -26,7 +26,7 @@ def convert_to_mdate(date_str):
 
 
 def get_current_color(index):
-  colors = ['black', 'gray', 'blue', 'm', 'red', 'cyan', 'g', 'gray']
+  colors = ['black', 'orange', 'steelblue', 'm', 'red', 'cyan', 'g', 'gray']
 #  colors = ['#FFBF00', '#6FAC46', '#4371C3', '#7977A5', '#5A9AD5', '#A4A4A4', '#ED7C30']
   return colors[index % len(colors)]
 
