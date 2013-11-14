@@ -10,7 +10,7 @@ import gc
 import logging
 import os
 import re
-##import mmap
+import numpy
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
@@ -109,13 +109,12 @@ class JmeterMetric(Metric):
     file_status, error_message = naarad.utils.is_valid_file(self.infile)
     if not file_status:
       return False
-    status = self.faster_parse()
+    status = self.parse_xml_jtl()
+    gc.collect()
     return status
 
-  def faster_parse(self):
+  def parse_xml_jtl(self):
     with open(self.infile) as infile:
-##      mm = mmap.mmap(fileno=infile.fileno(), length=0, access=mmap.PROT_READ)
-
       data = {}
       success_qps = {}
       error_qps = {}
@@ -127,17 +126,11 @@ class JmeterMetric(Metric):
       overall_response_sizes = {}
       raw_response_times = {}
       raw_response_sizes = {}
-
       line_regex = re.compile(r' (lb|ts|t|by|s)="([^"]+)"')
-##      while True:
-##        line = mm.readline()
-##        if line == '':
-##          break
       for line in infile:
         if '<httpSample' not in line:
           continue
         line_data = dict(re.findall(line_regex, line))
-
         aggregate_timestamp = datetime.datetime.utcfromtimestamp(int(line_data['ts']) / 1000).strftime('%Y-%m-%d %H:%M') + ':00'
         self.calculate_overall_qps_over_time(overall_success_qps, overall_error_qps, line_data, aggregate_timestamp)
         self.aggregate_overall_values_over_time(overall_response_times, line_data, 't', aggregate_timestamp)
@@ -145,34 +138,27 @@ class JmeterMetric(Metric):
         self.calculate_average_qps_over_time(success_qps, error_qps, line_data, aggregate_timestamp)
         self.aggregate_values_over_time(response_times,line_data,'t', aggregate_timestamp)
         self.aggregate_values_over_time(response_sizes,line_data,'by', aggregate_timestamp)
-##      mm.close()
-
       logger.info('Finished parsing : %s', self.infile)
-
       logger.info('Processing Overall response times')
       data[self.get_csv('Summary', 't')] = []
       for time_stamp in sorted(overall_response_times):
         response_list = overall_response_times[time_stamp]
         data[self.get_csv('Summary', 't')].append(','.join([time_stamp, str(sum(map(float, response_list))/float(len(response_list)))]))
-
       logger.info('Processing Overall response sizes')
       data[self.get_csv('Summary', 'by')] = []
       data[self.get_csv('Summary', 'thr')] = []
       for time_stamp in sorted(overall_response_sizes):
         response_list = overall_response_sizes[time_stamp]
         data[self.get_csv('Summary', 'by')].append(','.join([time_stamp, str(sum(map(float, response_list))/float(len(response_list)))]))
-        data[self.get_csv('Summary', 'thr')].append(','.join([time_stamp, str(sum(map(float,response_list))/float(60.0 * 1024 *1024/8))]))
-
+        data[self.get_csv('Summary', 'thr')].append(','.join([time_stamp, str(sum(map(float, response_list))/float(60.0 * 1024 *1024/8.0))]))
       logger.info('Processing Overall Successful qps')
       data[self.get_csv('Summary', 'qps')] = []
       for time_stamp in sorted(overall_success_qps):
         data[self.get_csv('Summary', 'qps')].append(','.join([time_stamp, str(overall_success_qps[time_stamp]/float(60.0))]))
-
       logger.info('Processing Overall Error qps')
       data[self.get_csv('Summary', 'eqps')] = []
       for time_stamp in sorted(overall_error_qps):
         data[self.get_csv('Summary', 'eqps')].append(','.join([time_stamp, str(overall_error_qps[time_stamp]/float(60.0))]))
-
       logger.info('Processing per Transaction response times')
       for transaction in response_times:
         data[self.get_csv(transaction, 't')] = []
@@ -180,7 +166,6 @@ class JmeterMetric(Metric):
         for time_stamp in sorted(rtimes):
           response_list = rtimes[time_stamp]
           data[self.get_csv(transaction, 't')].append(','.join([time_stamp, str(sum(map(float,response_list))/float(len(response_list)))]))
-
       logger.info('Processing response size and data throughput')
       for transaction in response_sizes:
         data[self.get_csv(transaction, 'by')] = []
@@ -189,27 +174,23 @@ class JmeterMetric(Metric):
         for time_stamp in sorted(rsizes):
           response_list = rsizes[time_stamp]
           data[self.get_csv(transaction, 'by')].append(','.join([time_stamp, str(sum(map(float,response_list))/float(len(response_list)))]))
-          data[self.get_csv(transaction, 'thr')].append(','.join([time_stamp, str(sum(map(float,response_list))/float(60.0 * 1024 *1024/8))]))
-
+          data[self.get_csv(transaction, 'thr')].append(','.join([time_stamp, str(sum(map(float,response_list))/float(60.0 * 1024 *1024/8.0))]))
       logger.info('Processing Successful qps')
       for transaction in success_qps:
         data[self.get_csv(transaction, 'qps')] = []
         qps = success_qps[transaction]
         for time_stamp in sorted(qps):
           data[self.get_csv(transaction, 'qps')].append(','.join([time_stamp, str(qps[time_stamp]/float(60))]))
-
       logger.info('Processing Error qps')
       for transaction in error_qps:
         data[self.get_csv(transaction, 'eqps')] = []
         qps = error_qps[transaction]
         for time_stamp in sorted(qps):
           data[self.get_csv(transaction, 'eqps')].append(','.join([time_stamp, str(qps[time_stamp]/float(60))]))
-
       for csv in data.keys():
         self.csv_files.append(csv)
         with open(csv, 'w') as csvf:
           csvf.write('\n'.join(sorted(data[csv])))
-
       logger.info('Processing raw data for stats')
       raw_response_sizes['Summary'] = []
       raw_response_times['Summary'] = []
@@ -225,19 +206,31 @@ class JmeterMetric(Metric):
           raw_response_times[transaction].extend(response_time_data[time_stamp])
           raw_response_sizes['Summary'].extend(response_size_data[time_stamp])
           raw_response_sizes[transaction].extend(response_size_data[time_stamp])
-
-      stats_to_calculate = ['mean', 'std'] # TODO: get input from user
+      stats_to_calculate = ['mean', 'std', 'median', 'min', 'max'] # TODO: get input from user
       percentiles_to_calculate = range(5,101,5) # TODO: get input from user
       percentiles_to_calculate.append(99)
       for transaction in raw_response_times:
         self.calculated_stats[transaction], self.calculated_percentiles[transaction] = naarad.utils.calculate_stats(raw_response_times[transaction], stats_to_calculate, percentiles_to_calculate)
-
-      gc.collect()
     return True
 
   def calculate_stats(self):
-    logger.info(str(self.calculated_stats))
-    logger.info(str(self.calculated_percentiles))
+    stats_csv = self.get_stats_csv()
+    csv_header = 'sub_metric,mean,std. deviation,median,min,max,90%,95%,99%\n'
+    with open(stats_csv,'w') as FH:
+      FH.write(csv_header)
+      for sub_metric in self.calculated_stats:
+        percentile_data = self.calculated_percentiles[sub_metric]
+        stats_data = self.calculated_stats[sub_metric]
+        csv_data = ','.join([sub_metric,str(numpy.round_(stats_data['mean'], 2)),str(numpy.round_(stats_data['std'], 2)),str(numpy.round_(stats_data['median'], 2)),str(numpy.round_(stats_data['min'], 2)),str(numpy.round_(stats_data['max'], 2)),str(numpy.round_(percentile_data[90], 2)),str(numpy.round_(percentile_data[95], 2)),str(numpy.round_(percentile_data[99], 2))])
+        FH.write(csv_data + '\n')
+
+    for sub_metric in self.calculated_percentiles:
+      percentiles_csv = self.get_csv(sub_metric,'percentiles')
+      percentile_data = self.calculated_percentiles[sub_metric]
+      with open(percentiles_csv,'w') as FH:
+        for percentile in sorted(percentile_data):
+          FH.write(str(percentile) + ',' + str(numpy.round_(percentile_data[percentile],2)) + '\n')
+
 
   def graph(self, graphing_library = 'matplotlib'):
     html_string = []
@@ -249,7 +242,7 @@ class JmeterMetric(Metric):
       # The last element is .csv, don't need that in the name of the chart
       column = csv_filename.split('.')[-2]
       transaction_name = ' '.join(csv_filename.split('.')[1:-2])
-      plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name, y_label=self.metric_description[column] + ' (' + self.metric_units[column] + ')', precision=None, graph_height=600, graph_width=1500, graph_type='line')
+      plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name, y_label=self.metric_description[column] + ' (' + self.metric_units[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line')
       if transaction_name in plot_data:
         plot_data[transaction_name].append(plot)
       else:
@@ -260,7 +253,7 @@ class JmeterMetric(Metric):
         html_string.append(html_ret)
       else:
         if graphed:
-          img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p><img src="{image_name}.png" />\n'.format(title=transaction, description='', image_name=transaction)
+          img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p><img src="{image_name}.png" />\n'.format(title=transaction, description=transaction + ' workload client statistics', image_name=transaction)
         else:
           img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p>No data for this metric\n'.format(title=transaction, description='')
         html_string.append(img_tag)
