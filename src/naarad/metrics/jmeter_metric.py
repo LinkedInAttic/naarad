@@ -87,7 +87,6 @@ class JmeterMetric(Metric):
     metric_data.append(float(line_data[metric]))
     return None
 
-
   def aggregate_values_over_time(self, metric_store, line_data, metric, aggregate_timestamp):
     transaction = line_data['lb']
     if transaction in metric_store:
@@ -211,6 +210,7 @@ class JmeterMetric(Metric):
       percentiles_to_calculate.append(99)
       for transaction in raw_response_times:
         self.calculated_stats[transaction], self.calculated_percentiles[transaction] = naarad.utils.calculate_stats(raw_response_times[transaction], stats_to_calculate, percentiles_to_calculate)
+
     return True
 
   def calculate_stats(self):
@@ -231,10 +231,42 @@ class JmeterMetric(Metric):
         for percentile in sorted(percentile_data):
           FH.write(str(percentile) + ',' + str(numpy.round_(percentile_data[percentile],2)) + '\n')
 
+  def get_summary_html(self):
+    data_row = '<p><table width="50%" class="sortable" border=1 cellspacing=0 style=border: 1pt solid #000000; ' \
+               'border-Collapse: collapse"><caption>Transaction Response Times(ms)</caption>' \
+               '<thead bgcolor="lightsteelblue"><tr><th>Transaction</th><th>Mean</th>' \
+               '<th>Std.dv</th><th>Median</th><th>Min</th><th>Max</th><th>90%</th><th>95%</th><th>99%</th></tr></thead>'
+    footer_row = '<tfoot bgcolor=wheat>'
+    for transaction in self.calculated_stats:
+      stats = self.calculated_stats[transaction]
+      percentiles = self.calculated_percentiles[transaction]
+      if transaction == 'Summary':
+        footer_row += '<tr><td>' + transaction + '</td>'
+        footer_row += '<td align="right">' + str(numpy.round_(stats['mean'],2)) + '</td>'
+        footer_row += '<td align="right">' + str(numpy.round_(stats['std'],2)) + '</td>'
+        footer_row += '<td align="right">' + str(numpy.round_(stats['median'],2)) + '</td>'
+        footer_row += '<td align="right">' + str(numpy.round_(stats['min'],2)) + '</td>'
+        footer_row += '<td align="right">' + str(numpy.round_(stats['max'],2)) + '</td>'
+        footer_row += '<td align="right">' + str(numpy.round_(percentiles[90],2)) + '</td>'
+        footer_row += '<td align="right">' + str(numpy.round_(percentiles[95],2)) + '</td>'
+        footer_row += '<td align="right">' + str(numpy.round_(percentiles[99],2)) + '</td></tr></tfoot>'
+      else:
+        data_row += '<tr><td>' + transaction + '</td>'
+        data_row += '<td align="right">' + str(numpy.round_(stats['mean'],2)) + '</td>'
+        data_row += '<td align="right">' + str(numpy.round_(stats['std'],2)) + '</td>'
+        data_row += '<td align="right">' + str(numpy.round_(stats['median'],2)) + '</td>'
+        data_row += '<td align="right">' + str(numpy.round_(stats['min'],2)) + '</td>'
+        data_row += '<td align="right">' + str(numpy.round_(stats['max'],2)) + '</td>'
+        data_row += '<td align="right">' + str(numpy.round_(percentiles[90],2)) + '</td>'
+        data_row += '<td align="right">' + str(numpy.round_(percentiles[95],2)) + '</td>'
+        data_row += '<td align="right">' + str(numpy.round_(percentiles[99],2)) + '</td></tr>'
+    data_row = data_row + '\n' + footer_row + '</table></p>'
+    return data_row
 
   def graph(self, graphing_library = 'matplotlib'):
     html_string = []
-    html_string.append('<h1>Metric: {0}</h1>\n'.format(self.metric_type))
+    html_string.append('<h2>Metric: {0}</h2>\n'.format(self.metric_type))
+    html_string.append(self.get_summary_html())
     logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
     plot_data = {}
     for out_csv in sorted(self.csv_files, reverse=True):

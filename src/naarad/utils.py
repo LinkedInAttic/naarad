@@ -147,15 +147,18 @@ def get_merged_png_name(vals):
 def generate_html_report(output_directory, html_string):
   htmlfilename = os.path.join(output_directory, 'Report.html')
   with open(htmlfilename, 'w') as htmlf:
-    header = '<html><head>'
+    header = '<html><head><title>naarad analysis report</title>'
     dygraphs_include = '''<script type='text/javascript'
       src='http://dygraphs.com/dygraph-combined.js'></script>
-      </head>
-      <body>'''
-    htmlf.write(header)
-    htmlf.write(dygraphs_include)
-    htmlf.write(html_string)
+      '''
+    sorttable_include = '<script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"'
+    body = '</head><body>'
     footer = '</body></html>'
+    htmlf.write(header)
+    htmlf.write(sorttable_include)
+    htmlf.write(dygraphs_include)
+    htmlf.write(body)
+    htmlf.write(html_string)
     htmlf.write(footer)
 
 def tscsv_nway_file_merge(outfile, filelist, filler):
