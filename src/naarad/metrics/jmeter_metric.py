@@ -232,10 +232,13 @@ class JmeterMetric(Metric):
           FH.write(str(percentile) + ',' + str(numpy.round_(percentile_data[percentile],2)) + '\n')
 
   def get_summary_html(self):
-    data_row = '<p><table width="50%" class="sortable" border=1 cellspacing=0 style=border: 1pt solid #000000; ' \
-               'border-Collapse: collapse"><caption>Transaction Response Times(ms)</caption>' \
-               '<thead bgcolor="lightsteelblue"><tr><th>Transaction</th><th>Mean</th>' \
-               '<th>Std.dv</th><th>Median</th><th>Min</th><th>Max</th><th>90%</th><th>95%</th><th>99%</th></tr></thead>'
+    data_row = '''
+    <p><table width="50%" class="sortable">
+    <caption>Transaction Response Times(ms)</caption>
+    <thead bgcolor="lightsteelblue"><tr><th align="left">Transaction</th><th align="right">Mean</th>
+    <th align="right">Std.dv</th><th align="right">Median</th><th align="right">Min</th><th align="right">Max</th>
+    <th align="right">90%</th><th align="right">95%</th><th align="right">99%</th></tr></thead>
+    '''
     footer_row = '<tfoot bgcolor=wheat>'
     for transaction in self.calculated_stats:
       stats = self.calculated_stats[transaction]
