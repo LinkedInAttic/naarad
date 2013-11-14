@@ -29,6 +29,7 @@ class SARMetric(Metric):
       outcsv = os.path.join(self.outdir, "{0}.{1}.csv".format(self.metric_type, column))
     else:
       outcsv = os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.metric_type, device, column))
+    self.csv_column_map[outcsv] = column
     return outcsv
 
   def parse(self):

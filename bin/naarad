@@ -160,6 +160,11 @@ def transform_ts(start, end, timezone="PDT"):
     start_ts_str = start
   return (start_ts_str, end_ts_str)
 
+def sanitize_string_section_name(string):
+  string = string.replace('/', '_')
+  string = string.replace('%', '_')
+  return string
+
 def main():
   metrics = []
   crossplots = []
@@ -255,7 +260,7 @@ def main():
         try:
           infile = config_obj.get(section, 'infile')
           config_obj.remove_option(section, 'infile')
-          label = section
+          label = sanitize_string_section_name(section)
           if config_obj.has_option(section, 'access'):
             #TODO: Support remote access
             access = config_obj.get(section, 'access')

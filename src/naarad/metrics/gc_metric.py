@@ -58,9 +58,6 @@ class GCMetric(Metric):
       }
 
 
-  def get_csv(self, sub_metric):
-    return os.path.join(self.outdir, self.metric_type + '.' +  sub_metric + '.csv')
-
   def get_pngname(self, sub_metric):
     return self.metric_type + '.' + sub_metric + '.png'
 

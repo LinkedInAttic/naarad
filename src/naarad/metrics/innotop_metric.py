@@ -21,11 +21,10 @@ class INNOMetric(Metric):
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
 
-  def get_csv(self, column):
-    return os.path.join(self.outdir, "{0}.{1}.csv".format(self.metric_type, column))
-
   def get_csv_C(self, command, column):
-    return os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.metric_type, command, column))
+    outcsv = os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.metric_type, command, column))
+    self.csv_column_map[outcsv] = command + '.' + column
+    return outcsv
 
   def parse(self):
     logger.info("Working on innotop metric: %s", self.infile)

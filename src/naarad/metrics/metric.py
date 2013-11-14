@@ -41,6 +41,7 @@ class Metric(object):
     self.titles_string = None
     self.ylabels_string = None
     self.csv_files = []
+    self.csv_column_map = {}
     self.metric_description = defaultdict(lambda: 'None')
     if other_options:
       for (key, val) in other_options.iteritems():
@@ -70,7 +71,8 @@ class Metric(object):
     if self.infile.startswith("http://") or self.infile.startswith("https://"):     
       if naarad.utils.is_valid_url(self.infile):      
         # reassign self.infile, so that it points to the local (downloaded) file
-        self.infile = naarad.httpdownload.download_url_single(self.infile, self.outdir)
+        http_download_dir = os.path.join(self.outdir, self.label)
+        self.infile = naarad.httpdownload.download_url_single(self.infile, http_download_dir)
         return True
       else:
         logger.error("The given url of {0} is invalid.\n".format(self.infile))
@@ -82,6 +84,7 @@ class Metric(object):
   def get_csv(self, column):
     col = naarad.utils.sanitize_string(column)
     csv = os.path.join(self.outdir, self.metric_type + '.' + col + '.csv')
+    self.csv_column_map[csv] = col
     return csv
 
   def get_stats_csv(self):
@@ -109,6 +112,7 @@ class Metric(object):
         ts = naarad.utils.reconcile_timezones(words[0], self.timezone, self.graph_timezone)
         for i in range(len(self.columns)):
           out_csv = self.get_csv(self.columns[i])
+          print "adding %s to dict for %s" %(out_csv, self.columns[i])
           if out_csv in data:
             data[out_csv].append( ts + ',' + words[i+1] )
           else:
@@ -204,7 +208,7 @@ class Metric(object):
       csv_filename = os.path.basename(out_csv)
       # The last element is .csv, don't need that in the name of the chart
       graph_title = '.'.join(csv_filename.split('.')[0:-1])
-      column = '.'.join(graph_title.split('.')[1:])
+      column = self.csv_column_map[out_csv]
       plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
       graphed, html_ret = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.outdir, graph_title)
       if html_ret:
