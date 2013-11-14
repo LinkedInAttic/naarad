@@ -9,7 +9,7 @@ import os
 import random
 import logging
 
-logger = logging.getLogger('naarad.graphing.dygraph')
+logger = logging.getLogger('naarad.graphing.dygraphs')
 
 def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=None, precision=None, graph_height="600", graph_width="1500"):
   """ Single metric graphing function """
