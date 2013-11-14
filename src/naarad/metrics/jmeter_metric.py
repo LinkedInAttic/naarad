@@ -5,6 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+from collections import defaultdict
 import datetime
 import gc
 import logging
@@ -69,11 +70,7 @@ class JmeterMetric(Metric):
     else:
       all_qps = error_qps
     transaction = line_data['lb']
-    if transaction in all_qps:
-      qps = all_qps[transaction]
-    else:
-      all_qps[transaction] = {}
-      qps = all_qps[transaction]
+    qps = all_qps[transaction]
     if aggregate_timestamp in qps:
       qps[aggregate_timestamp] += 1
     else:
@@ -81,26 +78,15 @@ class JmeterMetric(Metric):
     return None
 
   def aggregate_overall_values_over_time(self, metric_store, line_data, metric, aggregate_timestamp):
-    if aggregate_timestamp not in metric_store:
-      metric_store[aggregate_timestamp] = []
     metric_data = metric_store[aggregate_timestamp]
     metric_data.append(float(line_data[metric]))
     return None
 
   def aggregate_values_over_time(self, metric_store, line_data, metric, aggregate_timestamp):
     transaction = line_data['lb']
-    if transaction in metric_store:
-      metric_series = metric_store[transaction]
-    else:
-      metric_store[transaction] = {}
-      metric_series = metric_store[transaction]
-    if aggregate_timestamp in metric_series:
-      metric_data = metric_series[aggregate_timestamp]
-      metric_data.append(float(line_data[metric]))
-    else:
-      metric_series[aggregate_timestamp] = []
-      metric_data = metric_series[aggregate_timestamp]
-      metric_data.append(float(line_data[metric]))
+    metric_series = metric_store[transaction]
+    metric_data = metric_series[aggregate_timestamp]
+    metric_data.append(float(line_data[metric]))
     return None
 
   def parse(self):
@@ -114,17 +100,17 @@ class JmeterMetric(Metric):
 
   def parse_xml_jtl(self):
     with open(self.infile) as infile:
-      data = {}
-      success_qps = {}
-      error_qps = {}
-      response_times = {}
-      response_sizes = {}
-      overall_success_qps = {}
-      overall_error_qps = {}
-      overall_response_times = {}
-      overall_response_sizes = {}
-      raw_response_times = {}
-      raw_response_sizes = {}
+      data = defaultdict(list)
+      success_qps = defaultdict(lambda : defaultdict(list))
+      error_qps = defaultdict(lambda : defaultdict(list))
+      response_times = defaultdict(lambda : defaultdict(list))
+      response_sizes = defaultdict(lambda : defaultdict(list))
+      overall_success_qps = defaultdict(float)
+      overall_error_qps = defaultdict(float)
+      overall_response_times = defaultdict(list)
+      overall_response_sizes = defaultdict(list)
+      raw_response_times = defaultdict(list)
+      raw_response_sizes = defaultdict(list)
       line_regex = re.compile(r' (lb|ts|t|by|s)="([^"]+)"')
       for line in infile:
         if '<httpSample' not in line:
@@ -139,36 +125,28 @@ class JmeterMetric(Metric):
         self.aggregate_values_over_time(response_sizes,line_data,'by', aggregate_timestamp)
       logger.info('Finished parsing : %s', self.infile)
       logger.info('Processing Overall response times')
-      data[self.get_csv('Summary', 't')] = []
       for time_stamp in sorted(overall_response_times):
         response_list = overall_response_times[time_stamp]
         data[self.get_csv('Summary', 't')].append(','.join([time_stamp, str(sum(map(float, response_list))/float(len(response_list)))]))
       logger.info('Processing Overall response sizes')
-      data[self.get_csv('Summary', 'by')] = []
-      data[self.get_csv('Summary', 'thr')] = []
       for time_stamp in sorted(overall_response_sizes):
         response_list = overall_response_sizes[time_stamp]
         data[self.get_csv('Summary', 'by')].append(','.join([time_stamp, str(sum(map(float, response_list))/float(len(response_list)))]))
         data[self.get_csv('Summary', 'thr')].append(','.join([time_stamp, str(sum(map(float, response_list))/float(60.0 * 1024 *1024/8.0))]))
       logger.info('Processing Overall Successful qps')
-      data[self.get_csv('Summary', 'qps')] = []
       for time_stamp in sorted(overall_success_qps):
         data[self.get_csv('Summary', 'qps')].append(','.join([time_stamp, str(overall_success_qps[time_stamp]/float(60.0))]))
       logger.info('Processing Overall Error qps')
-      data[self.get_csv('Summary', 'eqps')] = []
       for time_stamp in sorted(overall_error_qps):
         data[self.get_csv('Summary', 'eqps')].append(','.join([time_stamp, str(overall_error_qps[time_stamp]/float(60.0))]))
       logger.info('Processing per Transaction response times')
       for transaction in response_times:
-        data[self.get_csv(transaction, 't')] = []
         rtimes = response_times[transaction]
         for time_stamp in sorted(rtimes):
           response_list = rtimes[time_stamp]
           data[self.get_csv(transaction, 't')].append(','.join([time_stamp, str(sum(map(float,response_list))/float(len(response_list)))]))
       logger.info('Processing response size and data throughput')
       for transaction in response_sizes:
-        data[self.get_csv(transaction, 'by')] = []
-        data[self.get_csv(transaction, 'thr')] = []
         rsizes = response_sizes[transaction]
         for time_stamp in sorted(rsizes):
           response_list = rsizes[time_stamp]
@@ -176,13 +154,11 @@ class JmeterMetric(Metric):
           data[self.get_csv(transaction, 'thr')].append(','.join([time_stamp, str(sum(map(float,response_list))/float(60.0 * 1024 *1024/8.0))]))
       logger.info('Processing Successful qps')
       for transaction in success_qps:
-        data[self.get_csv(transaction, 'qps')] = []
         qps = success_qps[transaction]
         for time_stamp in sorted(qps):
           data[self.get_csv(transaction, 'qps')].append(','.join([time_stamp, str(qps[time_stamp]/float(60))]))
       logger.info('Processing Error qps')
       for transaction in error_qps:
-        data[self.get_csv(transaction, 'eqps')] = []
         qps = error_qps[transaction]
         for time_stamp in sorted(qps):
           data[self.get_csv(transaction, 'eqps')].append(','.join([time_stamp, str(qps[time_stamp]/float(60))]))
@@ -191,13 +167,7 @@ class JmeterMetric(Metric):
         with open(csv, 'w') as csvf:
           csvf.write('\n'.join(sorted(data[csv])))
       logger.info('Processing raw data for stats')
-      raw_response_sizes['Summary'] = []
-      raw_response_times['Summary'] = []
       for transaction in response_times:
-        if transaction not in raw_response_times:
-          raw_response_times[transaction] = []
-        if transaction not in raw_response_sizes:
-          raw_response_sizes[transaction] = []
         response_time_data = response_times[transaction]
         response_size_data = response_sizes[transaction]
         for time_stamp in response_time_data:
