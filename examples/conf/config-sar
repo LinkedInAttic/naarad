@@ -6,7 +6,7 @@ devices=sda sdb
 options=tps rd_sec/s %util
 
 [SAR-cpuusage]
-ignore=1
+#ignore=1
 access=local
 infile=sar.cpuusage.out
 #ts_start=2012-02-23 22:05:00
