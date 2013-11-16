@@ -50,147 +50,176 @@ class JmeterMetric(Metric):
 
   def get_csv(self, transaction_name, column):
     col = naarad.utils.sanitize_string(column)
+    if transaction_name == '__overall_summary__':
+      transaction_name = 'Overall Summary'
     csv = os.path.join(self.outdir, self.metric_type + '.' + transaction_name + '.' + col + '.csv')
     return csv
 
-  def calculate_overall_qps_over_time(self, success_qps, error_qps, line_data, aggregate_timestamp):
-    if line_data['s'] == 'true':
-      qps = success_qps
-    else:
-      qps = error_qps
-    if aggregate_timestamp not in qps:
-      qps[aggregate_timestamp] = 1
-    else:
-      qps[aggregate_timestamp] += 1
+  def aggregate_count_over_time(self, metric_store, line_data, transaction_list, aggregate_timestamp):
+    """
+    Organize and store the count of data from the log line into the metric store by metric type, transaction, timestamp
+
+    :param dict metric_store: The metric store used to store all the parsed jmeter log data
+    :param dict line_data: dict with the extracted k:v from the log line
+    :param list transaction_list: list of transaction to be used for storing the metrics from given line
+    :param string aggregate_timestamp: timestamp used for storing the raw data. This accounts for aggregation time period
+    :return: None
+    """
+    for transaction in transaction_list:
+      if line_data['s'] == 'true':
+        all_qps = metric_store['qps']
+      else:
+        all_qps = metric_store['eqps']
+      qps = all_qps[transaction]
+      if aggregate_timestamp in qps:
+        qps[aggregate_timestamp] += 1
+      else:
+        qps[aggregate_timestamp] = 1
     return None
 
-  def calculate_average_qps_over_time(self, success_qps, error_qps, line_data, aggregate_timestamp):
-    if line_data['s'] == 'true':
-      all_qps = success_qps
-    else:
-      all_qps = error_qps
-    transaction = line_data['lb']
-    qps = all_qps[transaction]
-    if aggregate_timestamp in qps:
-      qps[aggregate_timestamp] += 1
-    else:
-      qps[aggregate_timestamp] = 1
+  def aggregate_values_over_time(self, metric_store, line_data, transaction_list, metric_list, aggregate_timestamp):
+    """
+    Organize and store the data from the log line into the metric store by metric type, transaction, timestamp
+
+    :param dict metric_store: The metric store used to store all the parsed jmeter log data
+    :param dict line_data: dict with the extracted k:v from the log line
+    :param list transaction_list: list of transaction to be used for storing the metrics from given line
+    :param list metric_list: list of metrics to extract from the log line
+    :param string aggregate_timestamp: timestamp used for storing the raw data. This accounts for aggregation time period
+    :return: None
+    """
+    for metric in metric_list:
+      for transaction in transaction_list:
+        metric_data = reduce(defaultdict.__getitem__,[metric, transaction, aggregate_timestamp], metric_store)
+        metric_data.append(float(line_data[metric]))
     return None
 
-  def aggregate_overall_values_over_time(self, metric_store, line_data, metric, aggregate_timestamp):
-    metric_data = metric_store[aggregate_timestamp]
-    metric_data.append(float(line_data[metric]))
+  def average_values_for_plot(self, metric_store, data, averaging_factor):
+    """
+    Create the time series for the various metrics, averaged over the aggregation period being used for plots
+
+    :param dict metric_store: The metric store used to store all the parsed jmeter log data
+    :param dict data: Dict with all the metric data to be output to csv
+    :param float averaging_factor: averaging factor to be used for calculating the average per second metrics
+    :return: None
+    """
+    for metric, transaction_store in metric_store.items():
+      for transaction, time_store in transaction_store.items():
+        for time_stamp, metric_data in sorted(time_store.items()):
+          if metric in ['t', 'by']:
+            data[self.get_csv(transaction, metric)].append(','.join([time_stamp, str(sum(map(float,metric_data))/float(len(metric_data)))]))
+            if metric == 'by':
+              data[self.get_csv(transaction, 'thr')].append(','.join([time_stamp, str(sum(map(float,metric_data))/float(averaging_factor * 1024 * 1024 / 8.0))]))
+          elif metric in ['qps', 'eqps']:
+            data[self.get_csv(transaction, metric)].append(','.join([time_stamp, str(metric_data/float(averaging_factor))]))
     return None
 
-  def aggregate_values_over_time(self, metric_store, line_data, metric, aggregate_timestamp):
-    transaction = line_data['lb']
-    metric_series = metric_store[transaction]
-    metric_data = metric_series[aggregate_timestamp]
-    metric_data.append(float(line_data[metric]))
+  def get_all_response_times(self, metric_store):
+    """
+    Return a list of all the response time values by transaction.
+
+    :param dict metric_store: The metric store used to store all the parsed jmeter log data
+    :return: dict {transaction : response time values list}
+    """
+    response_store = metric_store['t']
+    response_list = defaultdict(list)
+    for transaction, time_store in response_store.items():
+      for time_stamp in time_store:
+        response_list[transaction].extend(time_store[time_stamp])
+    return response_list
+
+  def get_aggregation_timestamp(self, timestamp, granularity='minute'):
+    """
+    Return a timestamp from the raw epoch time based on the granularity preferences passed in.
+
+    :param string timestamp: raw epoch timestamp from the jmeter log line
+    :param string granularity: aggregation granularity used for plots.
+    :return: string aggregate_timestamp that will be used for metrics aggregation in all functions for JmeterMetric
+    """
+    if granularity == 'hour':
+      return datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H') + ':00:00', 3600
+    elif granularity == 'minute':
+      return datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H:%M') + ':00', 60
+    else:
+      return datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S'), 1
+
+  def calculate_key_stats(self, metric_store):
+    """
+    Calculate key statistics for given data and store in the class variables calculated_stats and calculated_percentiles
+    calculated_stats:
+      'mean', 'std', 'median', 'min', 'max'
+    calculated_percentiles:
+      range(5,101,5), 99
+    :param dict metric_store: The metric store used to store all the parsed jmeter log data
+    :return: none
+    """
+    raw_response_times = self.get_all_response_times(metric_store)
+    stats_to_calculate = ['mean', 'std', 'median', 'min', 'max'] # TODO: get input from user
+    percentiles_to_calculate = range(5,101,5) # TODO: get input from user
+    percentiles_to_calculate.append(99)
+    for transaction in raw_response_times:
+      self.calculated_stats[transaction], self.calculated_percentiles[transaction] = naarad.utils.calculate_stats(raw_response_times[transaction], stats_to_calculate, percentiles_to_calculate)
     return None
 
   def parse(self):
+    """
+    Parse the Jmeter file and calculate key stats
+
+    :return: status of the metric parse
+    """
     logger.info('Processing : %s',self.infile)
     file_status, error_message = naarad.utils.is_valid_file(self.infile)
     if not file_status:
       return False
-    status = self.parse_xml_jtl()
+    # TBD: Read from user configuration
+    status = self.parse_xml_jtl('minute')
     gc.collect()
     return status
 
-  def parse_xml_jtl(self):
+  def parse_xml_jtl(self, granularity):
+    """
+    Parse Jmeter workload output in XML format and extract overall and per transaction data and key statistics
+
+    :param string granularity: The time period over which to aggregate and average the raw data. Valid values are 'hour', 'minute' or 'second'
+    :return: status of the metric parse
+    """
     with open(self.infile) as infile:
       data = defaultdict(list)
-      success_qps = defaultdict(lambda : defaultdict(list))
-      error_qps = defaultdict(lambda : defaultdict(list))
-      response_times = defaultdict(lambda : defaultdict(list))
-      response_sizes = defaultdict(lambda : defaultdict(list))
-      overall_success_qps = defaultdict(float)
-      overall_error_qps = defaultdict(float)
-      overall_response_times = defaultdict(list)
-      overall_response_sizes = defaultdict(list)
-      raw_response_times = defaultdict(list)
-      raw_response_sizes = defaultdict(list)
+      processed_data = defaultdict(lambda : defaultdict(lambda : defaultdict(list)))
+
       line_regex = re.compile(r' (lb|ts|t|by|s)="([^"]+)"')
       for line in infile:
         if '<httpSample' not in line:
           continue
         line_data = dict(re.findall(line_regex, line))
-        aggregate_timestamp = datetime.datetime.utcfromtimestamp(int(line_data['ts']) / 1000).strftime('%Y-%m-%d %H:%M') + ':00'
-        self.calculate_overall_qps_over_time(overall_success_qps, overall_error_qps, line_data, aggregate_timestamp)
-        self.aggregate_overall_values_over_time(overall_response_times, line_data, 't', aggregate_timestamp)
-        self.aggregate_overall_values_over_time(overall_response_sizes, line_data, 'by', aggregate_timestamp)
-        self.calculate_average_qps_over_time(success_qps, error_qps, line_data, aggregate_timestamp)
-        self.aggregate_values_over_time(response_times,line_data,'t', aggregate_timestamp)
-        self.aggregate_values_over_time(response_sizes,line_data,'by', aggregate_timestamp)
+        aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(line_data['ts'], granularity)
+        self.aggregate_count_over_time(processed_data, line_data, [line_data['lb'], '__overall_summary__'], aggregate_timestamp)
+        self.aggregate_values_over_time(processed_data, line_data, [line_data['lb'], '__overall_summary__'], ['t', 'by'], aggregate_timestamp)
       logger.info('Finished parsing : %s', self.infile)
-      logger.info('Processing Overall response times')
-      for time_stamp in sorted(overall_response_times):
-        response_list = overall_response_times[time_stamp]
-        data[self.get_csv('Summary', 't')].append(','.join([time_stamp, str(sum(map(float, response_list))/float(len(response_list)))]))
-      logger.info('Processing Overall response sizes')
-      for time_stamp in sorted(overall_response_sizes):
-        response_list = overall_response_sizes[time_stamp]
-        data[self.get_csv('Summary', 'by')].append(','.join([time_stamp, str(sum(map(float, response_list))/float(len(response_list)))]))
-        data[self.get_csv('Summary', 'thr')].append(','.join([time_stamp, str(sum(map(float, response_list))/float(60.0 * 1024 *1024/8.0))]))
-      logger.info('Processing Overall Successful qps')
-      for time_stamp in sorted(overall_success_qps):
-        data[self.get_csv('Summary', 'qps')].append(','.join([time_stamp, str(overall_success_qps[time_stamp]/float(60.0))]))
-      logger.info('Processing Overall Error qps')
-      for time_stamp in sorted(overall_error_qps):
-        data[self.get_csv('Summary', 'eqps')].append(','.join([time_stamp, str(overall_error_qps[time_stamp]/float(60.0))]))
-      logger.info('Processing per Transaction response times')
-      for transaction in response_times:
-        rtimes = response_times[transaction]
-        for time_stamp in sorted(rtimes):
-          response_list = rtimes[time_stamp]
-          data[self.get_csv(transaction, 't')].append(','.join([time_stamp, str(sum(map(float,response_list))/float(len(response_list)))]))
-      logger.info('Processing response size and data throughput')
-      for transaction in response_sizes:
-        rsizes = response_sizes[transaction]
-        for time_stamp in sorted(rsizes):
-          response_list = rsizes[time_stamp]
-          data[self.get_csv(transaction, 'by')].append(','.join([time_stamp, str(sum(map(float,response_list))/float(len(response_list)))]))
-          data[self.get_csv(transaction, 'thr')].append(','.join([time_stamp, str(sum(map(float,response_list))/float(60.0 * 1024 *1024/8.0))]))
-      logger.info('Processing Successful qps')
-      for transaction in success_qps:
-        qps = success_qps[transaction]
-        for time_stamp in sorted(qps):
-          data[self.get_csv(transaction, 'qps')].append(','.join([time_stamp, str(qps[time_stamp]/float(60))]))
-      logger.info('Processing Error qps')
-      for transaction in error_qps:
-        qps = error_qps[transaction]
-        for time_stamp in sorted(qps):
-          data[self.get_csv(transaction, 'eqps')].append(','.join([time_stamp, str(qps[time_stamp]/float(60))]))
+
+      logger.info('Processing metrics for output to csv')
+      self.average_values_for_plot(processed_data, data, averaging_factor)
+
+      logger.info('Writing time series csv')
       for csv in data.keys():
         self.csv_files.append(csv)
         with open(csv, 'w') as csvf:
           csvf.write('\n'.join(sorted(data[csv])))
-      logger.info('Processing raw data for stats')
-      for transaction in response_times:
-        response_time_data = response_times[transaction]
-        response_size_data = response_sizes[transaction]
-        for time_stamp in response_time_data:
-          raw_response_times['Summary'].extend(response_time_data[time_stamp])
-          raw_response_times[transaction].extend(response_time_data[time_stamp])
-          raw_response_sizes['Summary'].extend(response_size_data[time_stamp])
-          raw_response_sizes[transaction].extend(response_size_data[time_stamp])
-      stats_to_calculate = ['mean', 'std', 'median', 'min', 'max'] # TODO: get input from user
-      percentiles_to_calculate = range(5,101,5) # TODO: get input from user
-      percentiles_to_calculate.append(99)
-      for transaction in raw_response_times:
-        self.calculated_stats[transaction], self.calculated_percentiles[transaction] = naarad.utils.calculate_stats(raw_response_times[transaction], stats_to_calculate, percentiles_to_calculate)
 
+      logger.info('Processing raw data for stats')
+      self.calculate_key_stats(processed_data)
     return True
 
   def calculate_stats(self):
-    stats_csv = self.get_stats_csv()
+    stats_csv = self.get_csv(self.metric_type,'stats')
     csv_header = 'sub_metric,mean,std. deviation,median,min,max,90%,95%,99%\n'
     with open(stats_csv,'w') as FH:
       FH.write(csv_header)
       for sub_metric in self.calculated_stats:
         percentile_data = self.calculated_percentiles[sub_metric]
         stats_data = self.calculated_stats[sub_metric]
+        if sub_metric == '__overall_summary__':
+          sub_metric = 'Overall Summary'
         csv_data = ','.join([sub_metric,str(numpy.round_(stats_data['mean'], 2)),str(numpy.round_(stats_data['std'], 2)),str(numpy.round_(stats_data['median'], 2)),str(numpy.round_(stats_data['min'], 2)),str(numpy.round_(stats_data['max'], 2)),str(numpy.round_(percentile_data[90], 2)),str(numpy.round_(percentile_data[95], 2)),str(numpy.round_(percentile_data[99], 2))])
         FH.write(csv_data + '\n')
 
@@ -202,6 +231,12 @@ class JmeterMetric(Metric):
           FH.write(str(percentile) + ',' + str(numpy.round_(percentile_data[percentile],2)) + '\n')
 
   def get_summary_html(self):
+    """
+    Generate summary table for response times for various transactions. This will be deprecated by the new reporting framework
+
+    :return: string with html for the response times summary table
+    """
+
     data_row = '''
     <p><table width="50%" class="sortable">
     <caption>Transaction Response Times(ms)</caption>
@@ -213,8 +248,8 @@ class JmeterMetric(Metric):
     for transaction in self.calculated_stats:
       stats = self.calculated_stats[transaction]
       percentiles = self.calculated_percentiles[transaction]
-      if transaction == 'Summary':
-        footer_row += '<tr><td>' + transaction + '</td>'
+      if transaction == '__overall_summary__':
+        footer_row += '<tr><td>Overall Summary</td>'
         footer_row += '<td align="right">' + str(numpy.round_(stats['mean'],2)) + '</td>'
         footer_row += '<td align="right">' + str(numpy.round_(stats['std'],2)) + '</td>'
         footer_row += '<td align="right">' + str(numpy.round_(stats['median'],2)) + '</td>'
