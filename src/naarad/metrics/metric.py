@@ -27,10 +27,10 @@ class Metric(object):
   timezone = "PDT"
   options = None
 
-  def __init__ (self, metric_type, infile, access, output_directory, label, ts_start, ts_end, **other_options):
+  def __init__ (self, metric_type, infile, hostname, output_directory, label, ts_start, ts_end, **other_options):
     self.metric_type = metric_type
     self.infile = infile
-    self.access = access
+    self.hostname = hostname
     self.outdir = output_directory
     self.label = label
     self.ts_start = ts_start
