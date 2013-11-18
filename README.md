@@ -3,7 +3,7 @@ Naarad is a highly configurable system analysis tool that parses and plots times
 It can be used for performance analysis of your service/application. 
 You collect data for the metrics you want to monitor and:
 
-* Naarad parses JVM Garbage Collection (GC), System (SAR) and Mysql (Innotop) logs
+* Naarad parses JVM Garbage Collection (GC), System (SAR), Mysql (Innotop) and Jmeter (JTL/XML) logs
 * Naarad reads other metrics you have pre-processed and written in CSV format
 * Naarad plots the metrics you specify.
 
@@ -130,6 +130,7 @@ View Results.html in firefox (Chrome complains about cross-domain issues). Note 
 
 Here are some example screenshots of reports produced by Naarad:
 
+* Jmeter ![report](examples/screenshots/naarad-jmeter-screenshots.png)
 * SAR ![report](examples/screenshots/naarad-sar-screenshots.png)
 * GC ![report](examples/screenshots/naarad-gc-screenshots.png)
 

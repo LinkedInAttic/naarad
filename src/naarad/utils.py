@@ -147,15 +147,18 @@ def get_merged_png_name(vals):
 def generate_html_report(output_directory, html_string):
   htmlfilename = os.path.join(output_directory, 'Report.html')
   with open(htmlfilename, 'w') as htmlf:
-    header = '<html><head>'
+    header = '<html><head><title>naarad analysis report</title>'
     dygraphs_include = '''<script type='text/javascript'
       src='http://dygraphs.com/dygraph-combined.js'></script>
-      </head>
-      <body>'''
-    htmlf.write(header)
-    htmlf.write(dygraphs_include)
-    htmlf.write(html_string)
+      '''
+    sorttable_include = '<script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"'
+    body = '</head><body>'
     footer = '</body></html>'
+    htmlf.write(header)
+    htmlf.write(sorttable_include)
+    htmlf.write(dygraphs_include)
+    htmlf.write(body)
+    htmlf.write(html_string)
     htmlf.write(footer)
 
 def tscsv_nway_file_merge(outfile, filelist, filler):
@@ -261,7 +264,10 @@ def calculate_stats(data_list, stats_to_calculate = ['mean', 'std'], percentiles
       'mean' : numpy.mean,
       'avg' : numpy.mean,
       'std' : numpy.std,
-      'standard_deviation' : numpy.std
+      'standard_deviation' : numpy.std,
+      'median' : numpy.median,
+      'min' : numpy.amin,
+      'max' : numpy.amax
       }
   calculated_stats = {}
   calculated_percentiles = {}
@@ -276,3 +282,19 @@ def calculate_stats(data_list, stats_to_calculate = ['mean', 'std'], percentiles
     else:
       logger.error("Unsupported percentile requested (should be int or float): " + str(percentile))
   return calculated_stats, calculated_percentiles
+
+def is_valid_file(filename):
+  """
+  Check if the specifed file exists and is not empty
+
+  :param filename: full path to the file that needs to be checked
+  :return: Status, Message
+  """
+  if os.path.exists(filename):
+    if not os.path.getsize(filename):
+      logger.warning('%s : file is empty.', filename)
+      return False, '%s : file is empty.'
+  else:
+    logger.warning('%s : file does not exist.', filename)
+    return False, '%s : file does not exist.'
+  return True, ''

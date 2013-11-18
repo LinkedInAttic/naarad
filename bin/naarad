@@ -323,7 +323,7 @@ def main():
       t.join()
     cross_plotting_html_string = naarad.utils.nway_plotting(crossplots, metrics, outdir_default, filler)
     html_string.append(cross_plotting_html_string)
-    html_string.append("<h1>Single Metrics</h1>\n")
+    html_string.append("<h1>naarad analysis report</h1>\n")
     html_string.extend(metric_string_list)
     naarad.utils.generate_html_report(outdir_default, ''.join(html_string))
     if outdir_default:
