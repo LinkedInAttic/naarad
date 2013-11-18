@@ -100,7 +100,7 @@ def get_all_sar_objects(metrics, indir, hostname, output_directory, label, ts_st
     infile = os.path.join(indir, 'sar.' + sar_metric_type + '.out')
     if os.path.exists(infile):
       obj_type = 'SAR-' + sar_metric_type
-      metric = SARMetric(obj_type, infile, output_directory, label, ts_start, ts_end, options)
+      metric = SARMetric(obj_type, infile, hostname, output_directory, label, ts_start, ts_end, options)
       metrics.append(metric)
   return metrics
 
