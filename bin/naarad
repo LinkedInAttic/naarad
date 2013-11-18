@@ -305,7 +305,7 @@ def main():
           #TODO: Make user specify metric_type in config and not infer from section
           metric_type = section.split('-')[0]
           if not metric_type in metric_classes:
-            new_metric = Metric(section, infile,  outdir_default, label, ts_start, ts_end, **kwargs)
+            new_metric = Metric(section, infile, hostname, outdir_default, label, ts_start, ts_end, **kwargs)
           else:
             new_metric = metric_classes[metric_type](section, infile, hostname,  outdir_default, label, ts_start, ts_end, **kwargs)
           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
