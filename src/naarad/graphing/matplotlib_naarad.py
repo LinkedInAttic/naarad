@@ -24,7 +24,8 @@ def convert_to_mdate(date_str):
     mdate = mdates.strpdate2num('%Y-%m-%d %H:%M:%S')(date_str)
   return mdate
 
-
+# MPL-WA-07
+# matplotlib does not rotate colors correctly when using multiple y axes. This method fills in that gap.
 def get_current_color(index):
   colors = ['black', 'orange', 'steelblue', 'm', 'red', 'cyan', 'g', 'gray']
   return colors[index % len(colors)]
@@ -69,6 +70,9 @@ def graph_data(list_of_plots, output_directory, output_filename):
 
   graph_height, graph_width, graph_title = get_graph_metadata(list_of_plots)
 
+# MPL-WA-01
+# When working with host_subplot to create multiple y axis, matplotlib does not always honor calls to format axis. \
+# Setting matplotlib default preferences which are always (or appear to be for the most part) honored as a workaround.
   mpl.rcParams['lines.linewidth'] = 1.5
   mpl.rcParams['xtick.labelsize'] = 8
   mpl.rcParams['ytick.labelsize'] = 8
@@ -77,6 +81,9 @@ def graph_data(list_of_plots, output_directory, output_filename):
 
   current_plot_count = 0
   plots_in_error = 0
+# MPL-WA-02
+# Use subplot when dealing with plots with 1 or 2 y axis. This gives better control over formatting of axis/labels etc.
+# subplot does not support more than 2 y-axis
   if plot_count <= 2:
     fig, axis = plt.subplots()
     fig.set_size_inches(graph_width, graph_height)
@@ -98,6 +105,8 @@ def graph_data(list_of_plots, output_directory, output_filename):
       for y_tick in y_ticks:
         y_tick.set_color(get_current_color(current_plot_count))
   else:
+# MPL-WA-03
+# Use host_subplot when dealing with more than 2 y axis. Formatting of these additional axis is done via MPL-WA-01
     fig = plt.figure()
     host = host_subplot(111, axes_class=AA.Axes)
     axis_offset = 50
@@ -107,8 +116,10 @@ def graph_data(list_of_plots, output_directory, output_filename):
       current_plot_count += 1
       logger.info('Processing: ' + plot.input_csv)
       timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0:convert_to_mdate})
-#     1. Fix matplotlib buggy auto-scale behavior when working with multiple y axis and series with low variance
-#     2. Improved visibility for tightly correlated series
+# MPL-WA-04
+# Fix matplotlib buggy auto-scale behavior when working with multiple y axis and series with low variance
+# MPL-WA-05
+# Improved visibility for tightly correlated series
       maximum_yvalue = numpy.amax(yval) * (1.0 + 0.005 * current_plot_count)
       minimum_yvalue = numpy.amin(yval) * (1.0 - 0.005 * current_plot_count)
       if current_plot_count == 1:
@@ -128,6 +139,10 @@ def graph_data(list_of_plots, output_directory, output_filename):
     return False, None
   plt.title(graph_title)
   plt.xlabel('Time')
+# MPL-WA-06
+# matplotlib does not support rotation of tick labels when using host_subplot (MPL-WA-03). So reducing the time format \
+# to %H:%M:%S. For the MPL-WA-02 scenario we have formatting options available that could be leveraged to display more \
+# time information such as day/month/year
   x_date_format = mdates.DateFormatter('%H:%M:%S')
   current_axis.xaxis.set_major_formatter(x_date_format)
   plot_file_name = os.path.join(output_directory, output_filename + ".png")
