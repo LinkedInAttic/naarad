@@ -71,7 +71,6 @@ def test_generator():
   yield plot, [plot4], 'test4', 'single plot with 1 empty csv', False
   yield plot, [plot4, plot1], 'test5', 'dual plot with 1 empty csv', True
   yield plot, [plot1, plot4, plot3], 'test6', 'multi plot with 1 empty csv', True
-  yield plot, [plot5], 'test4', 'single plot with 1 non-existent csv', False
-  yield plot, [plot5, plot1], 'test5', 'dual plot with 1 non-existent csv', True
-  yield plot, [plot1, plot5, plot3], 'test6', 'multi plot with 1 non-existent csv', True
-
+  yield plot, [plot5], 'test7', 'single plot with 1 non-existent csv', False
+  yield plot, [plot5, plot1], 'test8', 'dual plot with 1 non-existent csv', True
+  yield plot, [plot1, plot5, plot3], 'test9', 'multi plot with 1 non-existent csv', True
