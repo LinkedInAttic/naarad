@@ -95,7 +95,7 @@ class Metric(object):
     csv = os.path.join(self.outdir, self.metric_type + '.stats.csv')
     return csv
 
-  def get_percentiles_csv(self, data_csv):
+  def get_percentiles_csv_from_data_csv(self, data_csv):
     percentile_csv_file = '.'.join(data_csv.split('.')[0:-1]) + '.percentiles.csv'
     return percentile_csv_file
 
@@ -130,28 +130,29 @@ class Metric(object):
     return True
 
   def calculate_stats(self):
-    data = {}
-    stats_to_calculate = ['mean', 'std'] # TODO: get input from user
-    percentiles_to_calculate = range(5,101,5) # TODO: get input from user
+    stats_to_calculate = ['mean', 'std']  # TODO: get input from user
+    percentiles_to_calculate = range(5, 101, 5)  # TODO: get input from user
     percentiles_to_calculate.append(99)
+    headers = 'sub-metric, mean, std, p50, p75, p90, p95, p99\n'
     metric_stats_csv_file = self.get_stats_csv()
     imp_metric_stats_csv_file = self.get_important_sub_metrics_csv()
+    logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
     with open(metric_stats_csv_file, 'w') as FH_W:
       with open(imp_metric_stats_csv_file, 'w') as FH_W_IMP:
-        FH_W.write("sub-metric, mean, std, p50, p75, p90, p95, p99\n")
+        data = []
+        FH_W.write(headers)
         if self.important_sub_metrics:
-          FH_W_IMP.write("sub-metric, mean, std, p50, p75, p90, p95, p99\n")
+          FH_W_IMP.write(headers)
         for csv_file in self.csv_files:
           if not os.path.getsize(csv_file):
             continue
-          data[csv_file] = []
-          percentile_csv_file = self.get_percentiles_csv(csv_file)
           column = self.csv_column_map[csv_file]
+          percentile_csv_file = self.get_percentiles_csv_from_data_csv(csv_file)
           with open(csv_file, 'r') as FH:
             for line in FH:
               words = line.split(',')
-              data[csv_file].append(float(words[1]))
-          calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data[csv_file], stats_to_calculate, percentiles_to_calculate)
+              data.append(float(words[1]))
+          calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
           with open(percentile_csv_file, 'w') as FH_P:
             for percentile in sorted(calculated_percentiles.iterkeys()):
               FH_P.write("%d, %f\n" % (percentile, calculated_percentiles[percentile]))

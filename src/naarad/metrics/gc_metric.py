@@ -30,7 +30,6 @@ class GCMetric(Metric):
         self.gc_options = val.split()
       else:
         setattr(self, key, val)
-    self.important_sub_metrics = ('GC', 'used')
     self.metric_description = {
       "appstop" :"approximate application stop times",
       "gen0" :" young gen collection time, excluding gc_prologue & gc_epilogue",
