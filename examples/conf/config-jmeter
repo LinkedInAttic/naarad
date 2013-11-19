@@ -1,0 +1,6 @@
+[JMETER]
+infile=perf-result.xml
+access=local
+
+[GRAPH]
+graphing_library=matplotlib

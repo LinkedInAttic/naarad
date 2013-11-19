@@ -7,10 +7,12 @@ Unless required by applicable law or agreed to in writing, software distribute
 """
 
 from naarad.graphing import matplotlib_naarad
+from naarad.metrics.jmeter_metric import JmeterMetric
 
 #Custom metrics
 metric_classes = {
     #'MyMetric' : MyMetricParserClass
+    'JMETER' : JmeterMetric
     }
 graphing_modules = {
     'matplotlib' : matplotlib_naarad
