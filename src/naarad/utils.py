@@ -18,6 +18,7 @@ import urllib
 
 from naarad.metrics.sar_metric import SARMetric
 from naarad.metrics.metric import Metric
+from naarad.graphing.plot_data import PlotData
 
 logger = logging.getLogger('naarad.utils')
 
@@ -142,7 +143,7 @@ def get_merged_plot_link_name(vals):
   return '-'.join(vals)
 
 def get_merged_png_name(vals):
-  return '-'.join(vals) + '.png'
+  return '-'.join(vals)
 
 def generate_html_report(output_directory, html_string):
   htmlfilename = os.path.join(output_directory, 'Report.html')
@@ -215,21 +216,14 @@ def nway_plotting(crossplots, metrics, output_directory, filler):
     vals = plot.split(',')
     i += 1
     if not 'all' in vals:
-      csv_files = []
+      plot_data = []
       for val in vals:
         csv_file = get_default_csv(output_directory, val)
-        csv_files.append(csv_file)
-      for j in range(len(vals)):
-        vals[j] = sanitize_string(vals[j])
-      merged_filename = get_merged_csvname(output_directory, vals)
+        plot_data.append(PlotData(input_csv=csv_file, csv_column=1, series_name=sanitize_string(val), y_label=sanitize_string(val), precision=None, graph_height=500, graph_width=1200, graph_type='line'))
       plot_title = get_merged_charttitle(vals)
       png_name = get_merged_plot_link_name(vals)
-      merged_plotfile = get_merged_png_name(vals)
-
-      tscsv_nway_file_merge(merged_filename, csv_files, filler)
-      Metric.graphing_modules['matplotlib'].graph_csv_new(output_directory, csv_files, plot_title, png_name, vals)
-
-      img_tag = "<h3><a name=\"{0}\"></a>{1}</h3><img src={2} />".format(png_name, plot_title, merged_plotfile)
+      Metric.graphing_modules['matplotlib'].graph_data(plot_data, output_directory, png_name)
+      img_tag = "<h3><a name=\"{0}\"></a>{1}</h3><img src={2} />".format(png_name + '.png', plot_title, png_name + '.png')
       link_tag = "<li><a href=\"#{0}\">{1}</a></li>".format(png_name, plot_title)
       html_string.append(img_tag)
       linkstring.append(link_tag)
