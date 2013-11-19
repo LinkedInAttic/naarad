@@ -166,14 +166,14 @@ def sanitize_string_section_name(string):
   return string
 
 
-def is_valid_hostname(hostname):
+def is_valid_metric_name(metric_name):
   """
-  check the validity of hostname in config; the hostname will be used for creation of sub-dir, so only contains: alphabet, digits , '.', '-' and '_'
-  :param str hostname: hostname
+  check the validity of metric_name in config; the metric_name will be used for creation of sub-dir, so only contains: alphabet, digits , '.', '-' and '_'
+  :param str metric_name: metric_name
   :return: True if valid
   """
   reg=re.compile('^[a-zA-Z0-9\.\-\_]+$')
-  if reg.match(hostname) and not hostname.startswith('.'):
+  if reg.match(metric_name) and not metric_name.startswith('.'):
     return True
   else:
     return False
@@ -269,16 +269,19 @@ def main():
         ts_start = None
         ts_end = "now"
         precision = None
-                
+        hostname = "localhost"        
+        
+        # section name is used to create sub-directories, so enforce it. 
+        if not is_valid_metric_name(section):
+          logger.critical('The section name of %s is invalid! ' % section)
+          sys.exit(0)
+          
         try:
           if config_obj.has_option(section, 'hostname'):
             hostname = config_obj.get(section,'hostname')   
-            if not is_valid_hostname(hostname):
-              logger.error('The hostname of %s is invalid in section %s'  % (hostname, section) )
-              return               
+            config_obj.remove_option(section, 'hostname')     
           else:
-            logger.error('No hostname is found in section %s ' % section)  
-            return 
+            logger.warning('No hostname is found in section %s ' % section)  
           
           infile = config_obj.get(section, 'infile')
           config_obj.remove_option(section, 'infile')
