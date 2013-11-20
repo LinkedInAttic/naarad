@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {%- if report_title %}
+      <title>{{ report_title }}</title>
+    {%- else %}
+      <title>naarad analysis report</title>
+    {%- endif %}
+    {%- if custom_javascript_includes %}
+      {%- for custom_javascript in custom_javascript_includes %}
+        <script type="text/javascript" src="{{ custom_javascript }}"/>
+      {%- endfor %}
+    {%- endif %}
+    {%- if custom_stylesheet_includes %}
+      {%- for custom_stylesheet in custom_stylesheet_includes %}
+        <link type="text/css" href="{{ custom_stylesheet }}"/>
+      {%- endfor %}
+    {%- endif %}
+  </head>
