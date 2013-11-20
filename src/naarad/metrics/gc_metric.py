@@ -24,6 +24,8 @@ class GCMetric(Metric):
       'cmsIM', 'cmsRM', 'cmsRS', 'GC', 'cmsCM', 'cmsCP', 'cmsCS', 'cmsCR', 'safept', 'apptime')
   def __init__ (self, metric_type, infile, access, outdir, label, ts_start, ts_end, **other_options):
     Metric.__init__(self, metric_type, infile, access, outdir, label, ts_start, ts_end)
+    # TODO: Make this list configurable
+    important_sub_metrics = ('GC', 'used')
     for (key, val) in other_options.iteritems():
       if key == 'gc-options':
         self.gc_options = val.split()
@@ -57,9 +59,6 @@ class GCMetric(Metric):
       "safept" :" amount of time the VM spent at safepoints (app threads stopped)"
       }
 
-
-  def get_csv(self, sub_metric):
-    return os.path.join(self.outdir, self.metric_type + '.' +  sub_metric + '.csv')
 
   def get_pngname(self, sub_metric):
     return self.metric_type + '.' + sub_metric + '.png'
@@ -209,3 +208,4 @@ class GCMetric(Metric):
         logger.info("Waiting for thread %d to finish.... ", t.ident)
         t.join()
     return True
+

@@ -152,7 +152,7 @@ def generate_html_report(output_directory, html_string):
     dygraphs_include = '''<script type='text/javascript'
       src='http://dygraphs.com/dygraph-combined.js'></script>
       '''
-    sorttable_include = '<script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"'
+    sorttable_include = '<script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>'
     body = '</head><body>'
     footer = '</body></html>'
     htmlf.write(header)
@@ -244,6 +244,16 @@ def nway_plotting(crossplots, metrics, output_directory, filler):
   linkstring.append("</ul></div>")
   linkstring.extend(html_string)
   return '\n'.join(linkstring)
+
+def normalize_float_for_display(data_val):
+  try:
+    data_val = float(data_val)
+  except ValueError:
+    return data_val
+  if data_val > 1:
+    return '%.2f' % round(data_val, 2)
+  else:
+    return '%s' % float('%.2g' % data_val)
 
 def calculate_stats(data_list, stats_to_calculate = ['mean', 'std'], percentiles_to_calculate = []):
   """

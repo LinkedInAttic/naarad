@@ -53,6 +53,7 @@ class JmeterMetric(Metric):
     if transaction_name == '__overall_summary__':
       transaction_name = 'Overall Summary'
     csv = os.path.join(self.outdir, self.metric_type + '.' + transaction_name + '.' + col + '.csv')
+    self.csv_column_map[csv] = column
     return csv
 
   def aggregate_count_over_time(self, metric_store, line_data, transaction_list, aggregate_timestamp):

@@ -5,7 +5,7 @@ import urllib2
 import logging
 from HTMLParser import HTMLParser  
   
-import naarad.utils as utils
+import naarad.utils
 
 logger = logging.getLogger('naarad.httpdownload')
                   
@@ -17,14 +17,14 @@ def handle_single_url(url, outdir, outfile=None):
   :param str url: a full/absolute url, e.g. http://www.cnn.com/log.zip
   :param str outdir: the absolute local directory. e.g. /home/user1/tmp/
   :param str outfile: (optional) filename stored in local directory. If outfile is not given, extract the filename from url
-  :return: None
+  :return: the local full path name of downloaded url
   """
   if not url or type(url) != str \
     or not outdir or type(outdir) != str :
       logger.error('passed in parameters %s %s are incorrect.' % (url, outdir))
       return
   
-  if not utils.is_valid_url(url):
+  if not naarad.utils.is_valid_url(url):
     logger.error("passed in url %s is incorrect." % url)
     return
     
@@ -41,8 +41,10 @@ def handle_single_url(url, outdir, outfile=None):
       response = urllib2.urlopen(url)
       fh.write(response.read())
     except urllib2.HTTPError:
-      logger.error("HTTPError when retrieving %s" % url)
+      logger.error("got HTTPError when retrieving %s" % url)
       return
+  
+  return output_file
 
 
 class HTMLLinkExtractor(HTMLParser): 
@@ -73,7 +75,7 @@ def get_urls_from_seed(url):
   :return: a list of full/absolute urls. 
   """	
   
-  if not url or type(url) != str or not utils.is_valid_url(url):
+  if not url or type(url) != str or not naarad.utils.is_valid_url(url):
     logger.error("get_urls_from_seed() does not have valid seeding url.")
     return   
 
@@ -91,7 +93,7 @@ def get_urls_from_seed(url):
     urls = hp.links
     hp.close()  
   except urllib2.HTTPError:
-    logger.error("HTTPError when opening the url of %s" % url)
+    logger.error("Got HTTPError when opening the url of %s" % url)
     return urls
 
   # check whether the url is relative or complete
@@ -109,7 +111,7 @@ def download_url_single(inputs, outdir, outfile = None):
   :param str outdir: Required. the local directory to put the downloadedfiles.  
   :param str outfile: // Optional. If this is given, the downloaded url will be renated to outfile; 
     If this is not given, then the local file will be the original one, as given in url. 
-  :return None
+  :return: the local full path name of downloaded url
   """
   
   if not inputs or type(inputs) != str or not outdir or type(outdir) != str: 
@@ -119,7 +121,8 @@ def download_url_single(inputs, outdir, outfile = None):
     if not os.path.exists(outdir):
       os.makedirs(outdir)
       
-  handle_single_url(inputs, outdir, outfile)   
+  output_file = handle_single_url(inputs, outdir, outfile)   
+  return output_file
 
  
 def download_url_regex(inputs, outdir, regex = ".*"):
@@ -128,7 +131,7 @@ def download_url_regex(inputs, outdir, regex = ".*"):
   :param str inputs: Required, the seed url
   :param str outdir: Required. the local directory to put the downloadedfiles.  
   :param str regex: Optional, a regex string. If not given, then all urls will be valid
-  :return None
+  :return: A list of local full path names (downloaded from inputs)
   """
   if not inputs or type(inputs) != str \
     or not outdir or type(outdir) != str: 
@@ -138,9 +141,11 @@ def download_url_regex(inputs, outdir, regex = ".*"):
     if not os.path.exists(outdir):
       os.makedirs(outdir)
 
+  output_files = []
   files = get_urls_from_seed(inputs)
   for f in files:
     if re.compile(regex).match(f):
-      handle_single_url(f, outdir)  
-
-
+      output_file = handle_single_url(f, outdir)  
+      output_files.append(output_file)
+      
+  return output_files
