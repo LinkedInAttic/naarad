@@ -23,13 +23,13 @@ class SARMetric(Metric):
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
 
-  def get_csv(self, column, device=None):
-    column = naarad.utils.sanitize_string(column)
+  def get_csv(self, col, device=None):
+    column = naarad.utils.sanitize_string(col)
     if device is None:
       outcsv = os.path.join(self.outdir, "{0}.{1}.csv".format(self.metric_type, column))
     else:
       outcsv = os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.metric_type, device, column))
-    self.csv_column_map[outcsv] = column
+    self.csv_column_map[outcsv] = col
     return outcsv
 
   def parse(self):
