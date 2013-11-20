@@ -273,7 +273,7 @@ def main():
         
         # section name is used to create sub-directories, so enforce it. 
         if not is_valid_metric_name(section):
-          logger.critical('The section name of %s is invalid! ' % section)
+          logger.critical('The section name of %s is invalid! Only letters, digits, dot(.), dash(-), underscore(_) are allowed' % section)
           sys.exit(0)
           
         try:
