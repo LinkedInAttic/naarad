@@ -43,6 +43,7 @@ class Metric(object):
     self.csv_files = []
     self.csv_column_map = {}
     self.metric_description = defaultdict(lambda: 'None')
+    self.important_sub_metrics = ()
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -84,14 +85,18 @@ class Metric(object):
   def get_csv(self, column):
     col = naarad.utils.sanitize_string(column)
     csv = os.path.join(self.outdir, self.metric_type + '.' + col + '.csv')
-    self.csv_column_map[csv] = col
+    self.csv_column_map[csv] = column
+    return csv
+
+  def get_important_sub_metrics_csv(self):
+    csv = os.path.join(self.outdir, self.metric_type + '.important_sub_metrics.csv')
     return csv
 
   def get_stats_csv(self):
     csv = os.path.join(self.outdir, self.metric_type + '.stats.csv')
     return csv
 
-  def get_percentiles_csv(self, data_csv):
+  def get_percentiles_csv_from_data_csv(self, data_csv):
     percentile_csv_file = '.'.join(data_csv.split('.')[0:-1]) + '.percentiles.csv'
     return percentile_csv_file
 
@@ -126,30 +131,39 @@ class Metric(object):
     return True
 
   def calculate_stats(self):
-    data = {}
-    stats_to_calculate = ['mean', 'std'] # TODO: get input from user
-    percentiles_to_calculate = range(5,101,5) # TODO: get input from user
+    stats_to_calculate = ['mean', 'std']  # TODO: get input from user
+    percentiles_to_calculate = range(5, 101, 5)  # TODO: get input from user
+    percentiles_to_calculate.append(99)
+    headers = 'sub-metric,mean,std,p50,p75,p90,p95,p99\n'
     metric_stats_csv_file = self.get_stats_csv()
+    imp_metric_stats_csv_file = self.get_important_sub_metrics_csv()
+    logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
     with open(metric_stats_csv_file, 'w') as FH_W:
-      FH_W.write("sub-metric, mean, std, p50, p75, p90, p95\n")
-      for csv_file in self.csv_files:
-        if not os.path.getsize(csv_file):
-          continue
-        data[csv_file] = []
-        percentile_csv_file = self.get_percentiles_csv(csv_file)
-        #TODO: Fix this hacky way to get the sub-metrics
-        column = '.'.join(csv_file.split('.')[1:-1])
-        with open(csv_file, 'r') as FH:
-          for line in FH:
-            words = line.split(',')
-            data[csv_file].append(float(words[1]))
-        calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data[csv_file], stats_to_calculate, percentiles_to_calculate)
-        with open(percentile_csv_file, 'w') as FH_P:
-          for percentile in sorted(calculated_percentiles.iterkeys()):
-            FH_P.write("%d, %f\n" % (percentile, calculated_percentiles[percentile]))
-        to_write = [column, calculated_stats['mean'], calculated_stats['std'], calculated_percentiles[50], calculated_percentiles[75], calculated_percentiles[90], calculated_percentiles[95]]
-        to_write = map(lambda x: str(x), to_write)
-        FH_W.write(', '.join(to_write) + '\n') 
+      with open(imp_metric_stats_csv_file, 'w') as FH_W_IMP:
+        data = []
+        FH_W.write(headers)
+        if self.important_sub_metrics:
+          FH_W_IMP.write(headers)
+        for csv_file in self.csv_files:
+          if not os.path.getsize(csv_file):
+            continue
+          column = self.csv_column_map[csv_file]
+          percentile_csv_file = self.get_percentiles_csv_from_data_csv(csv_file)
+          with open(csv_file, 'r') as FH:
+            for line in FH:
+              words = line.split(',')
+              data.append(float(words[1]))
+          calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
+          with open(percentile_csv_file, 'w') as FH_P:
+            for percentile in sorted(calculated_percentiles.iterkeys()):
+              FH_P.write("%d, %f\n" % (percentile, calculated_percentiles[percentile]))
+          to_write = [column, calculated_stats['mean'], calculated_stats['std'], calculated_percentiles[50], calculated_percentiles[75], calculated_percentiles[90], calculated_percentiles[95], calculated_percentiles[99]]
+          to_write = map(lambda x: naarad.utils.normalize_float_for_display(x), to_write)
+          FH_W.write(','.join(to_write) + '\n') 
+          # Important sub-metrics and their stats go in imp_metric_stats_csv_file
+          if column in self.important_sub_metrics:
+            FH_W_IMP.write(','.join(to_write) + '\n') 
+
 
   def calc(self):
     if not self.calc_metrics:
@@ -209,6 +223,7 @@ class Metric(object):
       # The last element is .csv, don't need that in the name of the chart
       graph_title = '.'.join(csv_filename.split('.')[0:-1])
       column = self.csv_column_map[out_csv]
+      column = naarad.utils.sanitize_string(column)
       plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
       graphed, html_ret = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.outdir, graph_title)
       if html_ret:
