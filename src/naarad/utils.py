@@ -251,7 +251,7 @@ def nway_plotting(crossplots, metrics, output_directory, filler):
   linkstring.extend(html_string)
   return '\n'.join(linkstring)
 
-def normalize_float_for_display(self, data_val):
+def normalize_float_for_display(data_val):
   try:
     data_val = float(data_val)
   except ValueError:
