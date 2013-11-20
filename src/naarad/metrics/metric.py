@@ -43,6 +43,7 @@ class Metric(object):
     self.csv_files = []
     self.csv_column_map = {}
     self.metric_description = defaultdict(lambda: 'None')
+    self.important_sub_metrics = ()
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -133,7 +134,7 @@ class Metric(object):
     stats_to_calculate = ['mean', 'std']  # TODO: get input from user
     percentiles_to_calculate = range(5, 101, 5)  # TODO: get input from user
     percentiles_to_calculate.append(99)
-    headers = 'sub-metric, mean, std, p50, p75, p90, p95, p99\n'
+    headers = 'sub-metric,mean,std,p50,p75,p90,p95,p99\n'
     metric_stats_csv_file = self.get_stats_csv()
     imp_metric_stats_csv_file = self.get_important_sub_metrics_csv()
     logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
@@ -157,11 +158,11 @@ class Metric(object):
             for percentile in sorted(calculated_percentiles.iterkeys()):
               FH_P.write("%d, %f\n" % (percentile, calculated_percentiles[percentile]))
           to_write = [column, calculated_stats['mean'], calculated_stats['std'], calculated_percentiles[50], calculated_percentiles[75], calculated_percentiles[90], calculated_percentiles[95], calculated_percentiles[99]]
-          to_write = map(lambda x: str(x), to_write)
-          FH_W.write(', '.join(to_write) + '\n') 
+          to_write = map(lambda x: naarad.utils.normalize_float_for_display(x), to_write)
+          FH_W.write(','.join(to_write) + '\n') 
           # Important sub-metrics and their stats go in imp_metric_stats_csv_file
           if column in self.important_sub_metrics:
-            FH_W_IMP.write(', '.join(to_write) + '\n') 
+            FH_W_IMP.write(','.join(to_write) + '\n') 
 
 
   def calc(self):

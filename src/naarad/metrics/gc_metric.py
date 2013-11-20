@@ -22,9 +22,10 @@ class GCMetric(Metric):
   rate_types = ()
   val_types = ('alloc', 'promo', 'used0', 'used1', 'used', 'commit0', 'commit1', 'commit', 'gen0', 'gen0t', 'gen0usr', 'gen0sys',
       'cmsIM', 'cmsRM', 'cmsRS', 'GC', 'cmsCM', 'cmsCP', 'cmsCS', 'cmsCR', 'safept', 'apptime')
-  important_sub_metrics = ('GC', 'used')
   def __init__ (self, metric_type, infile, access, outdir, label, ts_start, ts_end, **other_options):
     Metric.__init__(self, metric_type, infile, access, outdir, label, ts_start, ts_end)
+    # TODO: Make this list configurable
+    important_sub_metrics = ('GC', 'used')
     for (key, val) in other_options.iteritems():
       if key == 'gc-options':
         self.gc_options = val.split()
