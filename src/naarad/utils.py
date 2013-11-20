@@ -151,7 +151,7 @@ def generate_html_report(output_directory, html_string):
     dygraphs_include = '''<script type='text/javascript'
       src='http://dygraphs.com/dygraph-combined.js'></script>
       '''
-    sorttable_include = '<script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"'
+    sorttable_include = '<script type="text/javascript" src="http://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>'
     body = '</head><body>'
     footer = '</body></html>'
     htmlf.write(header)
