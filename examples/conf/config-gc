@@ -4,3 +4,4 @@ gc-options=appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0
 access=local
 
 [GRAPH]
+graphs=GC.appstop,all GC.alloc,GC.alloc-rate GC.promo,GC.gen0t,GC.gen0sys
