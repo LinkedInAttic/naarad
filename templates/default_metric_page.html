@@ -4,9 +4,13 @@
 <h3>Metrics Summary</h3>
 <p align="center">
 <table align="center" class="sortable" style="border-collapse:collapse; border: 1px solid black;">
-<thead bgcolor="#0094ff"><tr>
+<thead bgcolor="lightseagreen"><tr>
 {%- for header in metric_stats[0] %}
-<th style="border: 1px solid black; color: white;">{{ header }}</th>
+{%- if not loop.first %}
+<th style="border: 1px solid black; color: white;" width="75px" height="40px">{{ header }}</th>
+{%- else %}
+<th style="border: 1px solid black; color: white;" height="40px">{{ header }}</th>
+{%- endif %}
 {%- endfor %}
 </tr>
 </thead>
@@ -17,7 +21,7 @@
 {%- if loop.first %}
 <td style="border: 1px solid black;"><a href="#{{ metric }}.{{ row_data }}.png">{{ row_data }}</a></td>
 {%- else %}
-<td style="border: 1px solid black;">{{ row_data }}</td>
+<td style="border: 1px solid black;" align="right">{{ row_data }}</td>
 {%- endif %}
 {%- endfor %}
 </tr>
@@ -34,7 +38,7 @@
 <h3>Metric Plots</h3>
 <p>
 {%- for image in metric_plots %}
-  <img src="{{ image }}" id="{{ image }}"/>
+  <a href="#{{ metric }}-summary-table"><img src="{{ image }}" id="{{ image }}"/></a>
 {%- endfor %}
 </p>
 </div>
@@ -45,10 +49,8 @@
 <h3>Correlated Metric Plots</h3>
 <p>
 {%- for image in correlated_plots %}
-  <img src="{{ image }}" id="{{ image }}"/>
+  <a href="#{{ metric }}-summary-table"><img src="{{ image }}" id="{{ image }}"/></a>
 {%- endfor %}
 </p>
 </div>
 {%- endif %}
-
-</body>
