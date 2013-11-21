@@ -18,6 +18,14 @@ tmp_dir = ''
 # the testing download file (will be hosted from local http server)
 test_input_file = 'bin/naarad'
 
+def setup():
+  start_http_server()
+  create_tmp_dir()
+
+def teardown():
+  kill_http_server()  
+  delete_tmp_dir()  
+  
 def start_http_server():
   '''start a local http server for testing'''
   global port_test
@@ -50,8 +58,6 @@ def delete_tmp_dir():
   
 def test_list_of_urls_no_output():
   ''' list of abosulute urls with no output file name'''
-  start_http_server()
-  create_tmp_dir()
   global tmp_dir
   url = "http://localhost:8011/bin/naarad"
   outdir = tmp_dir
@@ -64,15 +70,11 @@ def test_list_of_urls_no_output():
   assert os.path.exists(output_file),  "File of %s does not exist! " % output_file  
   
   if os.path.exists(os.path.join(outdir, "naarad")):
-    os.remove(os.path.join(outdir, "naarad"));  
-  
-  kill_http_server()  
-  delete_tmp_dir()
+    os.remove(os.path.join(outdir, "naarad"));   
+
 
 def test_list_of_urls_with_output():
   ''' list of abosulute urls with output file name given'''
-  start_http_server()
-  create_tmp_dir()
   global tmp_dir
   
   url = "http://localhost:8011/bin/naarad"
@@ -88,14 +90,9 @@ def test_list_of_urls_with_output():
        
   if os.path.exists(os.path.join(outdir, "1a.html")):
     os.remove(os.path.join(outdir, "1a.html"));  
-  
-  kill_http_server()
-  delete_tmp_dir()
       
 def test_regex_urls():
   '''a seeding url, and a regex expression of urls '''
-  start_http_server()
-  create_tmp_dir()
   global tmp_dir
   seed_url = "http://localhost:8011/test/httpdownload.html"
   outdir = tmp_dir
@@ -110,6 +107,4 @@ def test_regex_urls():
   assert os.path.exists(output_file),  "File of %s does not exist! " % output_file  
   output_file = os.path.join(outdir, 'test_httpdownload.py')
   assert os.path.exists(output_file),  "File of %s does not exist! " % output_file  
-   
-  kill_http_server()
-  delete_tmp_dir()
+
