@@ -1,7 +1,7 @@
 <body>
 {%- if metric_stats %}
 <div id="{{ metric }}-summary-table" class="box">
-<h2>Metrics Summary</h2>
+<h3>Metrics Summary</h3>
 <p align="center">
 <table align="center" class="sortable" style="border-collapse:collapse; border: 1px solid black;">
 <thead bgcolor="#0094ff"><tr>
@@ -31,7 +31,7 @@
 
 {%- if metric_plots %}
 <div id="{{ metric }}-metric-plots" class="box">
-<h2>Metric Plots</h2>
+<h3>Metric Plots</h3>
 <p>
 {%- for image in metric_plots %}
   <img src="{{ image }}" id="{{ image }}"/>
@@ -42,7 +42,7 @@
 
 {%- if correlated_plots %}
 <div id="{{ metric }}-correlated-plots" class="box">
-<h2>Correlated Metric Plots</h2>
+<h3>Correlated Metric Plots</h3>
 <p>
 {%- for image in correlated_plots %}
   <img src="{{ image }}" id="{{ image }}"/>

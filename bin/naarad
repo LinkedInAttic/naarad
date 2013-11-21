@@ -27,6 +27,7 @@ from naarad.metrics.gc_metric import GCMetric
 from naarad.metrics.innotop_metric import INNOMetric
 from naarad.metrics.sar_metric import SARMetric
 from naarad.graphing import dygraphs
+from naarad.reporting.report import Report
 
 try:
   from naarad.naarad_imports import metric_classes, graphing_modules
@@ -315,7 +316,9 @@ def main():
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
     threads = []
+    report_metrics = []
     for metric in metrics:
+      report_metrics.append(metric.label)
       thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library))
       thread.start()
       threads.append(thread)
@@ -328,6 +331,7 @@ def main():
     naarad.utils.generate_html_report(outdir_default, ''.join(html_string))
     if outdir_default:
       logger.info('Report generated at {0}'.format( os.path.join(outdir_default, 'Report.html') ))
-
+    rpt = Report(None,outdir_default,report_metrics)
+    rpt.generate()
 if __name__ == '__main__':
   main()
