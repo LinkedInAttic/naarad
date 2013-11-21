@@ -93,7 +93,7 @@ def is_number(string):
   except ValueError:
     return False
 
-def get_all_sar_objects(metrics, indir, access, output_directory, label, ts_start, ts_end, options):
+def get_all_sar_objects(metrics, indir, hostname, output_directory, label, ts_start, ts_end, options):
   metrics = []
   sar_types = ('device', 'cpuusage', 'cpuhz', 'memory', 'memutil', 'paging')
   for sar_metric_type in sar_types:
@@ -101,7 +101,7 @@ def get_all_sar_objects(metrics, indir, access, output_directory, label, ts_star
     infile = os.path.join(indir, 'sar.' + sar_metric_type + '.out')
     if os.path.exists(infile):
       obj_type = 'SAR-' + sar_metric_type
-      metric = SARMetric(obj_type, infile, access, output_directory, label, ts_start, ts_end, options)
+      metric = SARMetric(obj_type, infile, hostname, output_directory, label, ts_start, ts_end, options)
       metrics.append(metric)
   return metrics
 

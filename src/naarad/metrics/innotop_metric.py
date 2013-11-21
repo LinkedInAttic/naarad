@@ -16,8 +16,8 @@ logger = logging.getLogger('naarad.metrics.INNOMetric')
 class INNOMetric(Metric):
   C_MAX_COMMANDS = 10
   graph_lib = None
-  def __init__(self, metric_type, infile, access, outdir, label, ts_start, ts_end, **other_options):
-    Metric.__init__(self, metric_type, infile, access, outdir, label, ts_start, ts_end)
+  def __init__(self, metric_type, infile, hostname, outdir, label, ts_start, ts_end, **other_options):
+    Metric.__init__(self, metric_type, infile,  hostname, outdir, label, ts_start, ts_end)
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
 
