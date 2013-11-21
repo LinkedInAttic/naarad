@@ -64,9 +64,9 @@ class Report(object):
     for image in image_list:
       if naarad.utils.is_valid_file(image):
         if self.is_correlated_image(image, metric):
-          correlated_images.append(image)
+          correlated_images.append(os.path.basename(image))
         else:
-          single_images.append(image)
+          single_images.append(os.path.basename(image))
     return summary_stats, important_stats, single_images, correlated_images
 
   def generate(self):
