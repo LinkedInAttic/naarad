@@ -70,8 +70,8 @@ class Report(object):
     return summary_stats, important_stats, single_images, correlated_images
 
   def generate(self):
-    template_loader = FileSystemLoader('/home/sgandhi/workspace/naarad/templates')
-    template_environment = Environment( loader=template_loader )
+    template_loader = FileSystemLoader(os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'templates')))
+    template_environment = Environment(loader=template_loader)
     for metric in self.metric_list:
       metric_stats_file, summary_stats, metric_plots, correlated_plots = self.discover_metric_data(self.output_directory, metric)
       metric_stats = self.get_summary_table(metric_stats_file)

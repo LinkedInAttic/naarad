@@ -8,6 +8,7 @@ Unless required by applicable law or agreed to in writing, software distribute
 
 from naarad.graphing import matplotlib_naarad
 from naarad.metrics.jmeter_metric import JmeterMetric
+from naarad.reporting.report import Report
 
 #Custom metrics
 metric_classes = {
@@ -17,3 +18,6 @@ metric_classes = {
 graphing_modules = {
     'matplotlib' : matplotlib_naarad
     }
+reporting_modules = {
+    'report' : Report
+}
