@@ -169,7 +169,7 @@ class JmeterMetric(Metric):
     :return: status of the metric parse
     """
     logger.info('Processing : %s',self.infile)
-    file_status, error_message = naarad.utils.is_valid_file(self.infile)
+    file_status = naarad.utils.is_valid_file(self.infile)
     if not file_status:
       return False
     # TBD: Read from user configuration
@@ -212,7 +212,7 @@ class JmeterMetric(Metric):
     return True
 
   def calculate_stats(self):
-    stats_csv = self.get_csv(self.metric_type,'stats')
+    stats_csv = os.path.join(self.outdir, self.metric_type + '.stats.csv')
     csv_header = 'sub_metric,mean,std. deviation,median,min,max,90%,95%,99%\n'
     with open(stats_csv,'w') as FH:
       FH.write(csv_header)
@@ -275,7 +275,7 @@ class JmeterMetric(Metric):
   def graph(self, graphing_library = 'matplotlib'):
     html_string = []
     html_string.append('<h2>Metric: {0}</h2>\n'.format(self.metric_type))
-    html_string.append(self.get_summary_html())
+    #html_string.append(self.get_summary_html())
     logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
     plot_data = {}
     for out_csv in sorted(self.csv_files, reverse=True):
@@ -289,7 +289,7 @@ class JmeterMetric(Metric):
       else:
         plot_data[transaction_name] = [plot]
     for transaction in plot_data:
-      graphed, html_ret = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.outdir, transaction )
+      graphed, html_ret = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.outdir, self.metric_type + '.' + transaction )
       if html_ret:
         html_string.append(html_ret)
       else:
