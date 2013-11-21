@@ -143,6 +143,7 @@ def get_merged_plot_link_name(vals):
   return '-'.join(vals)
 
 def get_merged_png_name(vals):
+  # The merged_png_name format is relied upon by naarad.reporting.report.is_correlated_image method.
   return '-'.join(vals)
 
 def generate_html_report(output_directory, html_string):
@@ -297,8 +298,8 @@ def is_valid_file(filename):
   if os.path.exists(filename):
     if not os.path.getsize(filename):
       logger.warning('%s : file is empty.', filename)
-      return False, '%s : file is empty.'
+      return False
   else:
     logger.warning('%s : file does not exist.', filename)
-    return False, '%s : file does not exist.'
-  return True, ''
+    return False
+  return True
