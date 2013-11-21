@@ -98,7 +98,7 @@ def read_naarad_templates():
         logger.info('Adding template ' + template) 
         template_urls[template] = url
 
-def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library):
+def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock):
   metric.graph_timezone = graph_timezone
   if metric.outdir is None:
     metric.outdir = os.path.normpath(outdir_default)
@@ -113,7 +113,9 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
       if metric.parse():
         metric.calculate_stats()
         metric.calc()
+        graph_lock.acquire()
         metric_html_string = metric.graph(graphing_library)
+        graph_lock.release()
         metric_string_list.append(metric_html_string)
       else:
         logger.error('Parsing failed for metric: '  + metric.label)
@@ -317,9 +319,10 @@ def main():
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
     threads = []
     report_metrics = []
+    graph_lock = threading.Lock()
     for metric in metrics:
       report_metrics.append(metric.label)
-      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library))
+      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
       thread.start()
       threads.append(thread)
     for t in threads:
