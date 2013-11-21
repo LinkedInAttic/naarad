@@ -14,7 +14,11 @@
 {% for row in range(1,metric_stats|length) %}
 <tr>
 {%- for row_data in metric_stats[row] %}
+{%- if loop.first %}
+<td style="border: 1px solid black;"><a href="#{{ metric }}.{{ row_data }}.png">{{ row_data }}</a></td>
+{%- else %}
 <td style="border: 1px solid black;">{{ row_data }}</td>
+{%- endif %}
 {%- endfor %}
 </tr>
 {%- endfor %}
@@ -30,7 +34,7 @@
 <h2>Metric Plots</h2>
 <p>
 {%- for image in metric_plots %}
-  <img src="{{ image }}"/>
+  <img src="{{ image }}" id="{{ image }}"/>
 {%- endfor %}
 </p>
 </div>
@@ -41,7 +45,7 @@
 <h2>Correlated Metric Plots</h2>
 <p>
 {%- for image in correlated_plots %}
-  <img src="{{ image }}"/>
+  <img src="{{ image }}" id="{{ image }}"/>
 {%- endfor %}
 </p>
 </div>
