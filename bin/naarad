@@ -165,6 +165,19 @@ def sanitize_string_section_name(string):
   string = string.replace('%', '_')
   return string
 
+
+def is_valid_metric_name(metric_name):
+  """
+  check the validity of metric_name in config; the metric_name will be used for creation of sub-dir, so only contains: alphabet, digits , '.', '-' and '_'
+  :param str metric_name: metric_name
+  :return: True if valid
+  """
+  reg=re.compile('^[a-zA-Z0-9\.\-\_]+$')
+  if reg.match(metric_name) and not metric_name.startswith('.'):
+    return True
+  else:
+    return False
+  
 def main():
   metrics = []
   crossplots = []
@@ -253,18 +266,26 @@ def main():
             graph_timezone = "UTC"
       else:
         # Metric sections
-        access = 'local'
         ts_start = None
         ts_end = "now"
         precision = None
+        hostname = "localhost"        
+        
+        # section name is used to create sub-directories, so enforce it. 
+        if not is_valid_metric_name(section):
+          logger.critical('The section name of %s is invalid! Only letters, digits, dot(.), dash(-), underscore(_) are allowed' % section)
+          sys.exit(0)
+          
         try:
+          if config_obj.has_option(section, 'hostname'):
+            hostname = config_obj.get(section,'hostname')   
+            config_obj.remove_option(section, 'hostname')     
+          else:
+            logger.warning('No hostname is found in section %s ' % section)  
+          
           infile = config_obj.get(section, 'infile')
           config_obj.remove_option(section, 'infile')
           label = sanitize_string_section_name(section)
-          if config_obj.has_option(section, 'access'):
-            #TODO: Support remote access
-            access = config_obj.get(section, 'access')
-            config_obj.remove_option(section, 'access')
           if config_obj.has_option(section, 'ts_start'):
             ts_start = config_obj.get(section, 'ts_start')
             config_obj.remove_option(section, 'ts_start')
@@ -278,7 +299,7 @@ def main():
         except:
           sys.exit("Exception: " , sys.exc_info()[0], "; Something wrong with the format of the config file in section:", section)
         if section == 'SAR-*':
-          sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, access, outdir_default, label, ts_start, ts_end, None)
+          sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, hostname, outdir_default, label, ts_start, ts_end, None)
           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
             for metric in sar_metrics:
               metric.ignore = True
@@ -287,9 +308,9 @@ def main():
           #TODO: Make user specify metric_type in config and not infer from section
           metric_type = section.split('-')[0]
           if not metric_type in metric_classes:
-            new_metric = Metric(section, infile, access, outdir_default, label, ts_start, ts_end, **kwargs)
+            new_metric = Metric(section, infile, hostname, outdir_default, label, ts_start, ts_end, **kwargs)
           else:
-            new_metric = metric_classes[metric_type](section, infile, access, outdir_default, label, ts_start, ts_end, **kwargs)
+            new_metric = metric_classes[metric_type](section, infile, hostname,  outdir_default, label, ts_start, ts_end, **kwargs)
           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
             new_metric.ignore = True
           if config_obj.has_option(section, 'calc_metrics'):
