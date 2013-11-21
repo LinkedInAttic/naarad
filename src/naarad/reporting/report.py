@@ -73,10 +73,12 @@ class Report(object):
     template_loader = FileSystemLoader(os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'templates')))
     template_environment = Environment(loader=template_loader)
     for metric in self.metric_list:
+      metric_stats = []
       metric_stats_file, summary_stats, metric_plots, correlated_plots = self.discover_metric_data(self.output_directory, metric)
-      metric_stats = self.get_summary_table(metric_stats_file)
-      metric_html = template_environment.get_template(self.report_templates['header']).render(custom_javascript_includes=["http://www.kryogenix.org/code/browser/sorttable/sorttable.js"])
-      metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, metric_plots=metric_plots, correlated_plots=correlated_plots, metric=metric)
-      metric_html += template_environment.get_template(self.report_templates['footer']).render()
-      with open(os.path.join(self.output_directory, metric + '_report.html'),'w') as metric_report:
-        metric_report.write(metric_html)
+      if metric_stats_file != '' and len(metric_plots) > 0:
+        metric_stats = self.get_summary_table(metric_stats_file)
+        metric_html = template_environment.get_template(self.report_templates['header']).render(custom_javascript_includes=["http://www.kryogenix.org/code/browser/sorttable/sorttable.js"])
+        metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, metric_plots=metric_plots, correlated_plots=correlated_plots, metric=metric)
+        metric_html += template_environment.get_template(self.report_templates['footer']).render()
+        with open(os.path.join(self.output_directory, metric + '_report.html'),'w') as metric_report:
+          metric_report.write(metric_html)
