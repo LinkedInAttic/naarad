@@ -24,8 +24,6 @@ class GCMetric(Metric):
       'cmsIM', 'cmsRM', 'cmsRS', 'GC', 'cmsCM', 'cmsCP', 'cmsCS', 'cmsCR', 'safept', 'apptime')
   def __init__ (self, metric_type, infile, hostname, outdir, label, ts_start, ts_end, **other_options):
     Metric.__init__(self, metric_type, infile, hostname, outdir, label, ts_start, ts_end)
-  def __init__ (self, metric_type, infile, access, outdir, label, ts_start, ts_end, **other_options):
-    Metric.__init__(self, metric_type, infile, access, outdir, label, ts_start, ts_end)
     # TODO: Make this list configurable
     important_sub_metrics = ('GC', 'used')
     for (key, val) in other_options.iteritems():
