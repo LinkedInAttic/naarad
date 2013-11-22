@@ -101,7 +101,6 @@ These metrics can be defined by adding a calc_metrics option in metric definitio
 <pre>[GC]
 infile=/home/ritesh/logs/loggc-small
 gc-options=alloc promo
-access=local
 calc_metrics=alloc-rate=rate(alloc) promo-rate=rate(promo) alloc-diff=diff(alloc)
 </pre>
 
@@ -149,7 +148,6 @@ You can also define your own metric, say e.g., MYAPP-PERF and write a section wi
 
 <pre><code>[MYAPP-PERF]
 infile=/app/logs/myapplog.csv
-access=local
 columns=throughput,latency
 sep=,
 
