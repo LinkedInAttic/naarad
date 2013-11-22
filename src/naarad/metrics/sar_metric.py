@@ -15,20 +15,39 @@ logger = logging.getLogger('naarad.metrics.SARMetric')
 
 class SARMetric(Metric):
   """ Class for SAR cpuusage logs, deriving from class Metric """
-  device_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device')
+  supported_sar_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-memory', 'SAR-memutil', 'SAR-paging', 
+      'SAR-etcp', 'SAR-tcp', 'SAR-dev', 'SAR-edev', 'SAR-sock')
+  device_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-dev', 'SAR-edev')
   def __init__(self, metric_type, infile, hostname, outdir, label, ts_start, ts_end, **other_options):
+    metric_type = self.extract_metric_name(metric_type)
     Metric.__init__(self, metric_type, infile,  hostname, outdir, label, ts_start, ts_end)
+    if metric_type == 'SAR-cpuusage':
+      self.important_sub_metrics = ('%sys', '%usr')
     self.options = None
     self.devices = None
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
 
+  def extract_metric_name(self, metric_name):
+    """
+    Method to extract SAR metric names from the section given in the config. The SARMetric class assumes that 
+    the section name will contain the SAR types listed in self.supported_sar_types tuple
+
+    :param str metric_name: Section name from the config
+    :return: str which identifies what kind of SAR metric the section represents
+    """
+    for metric_type in self.supported_sar_types:
+      if metric_type in metric_name:
+        return metric_type
+    logger.error('Section name does not contain a valid metric type, using type: "SAR-generic". Naarad works better if it knows the metric type. Valid SAR metric names are: %s', self.supported_sar_types)
+    return 'SAR-generic'
+
   def get_csv(self, col, device=None):
     column = naarad.utils.sanitize_string(col)
     if device is None:
-      outcsv = os.path.join(self.outdir, "{0}.{1}.csv".format(self.metric_type, column))
+      outcsv = os.path.join(self.outdir, "{0}.{1}.csv".format(self.label, column))
     else:
-      outcsv = os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.metric_type, device, column))
+      outcsv = os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.label, device, column))
     self.csv_column_map[outcsv] = col
     return outcsv
 
