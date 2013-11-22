@@ -40,10 +40,8 @@ Naarad needs a config file that lists all the metrics and the graphing options. 
 [GC]
 infile=/home/ritesh/logs/gc.log
 gc-options=GC appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM
-access=local
 
 [SAR-cpuusage]
-access=local
 infile=/home/ritesh/logs/sar.cpuusage.out
  
 [GRAPH]
@@ -64,10 +62,8 @@ outdir=/home/ritesh/naarad-out
 [GC]
 infile=gc.log
 gc-options=GC appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM
-access=local
 
 [SAR-cpuusage]
-access=local
 infile=sar.cpuusage.out
 
 [GRAPH]
@@ -198,7 +194,6 @@ So, e.g., you can specify all GC options using this section:
 <pre><code>[GC]
 infile=/home/ritesh/logs/gc.log
 gc-options=GC alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS cmsCM cmsCS csmCR apptime safept gen1t gen1i
-access=local
 </code></pre>
 
 ## System metrics using sar ##
