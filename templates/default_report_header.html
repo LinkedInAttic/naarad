@@ -13,12 +13,12 @@
     {%- endif %}
     {%- if custom_stylesheet_includes %}
       {%- for custom_stylesheet in custom_stylesheet_includes %}
-        <link type="text/css" href="{{ custom_stylesheet }}"/>
+        <link rel="stylesheet" href="{{ custom_stylesheet }}">
       {%- endfor %}
     {%- endif %}
     <style>
       .box {border:2px solid #0094ff;}
-      .box h3 {background:#0094ff;color:white;padding:10px;}
+      .box h3 {background:#1f8dd6;color:white;padding:10px;}
       .box p {color:#333;padding:10px;}
       .box {
         -moz-border-radius-topright:5px;

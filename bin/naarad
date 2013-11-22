@@ -355,7 +355,7 @@ def main():
     naarad.utils.generate_html_report(outdir_default, ''.join(html_string))
     if outdir_default:
       logger.info('Report generated at {0}'.format( os.path.join(outdir_default, 'Report.html') ))
-    rpt = Report(None,outdir_default,report_metrics)
+    rpt = Report(None,outdir_default,report_metrics,metric_template='purecss_metric_page.html',footer_template='purecss_report_footer.html')
     rpt.generate()
 if __name__ == '__main__':
   main()

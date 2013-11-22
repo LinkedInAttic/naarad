@@ -1,3 +1,23 @@
 <body>
+<div id="layout">
+    <!-- Menu toggle -->
+    <a href="#menu" id="menuLink" class="pure-menu-link">
+        <span></span>
+    </a>
+    {%- if metric_list %}
+    <div id="menu">
+        <div class="pure-menu pure-menu-open">
+            <a class="pure-menu-heading" href="https://github.com/linkedin/naarad">naarad</a>
+            <ul>
+                {%- for metric in metric_list %}
+                <li><a href="{{ metric }}_report.html">{{ metric }}</a></li>
+                {%- endfor %}
+            </ul>
+        </div>
+    </div>
+    {%- endif %}
+    <div id="main">
 
+    </div>
+</div>
 </body>

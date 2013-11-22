@@ -34,6 +34,14 @@ class Report(object):
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
+      if 'header_template' in other_options:
+        self.report_templates['header'] = self.header_template
+      if 'footer_template' in other_options:
+        self.report_templates['footer'] = self.footer_template
+      if 'metric_template' in other_options:
+        self.report_templates['metric'] = self.metric_template
+      if 'summary_template' in other_options:
+        self.report_templates['summary'] = self.summary_template
 
   def get_summary_table(self, summary_stats_file):
     summary_stats = []
@@ -74,11 +82,19 @@ class Report(object):
     template_environment = Environment(loader=template_loader)
     for metric in self.metric_list:
       metric_stats = []
-      metric_stats_file, summary_stats, metric_plots, correlated_plots = self.discover_metric_data(self.output_directory, metric)
+
+      metric_stats_file, summary_stats_file, metric_plots, correlated_plots = self.discover_metric_data(self.output_directory, metric)
+      if summary_stats_file != '':
+        summary_stats = self.get_summary_table(summary_stats_file)
+        #summary_html += template_environment.get_template(self.report_templates['summary']).render()
+
       if metric_stats_file != '' or len(metric_plots) > 0:
         metric_stats = self.get_summary_table(metric_stats_file)
-        metric_html = template_environment.get_template(self.report_templates['header']).render(custom_javascript_includes=["http://www.kryogenix.org/code/browser/sorttable/sorttable.js"])
-        metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, metric_plots=metric_plots, correlated_plots=correlated_plots, metric=metric)
+        metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=['http://yui.yahooapis.com/pure/0.3.0/pure-min.css', 'http://purecss.io/css/layouts/side-menu.css'],custom_javascript_includes=['http://www.kryogenix.org/code/browser/sorttable/sorttable.js','http://purecss.io/js/ui.js'])
+        metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, metric_plots=metric_plots, correlated_plots=correlated_plots, metric=metric, metric_list=sorted(self.metric_list), summary=summary_stats_file)
         metric_html += template_environment.get_template(self.report_templates['footer']).render()
         with open(os.path.join(self.output_directory, metric + '_report.html'), 'w') as metric_report:
           metric_report.write(metric_html)
+    summary_html = template_environment.get_template(self.report_templates['summary']).render(metric_list=sorted(self.metric_list))
+    with open(os.path.join(self.output_directory, 'Summary.html'),'w') as summary_report:
+      summary_report.write(summary_html)
