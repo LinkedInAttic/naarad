@@ -5,11 +5,13 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
  
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import datetime
 import logging
 import os
+
 from naarad.metrics.metric import Metric
 import naarad.utils
-import datetime
+from naarad.naarad_imports import important_sub_metrics_import
 
 logger = logging.getLogger('naarad.metrics.SARMetric')
 
@@ -21,8 +23,8 @@ class SARMetric(Metric):
   def __init__(self, metric_type, infile, hostname, outdir, label, ts_start, ts_end, **other_options):
     metric_type = self.extract_metric_name(metric_type)
     Metric.__init__(self, metric_type, infile,  hostname, outdir, label, ts_start, ts_end)
-    if metric_type == 'SAR-cpuusage':
-      self.important_sub_metrics = ('%sys', '%usr')
+    if self.metric_type in important_sub_metrics_import:
+      self.important_sub_metrics = important_sub_metrics_import[self.metric_type]
     self.options = None
     self.devices = None
     for (key, val) in other_options.iteritems():

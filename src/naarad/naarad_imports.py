@@ -17,3 +17,7 @@ metric_classes = {
 graphing_modules = {
     'matplotlib' : matplotlib_naarad
     }
+important_sub_metrics_import = {
+    'GC' : ('GC', 'used'),
+    'SAR-cpuusage' : ('%sys', '%usr') 
+    }
