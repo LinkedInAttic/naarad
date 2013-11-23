@@ -9,7 +9,7 @@
         <div class="pure-menu pure-menu-open">
             <a class="pure-menu-heading" href="https://github.com/linkedin/naarad">naarad</a>
             <ul>
-                {% if summary %}
+                {% if summary_enabled %}
                 <li><a href="summary_report.html">Summary</a></li>
                 {% endif %}
                 {%- for metric_name in metric_list %}
@@ -32,11 +32,7 @@
 <table class="pure-table pure-table-bordered sortable">
 <thead><tr>
 {%- for header in metric_stats[0] %}
-{%- if not loop.first %}
 <th>{{ header }}</th>
-{%- else %}
-<th>{{ header }}</th>
-{%- endif %}
 {%- endfor %}
 </tr>
 </thead>

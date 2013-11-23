@@ -9,15 +9,20 @@
         <div class="pure-menu pure-menu-open">
             <a class="pure-menu-heading" href="https://github.com/linkedin/naarad">naarad</a>
             <ul>
-                {%- for metric in metric_list %}
-                <li><a href="{{ metric }}_report.html">{{ metric }}</a></li>
+                <li class="pure-menu-selected menu-item-divided">
+                    <a href="summary_report.html">Summary</a>
+                </li>
+                {%- for metric_name in metric_list %}
+                <li><a href="{{ metric_name }}_report.html">{{ metric_name }}</a></li>
                 {%- endfor %}
             </ul>
         </div>
     </div>
     {%- endif %}
     <div id="main">
-
+    {%- if summary_html_content %}
+        {{ summary_html_content }}
+    {%- endif %}
     </div>
 </div>
 </body>

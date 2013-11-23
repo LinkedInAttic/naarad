@@ -22,6 +22,7 @@ class Report(object):
     self.report_templates = {
       'header': 'default_report_header.html',
       'summary': 'default_summary_page.html',
+      'summary_content': 'summary_content.html',
       'metric': 'default_metric_page.html',
       'footer': 'default_report_footer.html'
     }
@@ -42,6 +43,8 @@ class Report(object):
         self.report_templates['metric'] = self.metric_template
       if 'summary_template' in other_options:
         self.report_templates['summary'] = self.summary_template
+      if 'summary_content_template' in other_options:
+        self.report_templates['summary_content'] = self.summary_template
 
   def get_summary_table(self, summary_stats_file):
     summary_stats = []
@@ -58,6 +61,16 @@ class Report(object):
       return True
     else:
       return False
+
+  def enable_summary_tab(self, output_directory):
+    important_sub_metrics_list = glob.glob(os.path.join(output_directory, '*.important_sub_metrics.csv'))
+    if len(important_sub_metrics_list) == 0:
+      return False
+    else:
+      for metric_file in important_sub_metrics_list:
+        if naarad.utils.is_valid_file(metric_file):
+          return True
+    return False
 
   def discover_metric_data(self, output_directory, metric):
     single_images = []
@@ -80,21 +93,23 @@ class Report(object):
   def generate(self):
     template_loader = FileSystemLoader(os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'templates')))
     template_environment = Environment(loader=template_loader)
+    summary_html_content = ''
+    summary_enabled = self.enable_summary_tab(self.output_directory)
     for metric in self.metric_list:
-      metric_stats = []
-
       metric_stats_file, summary_stats_file, metric_plots, correlated_plots = self.discover_metric_data(self.output_directory, metric)
       if summary_stats_file != '':
         summary_stats = self.get_summary_table(summary_stats_file)
-        #summary_html += template_environment.get_template(self.report_templates['summary']).render()
-
+        summary_html_content += template_environment.get_template(self.report_templates['summary_content']).render(metric_stats=summary_stats, metric=metric) + '\n'
       if metric_stats_file != '' or len(metric_plots) > 0:
         metric_stats = self.get_summary_table(metric_stats_file)
         metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=['http://yui.yahooapis.com/pure/0.3.0/pure-min.css', 'http://purecss.io/css/layouts/side-menu.css'],custom_javascript_includes=['http://www.kryogenix.org/code/browser/sorttable/sorttable.js','http://purecss.io/js/ui.js'])
-        metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, metric_plots=metric_plots, correlated_plots=correlated_plots, metric=metric, metric_list=sorted(self.metric_list), summary=summary_stats_file)
+        metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, metric_plots=metric_plots, correlated_plots=correlated_plots, metric=metric, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
         metric_html += template_environment.get_template(self.report_templates['footer']).render()
         with open(os.path.join(self.output_directory, metric + '_report.html'), 'w') as metric_report:
           metric_report.write(metric_html)
-    summary_html = template_environment.get_template(self.report_templates['summary']).render(metric_list=sorted(self.metric_list))
-    with open(os.path.join(self.output_directory, 'Summary.html'),'w') as summary_report:
-      summary_report.write(summary_html)
+    if summary_enabled:
+      summary_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=['http://yui.yahooapis.com/pure/0.3.0/pure-min.css', 'http://purecss.io/css/layouts/side-menu.css'],custom_javascript_includes=['http://www.kryogenix.org/code/browser/sorttable/sorttable.js','http://purecss.io/js/ui.js']) + '\n'
+      summary_html += template_environment.get_template(self.report_templates['summary']).render(metric_list=sorted(self.metric_list),summary_html_content=summary_html_content) + '\n'
+      summary_html += template_environment.get_template(self.report_templates['footer']).render()
+      with open(os.path.join(self.output_directory, 'summary_report.html'),'w') as summary_report:
+        summary_report.write(summary_html)

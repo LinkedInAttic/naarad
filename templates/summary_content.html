@@ -1,0 +1,21 @@
+<div id="{{ metric }}-summary-table" class="pure-u-1-1 box">
+<h3>{{ metric }} Summary</h3>
+<table class="pure-table pure-table-bordered sortable">
+<thead><tr>
+{%- for header in metric_stats[0] %}
+<th>{{ header }}</th>
+{%- endfor %}
+</tr>
+</thead>
+<tbody>
+{% for row in range(1,metric_stats|length) %}
+<tr>
+{%- for row_data in metric_stats[row] %}
+<td>{{ row_data }}</td>
+{%- endfor %}
+</tr>
+{%- endfor %}
+</tbody>
+<tfoot></tfoot>
+</table>
+</div>
