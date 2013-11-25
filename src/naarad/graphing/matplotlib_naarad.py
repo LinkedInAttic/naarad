@@ -91,7 +91,7 @@ def graph_data(list_of_plots, output_directory, output_filename):
     current_axis = axis
     for plot in plots:
       current_plot_count += 1
-      logger.info('Processing: ' + plot.input_csv)
+      logger.info('Processing: ' + plot.input_csv + ' [ ' + output_filename + ' ]')
       timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})
       if current_plot_count > 1:
         current_axis = axis.twinx()
@@ -114,7 +114,7 @@ def graph_data(list_of_plots, output_directory, output_filename):
     fig.set_size_inches(graph_width, graph_height)
     for plot in plots:
       current_plot_count += 1
-      logger.info('Processing: ' + plot.input_csv)
+      logger.info('Processing: ' + plot.input_csv  + ' [ ' + output_filename + ' ]')
       timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0:convert_to_mdate})
 # MPL-WA-04
 # Fix matplotlib buggy auto-scale behavior when working with multiple y axis and series with low variance

@@ -18,7 +18,7 @@ logger = logging.getLogger('naarad.reporting.Report')
 
 class Report(object):
 
-  def __init__(self, report_name, output_directory, metric_list,  **other_options):
+  def __init__(self, report_name, output_directory, metric_list, correlated_plots,  **other_options):
     self.report_templates = {
       'header': 'default_report_header.html',
       'summary': 'default_summary_page.html',
@@ -32,6 +32,7 @@ class Report(object):
       self.report_name = report_name
     self.output_directory = output_directory
     self.metric_list = metric_list
+    self.correlated_plots = correlated_plots
     self.stylesheet_includes = ['http://yui.yahooapis.com/pure/0.3.0/pure-min.css', 'http://purecss.io/css/layouts/side-menu.css']
     self.javascript_includes = ['http://www.kryogenix.org/code/browser/sorttable/sorttable.js','http://purecss.io/js/ui.js']
     if other_options:
@@ -58,7 +59,7 @@ class Report(object):
     return summary_stats
 
   def is_correlated_image(self, image):
-    if image in self.correlated_plots:
+    if os.path.basename(image) in self.correlated_plots:
       return True
     else:
       return False
@@ -103,7 +104,7 @@ class Report(object):
     summary_html_content = ''
     summary_enabled = self.enable_summary_tab(self.output_directory)
     for metric in self.metric_list:
-      metric_stats_file, summary_stats_file, metric_plots, correlated_plots = self.discover_metric_data(self.output_directory, metric)
+      metric_stats_file, summary_stats_file, metric_plots, metric_correlated_plots = self.discover_metric_data(self.output_directory, metric)
       if summary_stats_file != '':
         summary_stats = self.get_summary_table(summary_stats_file)
         summary_html_content += template_environment.get_template(self.report_templates['summary_content']).render(metric_stats=summary_stats, metric=metric) + '\n'
