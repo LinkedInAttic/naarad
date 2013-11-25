@@ -20,9 +20,17 @@
     </div>
     {%- endif %}
     <div id="main">
-    {%- if summary_html_content %}
-        {{ summary_html_content }}
-    {%- endif %}
+        {%- if summary_html_content %}
+          {{ summary_html_content }}
+        {%- endif %}
+        {%- if correlated_plots %}
+        <div id="correlated-plots" class="pure-u-1-1 box">
+        <h3>Correlated Metric Plots</h3>
+          {%- for image in correlated_plots %}
+            <img src="{{ image }}" id="{{ image }}"/>
+          {%- endfor %}
+        </div>
+        {%- endif %}
     </div>
 </div>
 </body>

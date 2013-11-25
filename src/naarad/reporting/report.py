@@ -32,6 +32,8 @@ class Report(object):
       self.report_name = report_name
     self.output_directory = output_directory
     self.metric_list = metric_list
+    self.stylesheet_includes = ['http://yui.yahooapis.com/pure/0.3.0/pure-min.css', 'http://purecss.io/css/layouts/side-menu.css']
+    self.javascript_includes = ['http://www.kryogenix.org/code/browser/sorttable/sorttable.js','http://purecss.io/js/ui.js']
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -55,9 +57,8 @@ class Report(object):
         summary_stats.append(line.rstrip().rsplit(','))
     return summary_stats
 
-  def is_correlated_image(self, image, metric):
-    # regex is based on the naming convention in naarad.utils.get_merged_png_name
-    if re.match(r'.*/' + metric + '.[^/]+-' + metric + '..*', image):
+  def is_correlated_image(self, image):
+    if image in self.correlated_plots:
       return True
     else:
       return False
@@ -84,11 +85,17 @@ class Report(object):
     image_list = glob.glob(os.path.join(output_directory, metric + '.*.png'))
     for image in image_list:
       if naarad.utils.is_valid_file(image):
-        if self.is_correlated_image(image, metric):
+        if self.is_correlated_image(image):
           correlated_images.append(os.path.basename(image))
         else:
           single_images.append(os.path.basename(image))
     return summary_stats, important_stats, single_images, correlated_images
+
+  def generate_summary_page(self, template_environment, summary_html_content):
+    summary_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes) + '\n'
+    summary_html += template_environment.get_template(self.report_templates['summary']).render(metric_list=sorted(self.metric_list), summary_html_content=summary_html_content, correlated_plots=self.correlated_plots) + '\n'
+    summary_html += template_environment.get_template(self.report_templates['footer']).render()
+    return summary_html
 
   def generate(self):
     template_loader = FileSystemLoader(os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'templates')))
@@ -102,14 +109,11 @@ class Report(object):
         summary_html_content += template_environment.get_template(self.report_templates['summary_content']).render(metric_stats=summary_stats, metric=metric) + '\n'
       if metric_stats_file != '' or len(metric_plots) > 0:
         metric_stats = self.get_summary_table(metric_stats_file)
-        metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=['http://yui.yahooapis.com/pure/0.3.0/pure-min.css', 'http://purecss.io/css/layouts/side-menu.css'],custom_javascript_includes=['http://www.kryogenix.org/code/browser/sorttable/sorttable.js','http://purecss.io/js/ui.js'])
-        metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, metric_plots=metric_plots, correlated_plots=correlated_plots, metric=metric, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
+        metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes)
+        metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, metric_plots=metric_plots, metric=metric, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
         metric_html += template_environment.get_template(self.report_templates['footer']).render()
         with open(os.path.join(self.output_directory, metric + '_report.html'), 'w') as metric_report:
           metric_report.write(metric_html)
     if summary_enabled:
-      summary_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=['http://yui.yahooapis.com/pure/0.3.0/pure-min.css', 'http://purecss.io/css/layouts/side-menu.css'],custom_javascript_includes=['http://www.kryogenix.org/code/browser/sorttable/sorttable.js','http://purecss.io/js/ui.js']) + '\n'
-      summary_html += template_environment.get_template(self.report_templates['summary']).render(metric_list=sorted(self.metric_list),summary_html_content=summary_html_content) + '\n'
-      summary_html += template_environment.get_template(self.report_templates['footer']).render()
       with open(os.path.join(self.output_directory, 'summary_report.html'),'w') as summary_report:
-        summary_report.write(summary_html)
+        summary_report.write(self.generate_summary_page(template_environment, summary_html_content))

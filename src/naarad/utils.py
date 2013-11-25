@@ -211,6 +211,7 @@ def nway_plotting(crossplots, metrics, output_directory, filler):
   linkstring.append("<h1><a name=\"Correlated-Plots\"></a>Correlated Plots</h1>\n")
   linkstring.append("<div><ul>")
   i = 0
+  correlated_plots = []
   #GC.appstop,all GC.alloc,GC.alloc-rate GC.promo,GC.gen0t,GC.gen0sys
   while i < listlen:
     plot = crossplots[i]
@@ -223,6 +224,7 @@ def nway_plotting(crossplots, metrics, output_directory, filler):
         plot_data.append(PlotData(input_csv=csv_file, csv_column=1, series_name=sanitize_string(val), y_label=sanitize_string(val), precision=None, graph_height=500, graph_width=1200, graph_type='line'))
       plot_title = get_merged_charttitle(vals)
       png_name = get_merged_plot_link_name(vals)
+      correlated_plots.append(png_name + '.png')
       Metric.graphing_modules['matplotlib'].graph_data(plot_data, output_directory, png_name)
       img_tag = "<h3><a name=\"{0}\"></a>{1}</h3><img src={2} />".format(png_name + '.png', plot_title, png_name + '.png')
       link_tag = "<li><a href=\"#{0}\">{1}</a></li>".format(png_name, plot_title)
@@ -244,7 +246,7 @@ def nway_plotting(crossplots, metrics, output_directory, filler):
           listlen += 1
   linkstring.append("</ul></div>")
   linkstring.extend(html_string)
-  return '\n'.join(linkstring)
+  return '\n'.join(linkstring), correlated_plots
 
 def normalize_float_for_display(data_val):
   try:
