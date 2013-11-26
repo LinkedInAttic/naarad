@@ -18,13 +18,12 @@ metric_classes = {
 graphing_modules = {
     'matplotlib' : matplotlib_naarad
     }
-<<<<<<< HEAD
+
 reporting_modules = {
     'report' : Report
 }
-=======
+
 important_sub_metrics_import = {
     'GC' : ('GC', 'used'),
     'SAR-cpuusage' : ('%sys', '%usr') 
     }
->>>>>>> upstream/master
