@@ -1,9 +1,13 @@
 # coding=utf-8
 """
 © 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
  
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import datetime
 import logging
@@ -13,6 +17,7 @@ import threading
 
 from naarad.metrics.metric import Metric
 import naarad.utils
+from naarad.naarad_imports import important_sub_metrics_import
 
 logger = logging.getLogger('naarad.metrics.GCMetric')
 
@@ -25,7 +30,7 @@ class GCMetric(Metric):
   def __init__ (self, metric_type, infile, hostname, outdir, label, ts_start, ts_end, **other_options):
     Metric.__init__(self, metric_type, infile, hostname, outdir, label, ts_start, ts_end)
     # TODO: Make this list configurable
-    self.important_sub_metrics = ('GC', 'used')
+    self.important_sub_metrics = important_sub_metrics_import['GC']
     for (key, val) in other_options.iteritems():
       if key == 'gc-options':
         self.gc_options = val.split()

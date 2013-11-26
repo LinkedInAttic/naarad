@@ -133,15 +133,18 @@ Here are some example screenshots of reports produced by Naarad:
 
 The following metric types are supported currently:
 
-* GC
+* GC logs
 * Generic metrics in CSV format
-* SAR-cpuusage
-* SAR-device
-* SAR-cpuhz
-* SAR-memory
-* SAR-memutil
-* SAR-paging
+* All singly printed SAR logs
 * INNOTOP logs
+
+## Section naming convention ##
+Metric type is currently inferred from the name of the section. So the section name should follow this convention:
+
+* Section name should begin with the metric name. Currently supported metric names are: GC, SAR-cpuusage, SAR-device, SAR-cpuhz, SAR-memory, SAR-memutil, SAR-paging, SAR-etcp, SAR-tcp, SAR-dev, SAR-edev, SAR-sock and JMETER.
+* Rest of the section name should be separate from metric name by a dash (-)
+
+E.g., GC-1, GC-a-1, SAR-cpuusge-host1 etc are valid section names, while GC_1, GC 1, SAR-cpuusage:host1 are not valid.
 
 ## Generic metric in CSV format ##
 You can also define your own metric, say e.g., MYAPP-PERF and write a section with that as long as the infile option points to a csv file. But you need to define the separator character (usually comma) using the option sep. You also need to define all the columns in the csv file with option columns. First column is always assumed to be timestamp, so columns option should specify all options from 2nd column onwards. An example of MYAPP-PERF section could be:
@@ -195,7 +198,7 @@ gc-options=GC alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen
 </code></pre>
 
 ## System metrics using sar ##
-Naarad supports various <a href="http://en.wikipedia.org/wiki/Sar_(Unix)">`sar`</a>  metrics, each one as its own metric. Supported metrics and the corresponding command needed to collect them are listed here: 
+Naarad supports various <a href="http://en.wikipedia.org/wiki/Sar_(Unix)">`sar`</a>  metrics, each one as its own metric. Supported metrics and the corresponding command needed to collect them are listed here (note that last argument controls how frequently metrics are printed in the log and can be updated as suitable): 
 
 * SAR-cpuusage using command: `sar -u ALL 1`
 * SAR-device using command: `sar -d 1`
@@ -203,3 +206,8 @@ Naarad supports various <a href="http://en.wikipedia.org/wiki/Sar_(Unix)">`sar`<
 * SAR-memutil using command: `sar -r 1`
 * SAR-paging using command: `sar -B 1`
 * SAR-swapping using command: `sar -W 1`
+* SAR-dev using command: `sar -n DEV 1`
+* SAR-edev using command: `sar -n EDEV 1`
+* SAR-tcp using command: `sar -n TCP 1`
+* SAR-etcp using command: `sar -n ETCP 1`
+* SAR-sock using command: `sar -n SOCK 1`
