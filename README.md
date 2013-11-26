@@ -133,14 +133,9 @@ Here are some example screenshots of reports produced by Naarad:
 
 The following metric types are supported currently:
 
-* GC
+* GC logs
 * Generic metrics in CSV format
-* SAR-cpuusage
-* SAR-device
-* SAR-cpuhz
-* SAR-memory
-* SAR-memutil
-* SAR-paging
+* All singly printed SAR logs
 * INNOTOP logs
 
 ## Section naming convention ##
@@ -203,7 +198,7 @@ gc-options=GC alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen
 </code></pre>
 
 ## System metrics using sar ##
-Naarad supports various <a href="http://en.wikipedia.org/wiki/Sar_(Unix)">`sar`</a>  metrics, each one as its own metric. Supported metrics and the corresponding command needed to collect them are listed here: 
+Naarad supports various <a href="http://en.wikipedia.org/wiki/Sar_(Unix)">`sar`</a>  metrics, each one as its own metric. Supported metrics and the corresponding command needed to collect them are listed here (note that last argument controls how frequently metrics are printed in the log and can be updated as suitable): 
 
 * SAR-cpuusage using command: `sar -u ALL 1`
 * SAR-device using command: `sar -d 1`
@@ -211,3 +206,8 @@ Naarad supports various <a href="http://en.wikipedia.org/wiki/Sar_(Unix)">`sar`<
 * SAR-memutil using command: `sar -r 1`
 * SAR-paging using command: `sar -B 1`
 * SAR-swapping using command: `sar -W 1`
+* SAR-dev using command: `sar -n DEV 1`
+* SAR-edev using command: `sar -n EDEV 1`
+* SAR-tcp using command: `sar -n TCP 1`
+* SAR-etcp using command: `sar -n ETCP 1`
+* SAR-sock using command: `sar -n SOCK 1`
