@@ -143,6 +143,14 @@ The following metric types are supported currently:
 * SAR-paging
 * INNOTOP logs
 
+## Section naming convention ##
+Metric type is currently inferred from the name of the section. So the section name should follow this convention:
+
+* Section name should begin with the metric name. Currently supported metric names are: GC, SAR-cpuusage, SAR-device, SAR-cpuhz, SAR-memory, SAR-memutil, SAR-paging, SAR-etcp, SAR-tcp, SAR-dev, SAR-edev, SAR-sock and JMETER.
+* Rest of the section name should be separate from metric name by a dash (-)
+
+E.g., GC-1, GC-a-1, SAR-cpuusge-host1 etc are valid section names, while GC_1, GC 1, SAR-cpuusage:host1 are not valid.
+
 ## Generic metric in CSV format ##
 You can also define your own metric, say e.g., MYAPP-PERF and write a section with that as long as the infile option points to a csv file. But you need to define the separator character (usually comma) using the option sep. You also need to define all the columns in the csv file with option columns. First column is always assumed to be timestamp, so columns option should specify all options from 2nd column onwards. An example of MYAPP-PERF section could be:
 
