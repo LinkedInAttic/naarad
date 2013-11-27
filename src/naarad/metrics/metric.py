@@ -215,9 +215,6 @@ class Metric(object):
     html_string = []
     html_string.append('<h1>Metric: {0}</h1>\n'.format(self.metric_type))
     graphed = False
-    if self.metric_type.startswith('GC') and graphing_library in ('js', 'javascript', 'dygraphs'):
-      logger.warning('GC metric does not support js graphing. Switching to matplotlib')
-      graphing_library = 'matplotlib'
     logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
     for out_csv in self.csv_files:
       csv_filename = os.path.basename(out_csv)
