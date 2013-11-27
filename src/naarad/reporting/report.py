@@ -34,7 +34,7 @@ class Report(object):
     self.metric_list = metric_list
     self.correlated_plots = correlated_plots
     self.stylesheet_includes = ['http://yui.yahooapis.com/pure/0.3.0/pure-min.css', 'http://purecss.io/css/layouts/side-menu.css']
-    self.javascript_includes = ['http://www.kryogenix.org/code/browser/sorttable/sorttable.js','http://purecss.io/js/ui.js']
+    self.javascript_includes = ['http://www.kryogenix.org/code/browser/sorttable/sorttable.js','http://purecss.io/js/ui.js', 'http://dygraphs.com/dygraph-combined.js']
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -80,6 +80,11 @@ class Report(object):
   def discover_metric_data(self, output_directory, metric):
     single_images = []
     correlated_images = []
+    single_svgs = []
+    correlated_svgs = []
+    single_dygraphs = []
+    correlated_dygraphs = []
+
     summary_stats = ''
     important_stats = ''
     if naarad.utils.is_valid_file(os.path.join(output_directory, metric + '.stats.csv')):
@@ -93,7 +98,21 @@ class Report(object):
           correlated_images.append(os.path.basename(image))
         else:
           single_images.append(os.path.basename(image))
-    return summary_stats, important_stats, single_images, correlated_images
+    svg_list = glob.glob(os.path.join(output_directory, metric + '.*.svg'))
+    for svg in svg_list:
+      if naarad.utils.is_valid_file(svg):
+        if self.is_correlated_image(svg):
+          correlated_svgs.append(svg)
+        else:
+          single_svgs.append(svg)
+    dygraph_list = glob.glob(os.path.join(output_directory, metric + '.*.dyg'))
+    for dyg in dygraph_list:
+      if naarad.utils.is_valid_file(dyg):
+        if self.is_correlated_image(dyg):
+          correlated_dygraphs.append(dyg)
+        else:
+          single_dygraphs.append(dyg)
+    return summary_stats, important_stats, single_images, correlated_images, single_dygraphs, correlated_dygraphs, single_svgs, correlated_svgs
 
   def generate_summary_page(self, template_environment, summary_html_content):
     summary_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes) + '\n'
@@ -107,14 +126,20 @@ class Report(object):
     summary_html_content = ''
     summary_enabled = self.enable_summary_tab(self.output_directory)
     for metric in self.metric_list:
-      metric_stats_file, summary_stats_file, metric_plots, metric_correlated_plots = self.discover_metric_data(self.output_directory, metric)
+      metric_stats_file, summary_stats_file, metric_plots, metric_correlated_plots, single_dygraphs, \
+      correlated_dygraphs, single_svgs, correlated_svgs = self.discover_metric_data(self.output_directory, metric)
+      if len(single_dygraphs) > 0:
+        dygraph_html = ''
+        for single_dyg in single_dygraphs:
+          with open(single_dyg,'r') as dyg_file:
+            dygraph_html += '\n' + dyg_file.read()
       if summary_stats_file != '':
         summary_stats = self.get_summary_table(summary_stats_file)
         summary_html_content += template_environment.get_template(self.report_templates['summary_content']).render(metric_stats=summary_stats, metric=metric) + '\n'
       if metric_stats_file != '' or len(metric_plots) > 0:
         metric_stats = self.get_summary_table(metric_stats_file)
         metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes)
-        metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, metric_plots=metric_plots, metric=metric, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
+        metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, metric_plots=metric_plots, metric=metric, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled, svg_plots=single_svgs, dyg_plots=dygraph_html)
         metric_html += template_environment.get_template(self.report_templates['footer']).render()
         with open(os.path.join(self.output_directory, metric + '_report.html'), 'w') as metric_report:
           metric_report.write(metric_html)

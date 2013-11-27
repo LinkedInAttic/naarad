@@ -38,6 +38,8 @@ def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=N
         );
         </script>"""
 
+  with open(os.path.join(output_directory, output_filename + '.dyg'), 'w') as dygraph_file:
+    dygraph_file.write(div_string + script_string)
   #Ritesh: TODO Also generate PNGs if someone needs them separately
   return True, div_string + script_string
 

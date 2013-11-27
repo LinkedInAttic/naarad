@@ -40,11 +40,8 @@
 {% for row in range(1,metric_stats|length) %}
 <tr>
 {%- for row_data in metric_stats[row] %}
-{%- if loop.first %}
-<td><a href="#{{ metric }}.{{ row_data }}.png">{{ row_data }}</a></td>
-{%- else %}
+<!--<td><a href="#{{ metric }}.{{ row_data }}.png">{{ row_data }}</a></td>-->
 <td>{{ row_data }}</td>
-{%- endif %}
 {%- endfor %}
 </tr>
 {%- endfor %}
@@ -63,6 +60,16 @@
 {%- endfor %}
 </p>
 </div>
+{%- endif %}
+
+{%- if svg_plots %}
+{%- for svg_name in svg_plots %}
+   <figure><embed type="image/svg+xml" src="{{ svg_name }}"/></figure>
+{%- endfor %}
+{%- endif %}
+
+{%- if dyg_plots %}
+{{ dyg_plots }}
 {%- endif %}
 
 {%- if correlated_plots %}
