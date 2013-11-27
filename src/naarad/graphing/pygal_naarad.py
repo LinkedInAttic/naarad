@@ -10,7 +10,7 @@ import pygal
 import os
 import logging
 
-logger = logging.getLogger('naarad.graphin.pygal_naarad')
+logger = logging.getLogger('naarad.graphing.pygal_naarad')
 
 def convert_to_date(date_str):
   return datetime.datetime.strptime(date_str,'%Y-%m-%d %H:%M:%S')
