@@ -28,30 +28,39 @@ class JmeterMetric(Metric):
       'ts': 'Timestamp',
       'tn': 'Transaction Name (Parent)',
       's': 'Status',
-      't': 'Response Time',
+      'ResponseTime': 'Response Time',
       'rc': 'Response Code',
       'rm': 'Response Message',
       'dt': 'Data Type',
-      'by': 'Response Size',
+      'ResponseSize': 'Response Size',
       'qps': 'Successful Transactions per second',
-      'eqps': 'Errors per second',
-      'thr': 'Data Throughput'
+      'ErrorsPerSecond': 'Errors per second',
+      'DataThroughput': 'Data Throughput'
     }
     self.metric_units = {
       'lt': 'ms',
-      't': 'ms',
-      'by': 'bytes',
+      'ResponseTime': 'ms',
+      'ResponseSize': 'bytes',
       'qps': 'qps',
-      'thr': 'mbps',
-      'eqps': 'qps'
+      'DataThroughput': 'mbps',
+      'ErrorsPerSecond': 'qps'
     }
     self.calculated_stats = {}
     self.calculated_percentiles = {}
 
   def get_csv(self, transaction_name, column):
     col = naarad.utils.sanitize_string(column)
+    if col == 't':
+      col = 'ResponseTime'
+    elif col == 'by':
+      col = 'ResponseSize'
+    elif col == 'thr':
+      col = 'DataThroughput'
+    elif col == 'eqps':
+      col = 'ErrorsPerSecond'
+
     if transaction_name == '__overall_summary__':
-      transaction_name = 'Overall Summary'
+      transaction_name = 'Overall_Summary'
     csv = os.path.join(self.outdir, self.metric_type + '.' + transaction_name + '.' + col + '.csv')
     self.csv_column_map[csv] = column
     return csv
@@ -220,7 +229,7 @@ class JmeterMetric(Metric):
         percentile_data = self.calculated_percentiles[sub_metric]
         stats_data = self.calculated_stats[sub_metric]
         if sub_metric == '__overall_summary__':
-          sub_metric = 'Overall Summary'
+          sub_metric = 'Overall_Summary'
         csv_data = ','.join([sub_metric,str(numpy.round_(stats_data['mean'], 2)),str(numpy.round_(stats_data['std'], 2)),str(numpy.round_(stats_data['median'], 2)),str(numpy.round_(stats_data['min'], 2)),str(numpy.round_(stats_data['max'], 2)),str(numpy.round_(percentile_data[90], 2)),str(numpy.round_(percentile_data[95], 2)),str(numpy.round_(percentile_data[99], 2))])
         FH.write(csv_data + '\n')
 
@@ -231,51 +240,9 @@ class JmeterMetric(Metric):
         for percentile in sorted(percentile_data):
           FH.write(str(percentile) + ',' + str(numpy.round_(percentile_data[percentile],2)) + '\n')
 
-  def get_summary_html(self):
-    """
-    Generate summary table for response times for various transactions. This will be deprecated by the new reporting framework
-
-    :return: string with html for the response times summary table
-    """
-
-    data_row = '''
-    <p><table width="50%" class="sortable">
-    <caption>Transaction Response Times(ms)</caption>
-    <thead bgcolor="lightsteelblue"><tr><th align="left">Transaction</th><th align="right">Mean</th>
-    <th align="right">Std.dv</th><th align="right">Median</th><th align="right">Min</th><th align="right">Max</th>
-    <th align="right">90%</th><th align="right">95%</th><th align="right">99%</th></tr></thead>
-    '''
-    footer_row = '<tfoot bgcolor=wheat>'
-    for transaction in self.calculated_stats:
-      stats = self.calculated_stats[transaction]
-      percentiles = self.calculated_percentiles[transaction]
-      if transaction == '__overall_summary__':
-        footer_row += '<tr><td>Overall Summary</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(stats['mean'],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(stats['std'],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(stats['median'],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(stats['min'],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(stats['max'],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(percentiles[90],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(percentiles[95],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(percentiles[99],2)) + '</td></tr></tfoot>'
-      else:
-        data_row += '<tr><td>' + transaction + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(stats['mean'],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(stats['std'],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(stats['median'],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(stats['min'],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(stats['max'],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(percentiles[90],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(percentiles[95],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(percentiles[99],2)) + '</td></tr>'
-    data_row = data_row + '\n' + footer_row + '</table></p>'
-    return data_row
-
-  def graph(self, graphing_library = 'matplotlib'):
+  def graph(self, graphing_library='matplotlib'):
     html_string = []
     html_string.append('<h2>Metric: {0}</h2>\n'.format(self.metric_type))
-    #html_string.append(self.get_summary_html())
     logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
     plot_data = {}
     for out_csv in sorted(self.csv_files, reverse=True):
