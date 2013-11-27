@@ -102,9 +102,9 @@ class Report(object):
     for svg in svg_list:
       if naarad.utils.is_valid_file(svg):
         if self.is_correlated_image(svg):
-          correlated_svgs.append(svg)
+          correlated_svgs.append(os.path.basename(svg))
         else:
-          single_svgs.append(svg)
+          single_svgs.append(os.path.basename(svg))
     dygraph_list = glob.glob(os.path.join(output_directory, metric + '.*.dyg'))
     for dyg in dygraph_list:
       if naarad.utils.is_valid_file(dyg):
