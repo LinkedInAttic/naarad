@@ -23,13 +23,17 @@ def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=N
           document.getElementById(\"""" + div_id + """"),
             \"""" + os.path.basename(csv_file) +  """",
             {
-                     axes: {
-                        x: {
-                            valueFormatter: Dygraph.dateString_,
-                            valueParser: function(x) { return Date.parseHttpTimeFormat(x); },
-                            ticker: Dygraph.dateTicker
-                        }
-                     },
+                        xValueFormatter: Dygraph.dateString_,
+                        xValueParser: function(x) {
+                                        var date_components = x.split(" ");
+                                        var supported_format = date_components[0] + 'T' + date_components[1];
+                                        if(date_components[1].indexOf(".") == -1)
+                                        {
+                                          supported_format += ".0";
+                                        }
+                                        return Date.parse(supported_format);
+                                        },
+                        xTicker: Dygraph.dateTicker,
                         xlabel: "Time",
                         ylabel: \"""" + y_label + """",
                         title: \"""" + plot_title + """",
