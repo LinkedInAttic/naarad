@@ -8,6 +8,7 @@ Unless required by applicable law or agreed to in writing, software distribute
 import numpy
 import os
 import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from mpl_toolkits.axes_grid1 import host_subplot
