@@ -67,7 +67,10 @@ class Report(object):
   def enable_summary_tab(self, output_directory):
     important_sub_metrics_list = glob.glob(os.path.join(output_directory, '*.important_sub_metrics.csv'))
     if len(important_sub_metrics_list) == 0:
-      return False
+      if len(self.correlated_plots) > 0:
+        return True
+      else:
+        return False
     else:
       for metric_file in important_sub_metrics_list:
         if naarad.utils.is_valid_file(metric_file):
