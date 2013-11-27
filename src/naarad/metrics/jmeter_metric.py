@@ -15,6 +15,7 @@ import numpy
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
+import naarad.naarad_imports
 
 
 logger = logging.getLogger('naarad.metrics.JmeterMetric')
@@ -47,6 +48,7 @@ class JmeterMetric(Metric):
     }
     self.calculated_stats = {}
     self.calculated_percentiles = {}
+    self.important_sub_metrics = naarad.naarad_imports.important_sub_metrics_import['JMETER']
 
   def get_csv(self, transaction_name, column):
     col = naarad.utils.sanitize_string(column)
@@ -223,6 +225,7 @@ class JmeterMetric(Metric):
   def calculate_stats(self):
     stats_csv = os.path.join(self.outdir, self.metric_type + '.stats.csv')
     csv_header = 'sub_metric,mean,std. deviation,median,min,max,90%,95%,99%\n'
+
     with open(stats_csv,'w') as FH:
       FH.write(csv_header)
       for sub_metric in self.calculated_stats:
@@ -241,28 +244,31 @@ class JmeterMetric(Metric):
           FH.write(str(percentile) + ',' + str(numpy.round_(percentile_data[percentile],2)) + '\n')
 
   def graph(self, graphing_library='matplotlib'):
-    html_string = []
-    html_string.append('<h2>Metric: {0}</h2>\n'.format(self.metric_type))
-    logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
-    plot_data = {}
-    for out_csv in sorted(self.csv_files, reverse=True):
-      csv_filename = os.path.basename(out_csv)
-      # The last element is .csv, don't need that in the name of the chart
-      column = csv_filename.split('.')[-2]
-      transaction_name = ' '.join(csv_filename.split('.')[1:-2])
-      plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name, y_label=self.metric_description[column] + ' (' + self.metric_units[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line')
-      if transaction_name in plot_data:
-        plot_data[transaction_name].append(plot)
-      else:
-        plot_data[transaction_name] = [plot]
-    for transaction in plot_data:
-      graphed, html_ret = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.outdir, self.metric_type + '.' + transaction )
-      if html_ret:
-        html_string.append(html_ret)
-      else:
-        if graphed:
-          img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p><img src="{image_name}.png" />\n'.format(title=transaction, description=transaction + ' workload client statistics', image_name=transaction)
+    if graphing_library != 'matplotlib':
+     return Metric.graph(self, graphing_library)
+    else:
+      html_string = []
+      html_string.append('<h2>Metric: {0}</h2>\n'.format(self.metric_type))
+      logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
+      plot_data = {}
+      for out_csv in sorted(self.csv_files, reverse=True):
+        csv_filename = os.path.basename(out_csv)
+        # The last element is .csv, don't need that in the name of the chart
+        column = csv_filename.split('.')[-2]
+        transaction_name = ' '.join(csv_filename.split('.')[1:-2])
+        plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name, y_label=self.metric_description[column] + ' (' + self.metric_units[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line')
+        if transaction_name in plot_data:
+          plot_data[transaction_name].append(plot)
         else:
-          img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p>No data for this metric\n'.format(title=transaction, description='')
-        html_string.append(img_tag)
-    return '\n'.join(html_string)
+          plot_data[transaction_name] = [plot]
+      for transaction in plot_data:
+        graphed, html_ret = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.outdir, self.metric_type + '.' + transaction )
+        if html_ret:
+          html_string.append(html_ret)
+        else:
+          if graphed:
+            img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p><img src="{image_name}.png" />\n'.format(title=transaction, description=transaction + ' workload client statistics', image_name=transaction)
+          else:
+            img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p>No data for this metric\n'.format(title=transaction, description='')
+          html_string.append(img_tag)
+      return '\n'.join(html_string)
