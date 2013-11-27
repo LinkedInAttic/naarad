@@ -348,8 +348,11 @@ def main():
       threads.append(thread)
     for t in threads:
       t.join()
-    cross_plotting_html_string, correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, outdir_default, filler)
-    html_string.append(cross_plotting_html_string)
+    if len(crossplots) > 0:
+      cross_plotting_html_string, correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, outdir_default, filler)
+      html_string.append(cross_plotting_html_string)
+    else:
+      correlated_plots = []
     html_string.append("<h1>naarad analysis report</h1>\n")
     html_string.extend(metric_string_list)
     naarad.utils.generate_html_report(outdir_default, ''.join(html_string))
