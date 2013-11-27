@@ -128,8 +128,8 @@ class Report(object):
     for metric in self.metric_list:
       metric_stats_file, summary_stats_file, metric_plots, metric_correlated_plots, single_dygraphs, \
       correlated_dygraphs, single_svgs, correlated_svgs = self.discover_metric_data(self.output_directory, metric)
+      dygraph_html = ''
       if len(single_dygraphs) > 0:
-        dygraph_html = ''
         for single_dyg in single_dygraphs:
           with open(single_dyg,'r') as dyg_file:
             dygraph_html += '\n' + dyg_file.read()
