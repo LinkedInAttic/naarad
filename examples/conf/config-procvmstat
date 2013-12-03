@@ -1,0 +1,8 @@
+[PROCVMSTAT]
+hostname=localhost
+access=local
+infile=vmstat.out
+
+
+[GRAPH]
+graphing_library=matplotlib
