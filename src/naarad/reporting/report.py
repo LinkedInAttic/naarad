@@ -24,7 +24,8 @@ class Report(object):
       'summary': 'default_summary_page.html',
       'summary_content': 'summary_content.html',
       'metric': 'default_metric_page.html',
-      'footer': 'default_report_footer.html'
+      'footer': 'default_report_footer.html',
+      'client_charting': 'client_charting_template.html'
     }
     if report_name == '':
       self.report_name = 'naarad analysis report'
@@ -64,18 +65,18 @@ class Report(object):
     else:
       return False
 
+  def validate_file_list(self, files_list):
+    for file_name in files_list:
+      if naarad.utils.is_valid_file(file_name):
+        return True
+    return False
+
   def enable_summary_tab(self, output_directory):
     important_sub_metrics_list = glob.glob(os.path.join(output_directory, '*.important_sub_metrics.csv'))
-    if len(important_sub_metrics_list) == 0:
-      if len(self.correlated_plots) > 0:
-        return True
-      else:
-        return False
+    if self.validate_file_list(important_sub_metrics_list) or len(self.correlated_plots) > 0:
+      return True
     else:
-      for metric_file in important_sub_metrics_list:
-        if naarad.utils.is_valid_file(metric_file):
-          return True
-    return False
+      return False
 
   def discover_metric_data(self, output_directory, metric):
     single_images = []
@@ -112,7 +113,13 @@ class Report(object):
           correlated_dygraphs.append(dyg)
         else:
           single_dygraphs.append(dyg)
-    return summary_stats, important_stats, single_images, correlated_images, single_dygraphs, correlated_dygraphs, single_svgs, correlated_svgs
+    csv_list = glob.glob(os.path.join(output_directory, metric + '.*.csv'))
+    csv_ts = []
+    for csv in csv_list:
+      if naarad.utils.is_valid_file(csv) and ('.stats.csv' not in csv) and ('.important_sub_metrics.csv' not in csv):
+        csv_name = os.path.basename(csv).split(".")
+        csv_ts.append('.'.join(csv_name[0:-1]))
+    return summary_stats, important_stats, single_images, correlated_images, single_dygraphs, correlated_dygraphs, single_svgs, correlated_svgs, csv_ts
 
   def generate_summary_page(self, template_environment, summary_html_content):
     summary_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes) + '\n'
@@ -120,14 +127,22 @@ class Report(object):
     summary_html += template_environment.get_template(self.report_templates['footer']).render()
     return summary_html
 
+  def generate_client_charting_page(self, template_environment, data_csv_list):
+    client_charting_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes) + '\n'
+    client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=data_csv_list) + '\n'
+#    client_charting_html += template_environment.get_template(self.report_templates['footer']).render()
+    return client_charting_html
+
   def generate(self):
     template_loader = FileSystemLoader(os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'templates')))
     template_environment = Environment(loader=template_loader)
     summary_html_content = ''
     summary_enabled = self.enable_summary_tab(self.output_directory)
+    client_charting_data = []
     for metric in self.metric_list:
       metric_stats_file, summary_stats_file, metric_plots, metric_correlated_plots, single_dygraphs, \
-      correlated_dygraphs, single_svgs, correlated_svgs = self.discover_metric_data(self.output_directory, metric)
+      correlated_dygraphs, single_svgs, correlated_svgs, data_csv_list = self.discover_metric_data(self.output_directory, metric)
+      client_charting_data.extend(data_csv_list)
       dygraph_html = ''
       if len(single_dygraphs) > 0:
         for single_dyg in single_dygraphs:
@@ -146,3 +161,5 @@ class Report(object):
     if summary_enabled:
       with open(os.path.join(self.output_directory, 'summary_report.html'),'w') as summary_report:
         summary_report.write(self.generate_summary_page(template_environment, summary_html_content))
+    with open(os.path.join(self.output_directory, 'client_charting.html'),'w') as client_charting_report:
+      client_charting_report.write(self.generate_client_charting_page(template_environment, client_charting_data))

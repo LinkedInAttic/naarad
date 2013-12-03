@@ -1,0 +1,85 @@
+<body>
+<div id="layout">
+    <!-- Menu toggle -->
+    <a href="#menu" id="menuLink" class="pure-menu-link">
+        <span></span>
+    </a>
+    {%- if metric_list %}
+    <div id="menu">
+        <div class="pure-menu pure-menu-open">
+            <a class="pure-menu-heading" href="https://github.com/linkedin/naarad">naarad</a>
+            <ul>
+                <li class="pure-menu-selected menu-item-divided">
+                    <a href="summary_report.html">Summary</a>
+                </li>
+                {%- for metric_name in metric_list %}
+                <li><a href="{{ metric_name }}_report.html">{{ metric_name }}</a></li>
+                {%- endfor %}
+            </ul>
+        </div>
+    </div>
+    {%- endif %}
+<div id="main">
+    <script>
+      var colorSets = [
+      ["#1F78B4", "#B2DF8A", "#A6CEE3"],
+      ["#FBB4AE", "#B3CDE3", "#CCEBC5"],
+      null
+      ]
+      function plot(selector_id, div_id, colorset_id)
+      {
+        var chart_data_selector = document.getElementById(selector_id);
+        var chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
+        var chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
+        var div_width = document.getElementById(div_id).clientWidth;
+        var div_height = document.getElementById(div_id).clientHeight;
+        chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,
+        {
+          axes : {
+            x : {
+                  valueFormatter: Dygraph.dateString__,
+                  valueParser: function(x) {
+                    var date_components = x.split(" ");
+                    var supported_format = date_components[0] + 'T' + date_components[1];
+                    if(date_components[1].indexOf(".") == -1)
+                    {
+                      supported_format += ".0";
+                    }
+                    return Date.parse(supported_format);
+                  },
+                },
+            y : {
+                  drawGrid: true 
+            }
+            },
+            ylabel: chart_data_title,
+            xlabel: "Time",
+            colors: colorSets[colorset_id]
+        }
+        );
+        chart_1.resize(div_width, window.screen.height/2)
+      }
+    </script>
+    <div id="selection-div"> 
+      <label>
+        <select id="select-chart-1">
+          {%- for data_series in metric_data %}
+          <option value="{{ data_series }}.csv">{{ data_series }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="button" onclick="plot('select-chart-1','charting-div-1',0)">plot</button>
+      <label>
+        <select id="select-chart-2">
+          {%- for data_series in metric_data %}
+          <option value="{{ data_series }}.csv">{{ data_series }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="button" onclick="plot('select-chart-2','charting-div-2',1)">plot</button>
+    </div>
+    <div id="charting-div-1" style="height:50%; width:100%;"></div>
+    <div id="charting-div-2" style="height:50%; width:100%;"></div>
+  </div>
+</div>
+</body>
