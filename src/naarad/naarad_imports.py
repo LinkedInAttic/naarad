@@ -8,11 +8,13 @@ Unless required by applicable law or agreed to in writing, software distribute
 
 from naarad.graphing import matplotlib_naarad
 from naarad.metrics.jmeter_metric import JmeterMetric
+from naarad.metrics.procvmstat_metric import ProcVmstatMetric
 
 #Custom metrics
 metric_classes = {
     #'MyMetric' : MyMetricParserClass
-    'JMETER' : JmeterMetric
+    'JMETER' : JmeterMetric, 
+    'PROCVMSTAT' : ProcVmstatMetric
     }
 graphing_modules = {
     'matplotlib' : matplotlib_naarad
