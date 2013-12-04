@@ -43,5 +43,6 @@ def graph_data(list_of_plots, output_directory, output_filename):
           plot_data.append((datetime.datetime.strptime(line_data[0], '%Y-%m-%d %H:%M:%S'), float(line_data[1])))
     date_plot.add(plot.graph_title, plot_data)
     date_plot.render_to_file(os.path.join(output_directory,output_filename + '.svg'))
-    html_include = '<figure><embed type="image/svg+xml" src="' + output_filename + '.svg' + '"/></figure>'
-    return True, html_include
+    with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
+      div_file.write('<figure><embed type="image/svg+xml" src="' + output_filename + '.svg' + '"/></figure>')
+    return True,  os.path.join(output_directory, output_filename + '.div')

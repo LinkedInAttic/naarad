@@ -1,16 +1,38 @@
 <body>
+<div id="layout">
+
+    <a href="#menu" id="menuLink" class="pure-menu-link">
+        <span></span>
+    </a>
+    {%- if metric_list %}
+    <div id="menu">
+        <div class="pure-menu pure-menu-open">
+            <a class="pure-menu-heading" href="client_charting.html">naarad</a>
+            <ul>
+                {% if summary_enabled %}
+                <li><a href="summary_report.html">Summary</a></li>
+                {% endif %}
+                {%- for metric_name in metric_list %}
+                {%- if metric_name.label == metric %}
+                <li class="pure-menu-selected menu-item-divided">
+                    <a href="{{ metric_name.label }}_report.html">{{ metric_name.label }}</a>
+                </li>
+                {%- else %}
+                <li><a href="{{ metric_name.label }}_report.html">{{ metric_name.label }}</a></li>
+                {%- endif %}
+                {%- endfor %}
+            </ul>
+        </div>
+    </div>
+    {%- endif %}
+    <div id="main">
 {%- if metric_stats %}
-<div id="{{ metric }}-summary-table" class="box">
+<div id="{{ metric }}-summary-table" class="pure-u-1-1 box">
 <h3>Metrics Summary</h3>
-<p align="center">
-<table align="center" class="sortable" style="border-collapse:collapse; border: 1px solid black;">
-<thead bgcolor="lightseagreen"><tr>
+<table class="pure-table pure-table-bordered sortable">
+<thead><tr>
 {%- for header in metric_stats[0] %}
-{%- if not loop.first %}
-<th style="border: 1px solid black; color: white;" width="75px" height="40px">{{ header }}</th>
-{%- else %}
-<th style="border: 1px solid black; color: white;" height="40px">{{ header }}</th>
-{%- endif %}
+<th>{{ header }}</th>
 {%- endfor %}
 </tr>
 </thead>
@@ -18,39 +40,25 @@
 {% for row in range(1,metric_stats|length) %}
 <tr>
 {%- for row_data in metric_stats[row] %}
-{%- if loop.first %}
-<td style="border: 1px solid black;"><a href="#{{ metric }}.{{ row_data }}.png">{{ row_data }}</a></td>
-{%- else %}
-<td style="border: 1px solid black;" align="right">{{ row_data }}</td>
-{%- endif %}
+
+<td>{{ row_data }}</td>
 {%- endfor %}
 </tr>
 {%- endfor %}
 </tbody>
 <tfoot></tfoot>
 </table>
-</p>
 </div>
 {%- endif %}
 
-{%- if metric_plots %}
-<div id="{{ metric }}-metric-plots" class="box">
+{%- if plot_div_content %}
+<div id="{{ metric }}-metric-plots" class="pure-u-1-1 box">
 <h3>Metric Plots</h3>
 <p>
-{%- for image in metric_plots %}
-  <a href="#{{ metric }}-summary-table"><img src="{{ image }}" id="{{ image }}"/></a>
-{%- endfor %}
+{{ plot_div_content }}
 </p>
 </div>
 {%- endif %}
 
-{%- if correlated_plots %}
-<div id="{{ metric }}-correlated-plots" class="box">
-<h3>Correlated Metric Plots</h3>
-<p>
-{%- for image in correlated_plots %}
-  <a href="#{{ metric }}-summary-table"><img src="{{ image }}" id="{{ image }}"/></a>
-{%- endfor %}
-</p>
 </div>
-{%- endif %}
+</div>

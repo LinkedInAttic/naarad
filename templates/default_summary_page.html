@@ -7,13 +7,13 @@
     {%- if metric_list %}
     <div id="menu">
         <div class="pure-menu pure-menu-open">
-            <a class="pure-menu-heading" href="https://github.com/linkedin/naarad">naarad</a>
+            <a class="pure-menu-heading" href="client_charting.html">naarad</a>
             <ul>
                 <li class="pure-menu-selected menu-item-divided">
                     <a href="summary_report.html">Summary</a>
                 </li>
                 {%- for metric_name in metric_list %}
-                <li><a href="{{ metric_name }}_report.html">{{ metric_name }}</a></li>
+                <li><a href="{{ metric_name.label }}_report.html">{{ metric_name.label }}</a></li>
                 {%- endfor %}
             </ul>
         </div>
@@ -23,12 +23,10 @@
         {%- if summary_html_content %}
           {{ summary_html_content }}
         {%- endif %}
-        {%- if correlated_plots %}
+        {%- if correlated_plot_content %}
         <div id="correlated-plots" class="pure-u-1-1 box">
         <h3>Correlated Metric Plots</h3>
-          {%- for image in correlated_plots %}
-            <img src="{{ image }}" id="{{ image }}"/>
-          {%- endfor %}
+            {{ correlated_plot_content }}
         </div>
         {%- endif %}
     </div>

@@ -71,95 +71,72 @@ class Report(object):
         return True
     return False
 
-  def enable_summary_tab(self, output_directory):
-    important_sub_metrics_list = glob.glob(os.path.join(output_directory, '*.important_sub_metrics.csv'))
-    if self.validate_file_list(important_sub_metrics_list) or len(self.correlated_plots) > 0:
-      return True
+  def enable_summary_tab(self):
+    for metric in self.metric_list:
+      for stats_file in metric.important_stats_files:
+        if naarad.utils.is_valid_file(stats_file):
+          return True
+    if self.validate_file_list(self.correlated_plots):
+        return True
     else:
-      return False
+        return False
 
-  def discover_metric_data(self, output_directory, metric):
-    single_images = []
-    correlated_images = []
-    single_svgs = []
-    correlated_svgs = []
-    single_dygraphs = []
-    correlated_dygraphs = []
-
-    summary_stats = ''
-    important_stats = ''
-    if naarad.utils.is_valid_file(os.path.join(output_directory, metric + '.stats.csv')):
-      summary_stats = os.path.join(output_directory, metric + '.stats.csv')
-    if naarad.utils.is_valid_file(os.path.join(output_directory, metric + '.important_sub_metrics.csv')):
-      important_stats = os.path.join(output_directory, metric + '.important_sub_metrics.csv')
-    image_list = glob.glob(os.path.join(output_directory, metric + '.*.png'))
-    for image in image_list:
-      if naarad.utils.is_valid_file(image):
-        if self.is_correlated_image(image):
-          correlated_images.append(os.path.basename(image))
-        else:
-          single_images.append(os.path.basename(image))
-    svg_list = glob.glob(os.path.join(output_directory, metric + '.*.svg'))
-    for svg in svg_list:
-      if naarad.utils.is_valid_file(svg):
-        if self.is_correlated_image(svg):
-          correlated_svgs.append(os.path.basename(svg))
-        else:
-          single_svgs.append(os.path.basename(svg))
-    dygraph_list = glob.glob(os.path.join(output_directory, metric + '.*.dyg'))
-    for dyg in dygraph_list:
-      if naarad.utils.is_valid_file(dyg):
-        if self.is_correlated_image(dyg):
-          correlated_dygraphs.append(dyg)
-        else:
-          single_dygraphs.append(dyg)
-    csv_list = glob.glob(os.path.join(output_directory, metric + '.*.csv'))
-    csv_ts = []
-    for csv in csv_list:
-      if naarad.utils.is_valid_file(csv) and ('.stats.csv' not in csv) and ('.important_sub_metrics.csv' not in csv):
-        csv_name = os.path.basename(csv).split(".")
-        csv_ts.append('.'.join(csv_name[0:-1]))
-    return summary_stats, important_stats, single_images, correlated_images, single_dygraphs, correlated_dygraphs, single_svgs, correlated_svgs, csv_ts
-
-  def generate_summary_page(self, template_environment, summary_html_content):
+  def generate_summary_page(self, template_environment, summary_html_content, coplot_html_content):
     summary_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes) + '\n'
-    summary_html += template_environment.get_template(self.report_templates['summary']).render(metric_list=sorted(self.metric_list), summary_html_content=summary_html_content, correlated_plots=self.correlated_plots) + '\n'
+    summary_html += template_environment.get_template(self.report_templates['summary']).render(metric_list=sorted(self.metric_list), summary_html_content=summary_html_content, correlated_plot_content=coplot_html_content) + '\n'
     summary_html += template_environment.get_template(self.report_templates['footer']).render()
     return summary_html
 
+  def strip_file_extension(self, file_name):
+    filename = file_name.split('.')
+    return '.'.join(filename[0:-1])
   def generate_client_charting_page(self, template_environment, data_csv_list):
     client_charting_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes) + '\n'
     client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=data_csv_list) + '\n'
 #    client_charting_html += template_environment.get_template(self.report_templates['footer']).render()
     return client_charting_html
 
+  def get_templates_location(self):
+    return os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'templates'))
+
   def generate(self):
-    template_loader = FileSystemLoader(os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'templates')))
+    template_loader = FileSystemLoader(self.get_templates_location())
     template_environment = Environment(loader=template_loader)
     summary_html_content = ''
-    summary_enabled = self.enable_summary_tab(self.output_directory)
+    coplot_html_content = ''
+    summary_enabled = self.enable_summary_tab()
     client_charting_data = []
+
     for metric in self.metric_list:
-      metric_stats_file, summary_stats_file, metric_plots, metric_correlated_plots, single_dygraphs, \
-      correlated_dygraphs, single_svgs, correlated_svgs, data_csv_list = self.discover_metric_data(self.output_directory, metric)
-      client_charting_data.extend(data_csv_list)
-      dygraph_html = ''
-      if len(single_dygraphs) > 0:
-        for single_dyg in single_dygraphs:
-          with open(single_dyg,'r') as dyg_file:
-            dygraph_html += '\n' + dyg_file.read()
-      if summary_stats_file != '':
-        summary_stats = self.get_summary_table(summary_stats_file)
-        summary_html_content += template_environment.get_template(self.report_templates['summary_content']).render(metric_stats=summary_stats, metric=metric) + '\n'
-      if metric_stats_file != '' or len(metric_plots) > 0:
-        metric_stats = self.get_summary_table(metric_stats_file)
-        metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes)
-        metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, metric_plots=metric_plots, metric=metric, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled, svg_plots=single_svgs, dyg_plots=dygraph_html)
-        metric_html += template_environment.get_template(self.report_templates['footer']).render()
-        with open(os.path.join(self.output_directory, metric + '_report.html'), 'w') as metric_report:
+      client_charting_data.extend(map(self.strip_file_extension,map(os.path.basename,metric.csv_files)))
+      div_html = ''
+      for plot_div in metric.plot_files:
+        with open(plot_div,'r') as div_file:
+            div_html += '\n' + div_file.read()
+
+      for summary_stats_file in metric.important_stats_files:
+        if naarad.utils.is_valid_file(summary_stats_file):
+          summary_stats = self.get_summary_table(summary_stats_file)
+          summary_html_content += template_environment.get_template(self.report_templates['summary_content']).render(metric_stats=summary_stats, metric=metric) + '\n'
+
+      for metric_stats_file in metric.stats_files:
+        if naarad.utils.is_valid_file(metric_stats_file) or len(metric.plot_files) > 0:
+          metric_stats = self.get_summary_table(metric_stats_file)
+          metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes)
+          metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, plot_div_content=div_html, metric=metric.label, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
+          metric_html += template_environment.get_template(self.report_templates['footer']).render()
+      with open(os.path.join(self.output_directory, metric.label + '_report.html'), 'w') as metric_report:
           metric_report.write(metric_html)
+
+    for coplot in self.correlated_plots:
+      with open(coplot,'r') as coplot_file:
+        coplot_html_content += coplot_file.read()
+
     if summary_enabled:
       with open(os.path.join(self.output_directory, 'summary_report.html'),'w') as summary_report:
-        summary_report.write(self.generate_summary_page(template_environment, summary_html_content))
+        summary_report.write(self.generate_summary_page(template_environment, summary_html_content, coplot_html_content))
+
     with open(os.path.join(self.output_directory, 'client_charting.html'),'w') as client_charting_report:
       client_charting_report.write(self.generate_client_charting_page(template_environment, client_charting_data))
+
+    return True

@@ -47,6 +47,11 @@ class JmeterMetric(Metric):
       'ErrorsPerSecond': 'qps'
     }
     self.calculated_stats = {}
+    #self.csv_files = []
+    #self.plot_files = []
+    #self.stats_files = []
+    #self.important_stats_files = []
+    #self.percentiles_files = []
     self.calculated_percentiles = {}
     self.important_sub_metrics = naarad.naarad_imports.important_sub_metrics_import['JMETER']
 
@@ -235,6 +240,7 @@ class JmeterMetric(Metric):
           sub_metric = 'Overall_Summary'
         csv_data = ','.join([sub_metric,str(numpy.round_(stats_data['mean'], 2)),str(numpy.round_(stats_data['std'], 2)),str(numpy.round_(stats_data['median'], 2)),str(numpy.round_(stats_data['min'], 2)),str(numpy.round_(stats_data['max'], 2)),str(numpy.round_(percentile_data[90], 2)),str(numpy.round_(percentile_data[95], 2)),str(numpy.round_(percentile_data[99], 2))])
         FH.write(csv_data + '\n')
+      self.stats_files.append(stats_csv)
 
     for sub_metric in self.calculated_percentiles:
       percentiles_csv = self.get_csv(sub_metric,'percentiles')
@@ -242,6 +248,7 @@ class JmeterMetric(Metric):
       with open(percentiles_csv,'w') as FH:
         for percentile in sorted(percentile_data):
           FH.write(str(percentile) + ',' + str(numpy.round_(percentile_data[percentile],2)) + '\n')
+        self.percentiles_files.append(percentiles_csv)
 
   def graph(self, graphing_library='matplotlib'):
     if graphing_library != 'matplotlib':
@@ -262,13 +269,7 @@ class JmeterMetric(Metric):
         else:
           plot_data[transaction_name] = [plot]
       for transaction in plot_data:
-        graphed, html_ret = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.outdir, self.metric_type + '.' + transaction )
-        if html_ret:
-          html_string.append(html_ret)
-        else:
-          if graphed:
-            img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p><img src="{image_name}.png" />\n'.format(title=transaction, description=transaction + ' workload client statistics', image_name=transaction)
-          else:
-            img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p>No data for this metric\n'.format(title=transaction, description='')
-          html_string.append(img_tag)
-      return '\n'.join(html_string)
+        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.outdir, self.metric_type + '.' + transaction )
+        if graphed:
+          self.plot_files.append(div_file)
+      return True

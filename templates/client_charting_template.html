@@ -1,25 +1,4 @@
 <body>
-<div id="layout">
-    <!-- Menu toggle -->
-    <a href="#menu" id="menuLink" class="pure-menu-link">
-        <span></span>
-    </a>
-    {%- if metric_list %}
-    <div id="menu">
-        <div class="pure-menu pure-menu-open">
-            <a class="pure-menu-heading" href="https://github.com/linkedin/naarad">naarad</a>
-            <ul>
-                <li class="pure-menu-selected menu-item-divided">
-                    <a href="summary_report.html">Summary</a>
-                </li>
-                {%- for metric_name in metric_list %}
-                <li><a href="{{ metric_name }}_report.html">{{ metric_name }}</a></li>
-                {%- endfor %}
-            </ul>
-        </div>
-    </div>
-    {%- endif %}
-<div id="main">
     <script>
       var colorSets = [
       ["#1F78B4", "#B2DF8A", "#A6CEE3"],
@@ -38,28 +17,48 @@
           axes : {
             x : {
                   valueFormatter: Dygraph.dateString__,
-                  valueParser: function(x) {
-                    var date_components = x.split(" ");
-                    var supported_format = date_components[0] + 'T' + date_components[1];
-                    if(date_components[1].indexOf(".") == -1)
-                    {
-                      supported_format += ".0";
-                    }
-                    return Date.parse(supported_format);
-                  },
+                  ticker: Dygraph.dateTicker
                 },
             y : {
-                  drawGrid: true 
+                  drawGrid: true
             }
             },
-            ylabel: chart_data_title,
-            xlabel: "Time",
-            colors: colorSets[colorset_id]
+          xValueParser: function(x) {
+             var date_components = x.split(" ");
+             var supported_format = date_components[0] + 'T' + date_components[1];
+             if(date_components[1].indexOf(".") == -1)
+             {
+                supported_format += ".0";
+             }
+             return Date.parse(supported_format);
+          },
+          ylabel: chart_data_title,
+          xlabel: "Time",
+          colors: colorSets[colorset_id]
         }
         );
-        chart_1.resize(div_width, window.screen.height/2)
+        chart_1.resize(div_width, window.screen.height*0.75/2)
       }
     </script>
+<div id="layout">
+    <!-- Menu toggle -->
+    <a href="#menu" id="menuLink" class="pure-menu-link">
+        <span></span>
+    </a>
+    {%- if metric_list %}
+    <div id="menu">
+        <div class="pure-menu pure-menu-open">
+            <a class="pure-menu-heading" href="client_charting.html">naarad</a>
+            <ul>
+                <li><a href="summary_report.html">Summary</a></li>
+                {%- for metric_name in metric_list %}
+                <li><a href="{{ metric_name.label }}_report.html">{{ metric_name.label }}</a></li>
+                {%- endfor %}
+            </ul>
+        </div>
+    </div>
+    {%- endif %}
+<div id="main">
     <div id="selection-div"> 
       <label>
         <select id="select-chart-1">

@@ -322,8 +322,6 @@ def main():
           new_metric.precision = precision
           metrics.append(new_metric)
 
-    # get metric log data, parse and graph
-    # TODO: Use Jinja templates
     if outdir_default:
       try:
         os.makedirs(outdir_default)
@@ -334,31 +332,22 @@ def main():
     else:
       sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
     Metric.graphing_modules = graphing_modules
-    html_string = []
     metric_string_list = []
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
     threads = []
-    report_metrics = []
     graph_lock = threading.Lock()
     for metric in metrics:
-      report_metrics.append(metric.label)
       thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
       thread.start()
       threads.append(thread)
     for t in threads:
       t.join()
     if len(crossplots) > 0:
-      cross_plotting_html_string, correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, outdir_default, filler)
-      html_string.append(cross_plotting_html_string)
+      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, outdir_default, filler)
     else:
       correlated_plots = []
-    html_string.append("<h1>naarad analysis report</h1>\n")
-    html_string.extend(metric_string_list)
-    naarad.utils.generate_html_report(outdir_default, ''.join(html_string))
-    if outdir_default:
-      logger.info('Report generated at {0}'.format( os.path.join(outdir_default, 'Report.html') ))
-    rpt = Report(None,outdir_default,report_metrics,metric_template='purecss_metric_page.html',footer_template='purecss_report_footer.html',correlated_plots=correlated_plots)
+    rpt = Report(None,outdir_default,metrics,correlated_plots=correlated_plots)
     rpt.generate()
 if __name__ == '__main__':
   main()

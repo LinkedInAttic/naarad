@@ -149,4 +149,6 @@ def graph_data(list_of_plots, output_directory, output_filename):
   plot_file_name = os.path.join(output_directory, output_filename + ".png")
   fig.savefig(plot_file_name)
   plt.close()
-  return True, None
+  with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
+    div_file.write('<img src="' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '"/>')
+  return True, os.path.join(output_directory, output_filename + '.div')

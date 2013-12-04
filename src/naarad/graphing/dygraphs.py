@@ -42,17 +42,17 @@ def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=N
         );
         </script>"""
 
-  with open(os.path.join(output_directory, output_filename + '.dyg'), 'w') as dygraph_file:
-    dygraph_file.write(div_string + script_string)
+  with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
+    div_file.write(div_string + script_string)
   #Ritesh: TODO Also generate PNGs if someone needs them separately
-  return True, div_string + script_string
+  return True, os.path.join(output_directory, output_filename + '.div')
 
 def graph_data(list_of_plots, output_directory, output_filename):
   if len(list_of_plots) > 0:
     plot = list_of_plots[0]
-    success, html_string = graph_csv(output_directory=output_directory, csv_file=plot.input_csv, plot_title=plot.graph_title, output_filename=output_filename, y_label=plot.y_label, precision=None, graph_height=plot.graph_height, graph_width=plot.graph_width)
+    success, div_file = graph_csv(output_directory=output_directory, csv_file=plot.input_csv, plot_title=plot.graph_title, output_filename=output_filename, y_label=plot.y_label, precision=None, graph_height=plot.graph_height, graph_width=plot.graph_width)
     if len(list_of_plots) > 1:
       logger.warning('dygraph module currently does not support co-relation of multiple plots. Only plotting %s', plot.graph_title)
-    return success, html_string
+    return success, div_file
   else:
     return False, None
