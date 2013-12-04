@@ -144,11 +144,11 @@ class Metric(object):
     logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
     with open(metric_stats_csv_file, 'w') as FH_W:
       with open(imp_metric_stats_csv_file, 'w') as FH_W_IMP:
-        data = []
         FH_W.write(headers)
         if self.important_sub_metrics:
           FH_W_IMP.write(headers)
         for csv_file in self.csv_files:
+          data = []
           if not os.path.getsize(csv_file):
             continue
           column = self.csv_column_map[csv_file]
