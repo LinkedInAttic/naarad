@@ -41,6 +41,10 @@ class Metric(object):
     self.titles_string = None
     self.ylabels_string = None
     self.csv_files = []
+    self.plot_files = []
+    self.stats_files = []
+    self.important_stats_files = []
+    self.percentiles_files = []
     self.csv_column_map = {}
     self.metric_description = defaultdict(lambda: 'None')
     self.important_sub_metrics = ()
@@ -117,7 +121,7 @@ class Metric(object):
         ts = naarad.utils.reconcile_timezones(words[0], self.timezone, self.graph_timezone)
         for i in range(len(self.columns)):
           out_csv = self.get_csv(self.columns[i])
-          print "adding %s to dict for %s" %(out_csv, self.columns[i])
+          #print "adding %s to dict for %s" %(out_csv, self.columns[i])
           if out_csv in data:
             data[out_csv].append( ts + ',' + words[i+1] )
           else:
@@ -140,11 +144,11 @@ class Metric(object):
     logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
     with open(metric_stats_csv_file, 'w') as FH_W:
       with open(imp_metric_stats_csv_file, 'w') as FH_W_IMP:
-        data = []
         FH_W.write(headers)
         if self.important_sub_metrics:
           FH_W_IMP.write(headers)
         for csv_file in self.csv_files:
+          data = []
           if not os.path.getsize(csv_file):
             continue
           column = self.csv_column_map[csv_file]
@@ -157,12 +161,16 @@ class Metric(object):
           with open(percentile_csv_file, 'w') as FH_P:
             for percentile in sorted(calculated_percentiles.iterkeys()):
               FH_P.write("%d, %f\n" % (percentile, calculated_percentiles[percentile]))
+          self.percentiles_files.append(percentile_csv_file)
           to_write = [column, calculated_stats['mean'], calculated_stats['std'], calculated_percentiles[50], calculated_percentiles[75], calculated_percentiles[90], calculated_percentiles[95], calculated_percentiles[99]]
           to_write = map(lambda x: naarad.utils.normalize_float_for_display(x), to_write)
           FH_W.write(','.join(to_write) + '\n') 
           # Important sub-metrics and their stats go in imp_metric_stats_csv_file
           if column in self.important_sub_metrics:
-            FH_W_IMP.write(','.join(to_write) + '\n') 
+            FH_W_IMP.write(','.join(to_write) + '\n')
+          self.important_stats_files.append(imp_metric_stats_csv_file)
+      self.stats_files.append(metric_stats_csv_file)
+
 
 
   def calc(self):
@@ -215,9 +223,6 @@ class Metric(object):
     html_string = []
     html_string.append('<h1>Metric: {0}</h1>\n'.format(self.metric_type))
     graphed = False
-    if self.metric_type.startswith('GC') and graphing_library in ('js', 'javascript', 'dygraphs'):
-      logger.warning('GC metric does not support js graphing. Switching to matplotlib')
-      graphing_library = 'matplotlib'
     logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
     for out_csv in self.csv_files:
       csv_filename = os.path.basename(out_csv)
@@ -226,13 +231,7 @@ class Metric(object):
       column = self.csv_column_map[out_csv]
       column = naarad.utils.sanitize_string(column)
       plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
-      graphed, html_ret = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.outdir, graph_title)
-      if html_ret:
-        html_string.append(html_ret)
-      else:
-        if graphed:
-          img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p><img src={image_name}.png />\n'.format(title=graph_title, description=self.metric_description[column], image_name=graph_title)
-        else:
-          img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p>No data for this metric\n'.format(title=graph_title, description=self.metric_description[column])
-        html_string.append(img_tag)
-    return '\n'.join(html_string)
+      graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.outdir, graph_title)
+      if graphed:
+        self.plot_files.append(div_file)
+    return True

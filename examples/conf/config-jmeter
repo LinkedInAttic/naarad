@@ -4,3 +4,4 @@ access=local
 
 [GRAPH]
 graphing_library=matplotlib
+graphs=JMETER.Overall_Summary.ResponseTime,JMETER.Overall_Summary.qps,JMETER.Overall_Summary.ErrorsPerSecond

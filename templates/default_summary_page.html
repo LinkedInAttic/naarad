@@ -1,0 +1,34 @@
+<body>
+<div id="layout">
+    <!-- Menu toggle -->
+    <a href="#menu" id="menuLink" class="pure-menu-link">
+        <span></span>
+    </a>
+    {%- if metric_list %}
+    <div id="menu">
+        <div class="pure-menu pure-menu-open">
+            <a class="pure-menu-heading" href="client_charting.html">naarad</a>
+            <ul>
+                <li class="pure-menu-selected menu-item-divided">
+                    <a href="summary_report.html">Summary</a>
+                </li>
+                {%- for metric_name in metric_list %}
+                <li><a href="{{ metric_name.label }}_report.html">{{ metric_name.label }}</a></li>
+                {%- endfor %}
+            </ul>
+        </div>
+    </div>
+    {%- endif %}
+    <div id="main">
+        {%- if summary_html_content %}
+          {{ summary_html_content }}
+        {%- endif %}
+        {%- if correlated_plot_content %}
+        <div id="correlated-plots" class="pure-u-1-1 box">
+        <h3>Correlated Metric Plots</h3>
+            {{ correlated_plot_content }}
+        </div>
+        {%- endif %}
+    </div>
+</div>
+</body>

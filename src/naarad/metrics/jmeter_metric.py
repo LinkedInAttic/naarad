@@ -15,6 +15,7 @@ import numpy
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
+import naarad.naarad_imports
 
 
 logger = logging.getLogger('naarad.metrics.JmeterMetric')
@@ -28,30 +29,45 @@ class JmeterMetric(Metric):
       'ts': 'Timestamp',
       'tn': 'Transaction Name (Parent)',
       's': 'Status',
-      't': 'Response Time',
+      'ResponseTime': 'Response Time',
       'rc': 'Response Code',
       'rm': 'Response Message',
       'dt': 'Data Type',
-      'by': 'Response Size',
+      'ResponseSize': 'Response Size',
       'qps': 'Successful Transactions per second',
-      'eqps': 'Errors per second',
-      'thr': 'Data Throughput'
+      'ErrorsPerSecond': 'Errors per second',
+      'DataThroughput': 'Data Throughput'
     }
     self.metric_units = {
       'lt': 'ms',
-      't': 'ms',
-      'by': 'bytes',
+      'ResponseTime': 'ms',
+      'ResponseSize': 'bytes',
       'qps': 'qps',
-      'thr': 'mbps',
-      'eqps': 'qps'
+      'DataThroughput': 'mbps',
+      'ErrorsPerSecond': 'qps'
     }
     self.calculated_stats = {}
+    #self.csv_files = []
+    #self.plot_files = []
+    #self.stats_files = []
+    #self.important_stats_files = []
+    #self.percentiles_files = []
     self.calculated_percentiles = {}
+    self.important_sub_metrics = naarad.naarad_imports.important_sub_metrics_import['JMETER']
 
   def get_csv(self, transaction_name, column):
     col = naarad.utils.sanitize_string(column)
+    if col == 't':
+      col = 'ResponseTime'
+    elif col == 'by':
+      col = 'ResponseSize'
+    elif col == 'thr':
+      col = 'DataThroughput'
+    elif col == 'eqps':
+      col = 'ErrorsPerSecond'
+
     if transaction_name == '__overall_summary__':
-      transaction_name = 'Overall Summary'
+      transaction_name = 'Overall_Summary'
     csv = os.path.join(self.outdir, self.metric_type + '.' + transaction_name + '.' + col + '.csv')
     self.csv_column_map[csv] = column
     return csv
@@ -169,7 +185,7 @@ class JmeterMetric(Metric):
     :return: status of the metric parse
     """
     logger.info('Processing : %s',self.infile)
-    file_status, error_message = naarad.utils.is_valid_file(self.infile)
+    file_status = naarad.utils.is_valid_file(self.infile)
     if not file_status:
       return False
     # TBD: Read from user configuration
@@ -212,17 +228,19 @@ class JmeterMetric(Metric):
     return True
 
   def calculate_stats(self):
-    stats_csv = self.get_csv(self.metric_type,'stats')
+    stats_csv = os.path.join(self.outdir, self.metric_type + '.stats.csv')
     csv_header = 'sub_metric,mean,std. deviation,median,min,max,90%,95%,99%\n'
+
     with open(stats_csv,'w') as FH:
       FH.write(csv_header)
       for sub_metric in self.calculated_stats:
         percentile_data = self.calculated_percentiles[sub_metric]
         stats_data = self.calculated_stats[sub_metric]
         if sub_metric == '__overall_summary__':
-          sub_metric = 'Overall Summary'
+          sub_metric = 'Overall_Summary'
         csv_data = ','.join([sub_metric,str(numpy.round_(stats_data['mean'], 2)),str(numpy.round_(stats_data['std'], 2)),str(numpy.round_(stats_data['median'], 2)),str(numpy.round_(stats_data['min'], 2)),str(numpy.round_(stats_data['max'], 2)),str(numpy.round_(percentile_data[90], 2)),str(numpy.round_(percentile_data[95], 2)),str(numpy.round_(percentile_data[99], 2))])
         FH.write(csv_data + '\n')
+      self.stats_files.append(stats_csv)
 
     for sub_metric in self.calculated_percentiles:
       percentiles_csv = self.get_csv(sub_metric,'percentiles')
@@ -230,72 +248,28 @@ class JmeterMetric(Metric):
       with open(percentiles_csv,'w') as FH:
         for percentile in sorted(percentile_data):
           FH.write(str(percentile) + ',' + str(numpy.round_(percentile_data[percentile],2)) + '\n')
+        self.percentiles_files.append(percentiles_csv)
 
-  def get_summary_html(self):
-    """
-    Generate summary table for response times for various transactions. This will be deprecated by the new reporting framework
-
-    :return: string with html for the response times summary table
-    """
-
-    data_row = '''
-    <p><table width="50%" class="sortable">
-    <caption>Transaction Response Times(ms)</caption>
-    <thead bgcolor="lightsteelblue"><tr><th align="left">Transaction</th><th align="right">Mean</th>
-    <th align="right">Std.dv</th><th align="right">Median</th><th align="right">Min</th><th align="right">Max</th>
-    <th align="right">90%</th><th align="right">95%</th><th align="right">99%</th></tr></thead>
-    '''
-    footer_row = '<tfoot bgcolor=wheat>'
-    for transaction in self.calculated_stats:
-      stats = self.calculated_stats[transaction]
-      percentiles = self.calculated_percentiles[transaction]
-      if transaction == '__overall_summary__':
-        footer_row += '<tr><td>Overall Summary</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(stats['mean'],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(stats['std'],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(stats['median'],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(stats['min'],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(stats['max'],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(percentiles[90],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(percentiles[95],2)) + '</td>'
-        footer_row += '<td align="right">' + str(numpy.round_(percentiles[99],2)) + '</td></tr></tfoot>'
-      else:
-        data_row += '<tr><td>' + transaction + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(stats['mean'],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(stats['std'],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(stats['median'],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(stats['min'],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(stats['max'],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(percentiles[90],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(percentiles[95],2)) + '</td>'
-        data_row += '<td align="right">' + str(numpy.round_(percentiles[99],2)) + '</td></tr>'
-    data_row = data_row + '\n' + footer_row + '</table></p>'
-    return data_row
-
-  def graph(self, graphing_library = 'matplotlib'):
-    html_string = []
-    html_string.append('<h2>Metric: {0}</h2>\n'.format(self.metric_type))
-    html_string.append(self.get_summary_html())
-    logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
-    plot_data = {}
-    for out_csv in sorted(self.csv_files, reverse=True):
-      csv_filename = os.path.basename(out_csv)
-      # The last element is .csv, don't need that in the name of the chart
-      column = csv_filename.split('.')[-2]
-      transaction_name = ' '.join(csv_filename.split('.')[1:-2])
-      plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name, y_label=self.metric_description[column] + ' (' + self.metric_units[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line')
-      if transaction_name in plot_data:
-        plot_data[transaction_name].append(plot)
-      else:
-        plot_data[transaction_name] = [plot]
-    for transaction in plot_data:
-      graphed, html_ret = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.outdir, transaction )
-      if html_ret:
-        html_string.append(html_ret)
-      else:
-        if graphed:
-          img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p><img src="{image_name}.png" />\n'.format(title=transaction, description=transaction + ' workload client statistics', image_name=transaction)
+  def graph(self, graphing_library='matplotlib'):
+    if graphing_library != 'matplotlib':
+     return Metric.graph(self, graphing_library)
+    else:
+      html_string = []
+      html_string.append('<h2>Metric: {0}</h2>\n'.format(self.metric_type))
+      logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
+      plot_data = {}
+      for out_csv in sorted(self.csv_files, reverse=True):
+        csv_filename = os.path.basename(out_csv)
+        # The last element is .csv, don't need that in the name of the chart
+        column = csv_filename.split('.')[-2]
+        transaction_name = ' '.join(csv_filename.split('.')[1:-2])
+        plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name, y_label=self.metric_description[column] + ' (' + self.metric_units[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line')
+        if transaction_name in plot_data:
+          plot_data[transaction_name].append(plot)
         else:
-          img_tag = '<h3>{title}</h3><p><b>Description</b>: {description}</p>No data for this metric\n'.format(title=transaction, description='')
-        html_string.append(img_tag)
-    return '\n'.join(html_string)
+          plot_data[transaction_name] = [plot]
+      for transaction in plot_data:
+        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.outdir, self.metric_type + '.' + transaction )
+        if graphed:
+          self.plot_files.append(div_file)
+      return True
