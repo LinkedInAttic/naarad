@@ -15,9 +15,9 @@ import numpy
 from naarad.metrics.metric import Metric
 import naarad.utils
 
-logger = logging.getLogger('naarad.metrics.ProcVmstatMetric')
+logger = logging.getLogger('naarad.metrics.ProcMeminfoMetric')
 
-class ProcVmstatMetric(Metric):
+class ProcMeminfoMetric(Metric):
   """
   logs of /proc/vmstat
   The raw log file is assumed to have a timestamp prefix of all lines. E.g. in the format of "2013-01-02 03:55:22.13456 compact_fail 36"
@@ -33,11 +33,10 @@ class ProcVmstatMetric(Metric):
       setattr(self, key, val.split())   
       
     self.metric_description = {
-      'nr_free_pages': 'Number of free pages',
-      'nr_inactive_anon': 'Number of inactive anonymous pages',
-      'nr_active_anon': 'Number of active anonymous pages',
-      'nr_inactive_file': 'Number of inactive file pages',
-      'nr_active_file': 'Number of active file pages',
+      'MemTotal': 'Total memory in KB',
+      'MemFree': 'Total free memory in KB',
+      'Buffers': 'Size of buffers in KB',
+      'Cached': 'Size of page cache in KB',
      }    
 
       
@@ -57,8 +56,8 @@ class ProcVmstatMetric(Metric):
       data = {}  # stores the data of each column
       for line in fh:
         words = line.split()  
-        # [0] is day; [1] is seconds; [2] is field name; [3] is value
-        col = words[2]
+        # [0] is day; [1] is seconds; [2] is field name:; [3] is value  [4] is unit
+        col = words[2].strip(':')
         
         # only process rows specified in config. 
         if col not in self.rows:

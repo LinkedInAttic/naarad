@@ -6,15 +6,18 @@ Unless required by applicable law or agreed to in writing, software distribute
 """
 
 from naarad.graphing import matplotlib_naarad
-from naarad.metrics.jmeter_metric import JmeterMetric
-from naarad.reporting.report import Report
 from naarad.graphing import pygal_naarad
+from naarad.metrics.jmeter_metric import JmeterMetric
+from naarad.metrics.procvmstat_metric import ProcVmstatMetric
+from naarad.metrics.procmeminfo_metric import ProcMeminfoMetric
+from naarad.reporting.report import Report
 
 #Custom metrics
 metric_classes = {
     #'MyMetric' : MyMetricParserClass
     'JMETER' : JmeterMetric, 
-    'PROCVMSTAT' : ProcVmstatMetric
+    'PROCVMSTAT' : ProcVmstatMetric,
+    'PROCMEMINFO' : ProcMeminfoMetric
     }
 
 graphing_modules = {

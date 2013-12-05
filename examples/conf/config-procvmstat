@@ -1,7 +1,7 @@
 [PROCVMSTAT]
 hostname=localhost
 access=local
-infile=vmstat.out
+infile=procvmstat.out
 rows=nr_free_pages nr_inactive_anon
 
 [GRAPH]
