@@ -1,14 +1,14 @@
 # coding=utf-8
 """
 © 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
- 
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 
 from naarad.graphing import matplotlib_naarad
 from naarad.metrics.jmeter_metric import JmeterMetric
-from naarad.metrics.procvmstat_metric import ProcVmstatMetric
+from naarad.reporting.report import Report
+from naarad.graphing import pygal_naarad
 
 #Custom metrics
 metric_classes = {
@@ -16,10 +16,18 @@ metric_classes = {
     'JMETER' : JmeterMetric, 
     'PROCVMSTAT' : ProcVmstatMetric
     }
+
 graphing_modules = {
-    'matplotlib' : matplotlib_naarad
+    'matplotlib': matplotlib_naarad,
+    'svg': pygal_naarad
     }
+
+reporting_modules = {
+    'report': Report
+}
+
 important_sub_metrics_import = {
-    'GC' : ('GC', 'used'),
-    'SAR-cpuusage' : ('%sys', '%usr') 
-    }
+    'GC': ('GC', 'used'),
+    'SAR-cpuusage': ('%sys', '%usr'),
+    'JMETER': ('Overall_Summary.ResponseTime', 'Overall_Summary.DataThroughput', 'Overall_Summary.qps')
+}
