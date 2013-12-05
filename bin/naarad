@@ -27,6 +27,7 @@ from naarad.metrics.gc_metric import GCMetric
 from naarad.metrics.innotop_metric import INNOMetric
 from naarad.metrics.sar_metric import SARMetric
 from naarad.graphing import dygraphs
+from naarad.reporting.report import Report
 
 try:
   from naarad.naarad_imports import metric_classes, graphing_modules
@@ -321,8 +322,6 @@ def main():
           new_metric.precision = precision
           metrics.append(new_metric)
 
-    # get metric log data, parse and graph
-    # TODO: Use Jinja templates
     if outdir_default:
       try:
         os.makedirs(outdir_default)
@@ -333,7 +332,6 @@ def main():
     else:
       sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
     Metric.graphing_modules = graphing_modules
-    html_string = []
     metric_string_list = []
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
@@ -345,13 +343,11 @@ def main():
       threads.append(thread)
     for t in threads:
       t.join()
-    cross_plotting_html_string = naarad.utils.nway_plotting(crossplots, metrics, outdir_default, filler)
-    html_string.append(cross_plotting_html_string)
-    html_string.append("<h1>naarad analysis report</h1>\n")
-    html_string.extend(metric_string_list)
-    naarad.utils.generate_html_report(outdir_default, ''.join(html_string))
-    if outdir_default:
-      logger.info('Report generated at {0}'.format( os.path.join(outdir_default, 'Report.html') ))
-
+    if len(crossplots) > 0:
+      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, outdir_default, filler)
+    else:
+      correlated_plots = []
+    rpt = Report(None,outdir_default,metrics,correlated_plots=correlated_plots)
+    rpt.generate()
 if __name__ == '__main__':
   main()

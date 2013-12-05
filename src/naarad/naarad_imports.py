@@ -8,16 +8,26 @@ Unless required by applicable law or agreed to in writing, software distribute
 
 from naarad.graphing import matplotlib_naarad
 from naarad.metrics.jmeter_metric import JmeterMetric
+from naarad.reporting.report import Report
+from naarad.graphing import pygal_naarad
 
 #Custom metrics
 metric_classes = {
     #'MyMetric' : MyMetricParserClass
-    'JMETER' : JmeterMetric
+    'JMETER': JmeterMetric
     }
+
 graphing_modules = {
-    'matplotlib' : matplotlib_naarad
+    'matplotlib': matplotlib_naarad,
+    'svg': pygal_naarad
     }
+
+reporting_modules = {
+    'report': Report
+}
+
 important_sub_metrics_import = {
-    'GC' : ('GC', 'used'),
-    'SAR-cpuusage' : ('%sys', '%usr') 
-    }
+    'GC': ('GC', 'used'),
+    'SAR-cpuusage': ('%sys', '%usr'),
+    'JMETER': ('Overall_Summary.ResponseTime', 'Overall_Summary.DataThroughput', 'Overall_Summary.qps')
+}
