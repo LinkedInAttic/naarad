@@ -2,7 +2,7 @@
 hostname=localhost
 access=local
 infile=vmstat.out
-
+rows=nr_free_pages nr_inactive_anon
 
 [GRAPH]
 graphing_library=matplotlib
