@@ -13,7 +13,6 @@ import os
 import re
 import numpy
 from naarad.metrics.metric import Metric
-from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
 
 logger = logging.getLogger('naarad.metrics.ProcVmstatMetric')
@@ -26,7 +25,13 @@ class ProcVmstatMetric(Metric):
   """
   
   def __init__ (self, metric_type, infile, hostname, output_directory, label, ts_start, ts_end, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, output_directory, label, ts_start, ts_end)
+    Metric.__init__(self, metric_type, infile, hostname, output_directory, label, ts_start, ts_end)         
+    
+    self.rows = None
+    # in particular, Section can specify a subset of all rows (default has 86 rows):  "rows=nr_free_pages nr_inactive_anon"
+    for (key, val) in other_options.iteritems():
+      setattr(self, key, val.split())   
+      
     self.metric_description = {
       'nr_free_pages': 'Number of free pages',
       'nr_inactive_anon': 'Number of inactive anonymous pages',
@@ -34,7 +39,8 @@ class ProcVmstatMetric(Metric):
       'nr_inactive_file': 'Number of inactive file pages',
       'nr_active_file': 'Number of active file pages',
      }    
-     
+
+      
   def parse(self):
     """
     Parse the vmstat file
@@ -46,29 +52,32 @@ class ProcVmstatMetric(Metric):
       return False
       
     status = True
-        
+
     with open(self.infile) as fh:
-      lines = fh.readlines()    
-    
-    data = {}  # stores the data of each column
-    for line in lines:
-      words = line.split()  
-      # [0] is day; [1] is seconds; [2] is field name; [3] is value
-      col = words[2]
-      ts = words[0] + " " + words[1]
+      data = {}  # stores the data of each column
+      for line in fh:
+        words = line.split()  
+        # [0] is day; [1] is seconds; [2] is field name; [3] is value
+        col = words[2]
+        
+        # only process rows specified in config. 
+        if col not in self.rows:
+          continue
+          
+        ts = words[0] + " " + words[1]
       
-      if col in self.csv_column_map: 
-        out_csv = self.csv_column_map[col] 
-      else:
-        out_csv = Metric.get_csv(self,col)     
-        self.csv_column_map[col] = out_csv   
-        data[out_csv] = []        
+        if col in self.csv_column_map: 
+          out_csv = self.csv_column_map[col] 
+        else:
+          out_csv = Metric.get_csv(self,col)     
+          self.csv_column_map[col] = out_csv   
+          data[out_csv] = []        
       
-      # provide default description (Metric.graph() requires a description)
-      if not col in self.metric_description:
-        self.metric_description[col] = 'No description'
+        # provide default description (Metric.graph() requires a description)
+        if not col in self.metric_description:
+          self.metric_description[col] = 'No description'
       
-      data[out_csv].append(ts + "," + words[3])
+        data[out_csv].append(ts + "," + words[3])
     
     #post processing, putting data in csv files;   
     for csv in data.keys():      
