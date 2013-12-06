@@ -60,8 +60,8 @@ class ProcVmstatMetric(Metric):
         # [0] is day; [1] is seconds; [2] is field name; [3] is value
         col = words[2]
         
-        # only process rows specified in config. 
-        if col not in self.rows:
+        # if rows is specified, only process rows specified in config.         
+        if self.rows and col not in self.rows:
           continue
           
         ts = words[0] + " " + words[1]

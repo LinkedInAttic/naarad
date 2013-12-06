@@ -60,7 +60,7 @@ class ProcMeminfoMetric(Metric):
         col = words[2].strip(':')
         
         # only process rows specified in config. 
-        if col not in self.rows:
+        if self.rows and col not in self.rows:
           continue
           
         ts = words[0] + " " + words[1]
