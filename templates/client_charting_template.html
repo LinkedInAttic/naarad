@@ -32,9 +32,13 @@
              }
              return Date.parse(supported_format);
           },
+<!--
           ylabel: chart_data_title,
           xlabel: "Time",
-          colors: colorSets[colorset_id]
+-->
+          colors: colorSets[colorset_id],
+          labels: [ "Time", chart_data_title].
+          axis
         }
         );
         chart_1.resize(div_width, window.screen.height*0.75/2)
@@ -50,7 +54,9 @@
         <div class="pure-menu pure-menu-open">
             <a class="pure-menu-heading" href="client_charting.html">naarad</a>
             <ul>
+                {% if summary_enabled %}
                 <li><a href="summary_report.html">Summary</a></li>
+                {% endif %}
                 {%- for metric_name in metric_list %}
                 <li><a href="{{ metric_name.label }}_report.html">{{ metric_name.label }}</a></li>
                 {%- endfor %}
