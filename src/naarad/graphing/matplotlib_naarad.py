@@ -67,7 +67,7 @@ def graph_data(list_of_plots, output_directory, output_filename):
   plot_count = len(plots)
 
   if plot_count == 0:
-    return True, None
+    return False, None
 
   graph_height, graph_width, graph_title = get_graph_metadata(list_of_plots)
 

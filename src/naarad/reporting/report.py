@@ -90,9 +90,9 @@ class Report(object):
   def strip_file_extension(self, file_name):
     filename = file_name.split('.')
     return '.'.join(filename[0:-1])
-  def generate_client_charting_page(self, template_environment, data_csv_list):
+  def generate_client_charting_page(self, template_environment, data_csv_list, summary_enabled):
     client_charting_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes) + '\n'
-    client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=data_csv_list) + '\n'
+    client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=data_csv_list,summary_enabled=summary_enabled) + '\n'
 #    client_charting_html += template_environment.get_template(self.report_templates['footer']).render()
     return client_charting_html
 
@@ -137,6 +137,6 @@ class Report(object):
         summary_report.write(self.generate_summary_page(template_environment, summary_html_content, coplot_html_content))
 
     with open(os.path.join(self.output_directory, 'client_charting.html'),'w') as client_charting_report:
-      client_charting_report.write(self.generate_client_charting_page(template_environment, client_charting_data))
+      client_charting_report.write(self.generate_client_charting_page(template_environment, client_charting_data, summary_enabled))
 
     return True

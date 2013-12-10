@@ -168,7 +168,7 @@ class Metric(object):
           # Important sub-metrics and their stats go in imp_metric_stats_csv_file
           if column in self.important_sub_metrics:
             FH_W_IMP.write(','.join(to_write) + '\n')
-          self.important_stats_files.append(imp_metric_stats_csv_file)
+        self.important_stats_files.append(imp_metric_stats_csv_file)
       self.stats_files.append(metric_stats_csv_file)
 
 
