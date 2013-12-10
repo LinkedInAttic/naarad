@@ -1,0 +1,8 @@
+[PROCZONEINFO]
+hostname=localhost
+access=local
+infile=proczoneinfo.out
+rows=Node.0.zone.DMA.pages.min Node.0.zone.DMA.nr_free_pages
+
+[GRAPH]
+graphing_library=matplotlib

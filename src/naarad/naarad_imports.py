@@ -10,6 +10,7 @@ from naarad.graphing import pygal_naarad
 from naarad.metrics.jmeter_metric import JmeterMetric
 from naarad.metrics.procvmstat_metric import ProcVmstatMetric
 from naarad.metrics.procmeminfo_metric import ProcMeminfoMetric
+from naarad.metrics.proczoneinfo_metric import ProcZoneinfoMetric
 from naarad.reporting.report import Report
 
 #Custom metrics
@@ -17,7 +18,8 @@ metric_classes = {
     #'MyMetric' : MyMetricParserClass
     'JMETER' : JmeterMetric, 
     'PROCVMSTAT' : ProcVmstatMetric,
-    'PROCMEMINFO' : ProcMeminfoMetric
+    'PROCMEMINFO' : ProcMeminfoMetric, 
+    'PROCZONEINFO' : ProcZoneinfoMetric
     }
 
 graphing_modules = {
