@@ -22,10 +22,10 @@ class Report(object):
     self.report_templates = {
       'header': 'default_report_header.html',
       'summary': 'default_summary_page.html',
-      'summary_content': 'summary_content.html',
+      'summary_content': 'default_summary_content.html',
       'metric': 'default_metric_page.html',
       'footer': 'default_report_footer.html',
-      'client_charting': 'client_charting_template.html'
+      'client_charting': 'default_client_charting_page.html'
     }
     if report_name == '':
       self.report_name = 'naarad analysis report'
@@ -34,8 +34,8 @@ class Report(object):
     self.output_directory = output_directory
     self.metric_list = metric_list
     self.correlated_plots = correlated_plots
-    self.stylesheet_includes = ['http://yui.yahooapis.com/pure/0.3.0/pure-min.css', 'http://purecss.io/css/layouts/side-menu.css']
-    self.javascript_includes = ['http://www.kryogenix.org/code/browser/sorttable/sorttable.js','http://purecss.io/js/ui.js', 'http://dygraphs.com/dygraph-combined.js']
+    self.stylesheet_includes = []
+    self.javascript_includes = ['http://www.kryogenix.org/code/browser/sorttable/sorttable.js', 'http://dygraphs.com/dygraph-combined.js']
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)

@@ -43,13 +43,13 @@
     </script>
 <div id="layout">
     <!-- Menu toggle -->
-    <a href="#menu" id="menuLink" class="pure-menu-link">
+    <a href="#menu" id="menuLink" class="naarad-menu-link">
         <span></span>
     </a>
     {%- if metric_list %}
     <div id="menu">
-        <div class="pure-menu pure-menu-open">
-            <a class="pure-menu-heading" href="client_charting.html">naarad</a>
+        <div class="naarad-menu naarad-menu-open">
+            <a class="naarad-menu-heading" href="client_charting.html">naarad</a>
             <ul>
                 {% if summary_enabled %}
                 <li><a href="summary_report.html">Summary</a></li>
@@ -62,7 +62,7 @@
     </div>
     {%- endif %}
 <div id="main">
-    <div id="selection-div"> 
+    <div id="selection-div">
       <label>
         <select id="select-chart-1">
           {%- for data_series in metric_data %}

@@ -1,15 +1,15 @@
 <body>
 <div id="layout">
     <!-- Menu toggle -->
-    <a href="#menu" id="menuLink" class="pure-menu-link">
+    <a href="#menu" id="menuLink" class="naarad-menu-link">
         <span></span>
     </a>
     {%- if metric_list %}
     <div id="menu">
-        <div class="pure-menu pure-menu-open">
-            <a class="pure-menu-heading" href="client_charting.html">naarad</a>
+        <div class="naarad-menu naarad-menu-open">
+            <a class="naarad-menu-heading" href="client_charting.html">naarad</a>
             <ul>
-                <li class="pure-menu-selected menu-item-divided">
+                <li class="naarad-menu-selected menu-item-divided">
                     <a href="summary_report.html">Summary</a>
                 </li>
                 {%- for metric_name in metric_list %}
@@ -24,7 +24,7 @@
           {{ summary_html_content }}
         {%- endif %}
         {%- if correlated_plot_content %}
-        <div id="correlated-plots" class="pure-u-1-1 box">
+        <div id="correlated-plots" class="naarad">
         <h3>Correlated Metric Plots</h3>
             {{ correlated_plot_content }}
         </div>
