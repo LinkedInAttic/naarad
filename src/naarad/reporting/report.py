@@ -7,12 +7,10 @@ Unless required by applicable law or agreed to in writing, software distribute
 """
 import logging
 import os
+import shutil
 import glob
-import re
 import naarad.utils
 from jinja2 import Template, Environment, PackageLoader, FileSystemLoader
-from collections import defaultdict
-
 
 logger = logging.getLogger('naarad.reporting.Report')
 
@@ -35,7 +33,7 @@ class Report(object):
     self.metric_list = metric_list
     self.correlated_plots = correlated_plots
     self.stylesheet_includes = []
-    self.javascript_includes = ['http://www.kryogenix.org/code/browser/sorttable/sorttable.js', 'http://dygraphs.com/dygraph-combined.js']
+    self.javascript_includes = ['sorttable.js', 'dygraph-combined.js']
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -49,6 +47,17 @@ class Report(object):
         self.report_templates['summary'] = self.summary_template
       if 'summary_content_template' in other_options:
         self.report_templates['summary_content'] = self.summary_template
+
+  def copy_local_includes(self):
+    resource_folder = self.get_resources_location()
+    for stylesheet in self.stylesheet_includes:
+      if ('http' not in stylesheet) and naarad.utils.is_valid_file(os.path.join(resource_folder,stylesheet)):
+        shutil.copy(os.path.join(resource_folder,stylesheet),self.output_directory)
+    for javascript in self.javascript_includes:
+      if ('http' not in javascript) and naarad.utils.is_valid_file(os.path.join(resource_folder,javascript)):
+        shutil.copy(os.path.join(resource_folder,javascript), self.output_directory)
+    return None
+
 
   def get_summary_table(self, summary_stats_file):
     summary_stats = []
@@ -96,11 +105,12 @@ class Report(object):
 #    client_charting_html += template_environment.get_template(self.report_templates['footer']).render()
     return client_charting_html
 
-  def get_templates_location(self):
-    return os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'templates'))
+  def get_resources_location(self):
+    return os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'resources'))
 
   def generate(self):
-    template_loader = FileSystemLoader(self.get_templates_location())
+    template_loader = FileSystemLoader(self.get_resources_location())
+    self.copy_local_includes()
     template_environment = Environment(loader=template_loader)
     summary_html_content = ''
     coplot_html_content = ''
