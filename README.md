@@ -151,7 +151,7 @@ You can also define your own metric, say e.g., MYAPP-PERF and write a section wi
 
 <pre><code>[MYAPP-PERF]
 infile=/app/logs/myapplog.csv
-columns=throughput,latency
+columns=throughput latency
 sep=,
 
 [GRAPH]
