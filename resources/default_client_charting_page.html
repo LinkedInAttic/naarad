@@ -2,7 +2,7 @@
     <script>
       var colorSets = [
       ["#1F78B4", "#B2DF8A", "#A6CEE3"],
-      ["#FBB4AE", "#B3CDE3", "#CCEBC5"],
+      ["#993399", "#B3CDE3", "#CCEBC5"],
       null
       ]
       function plot(selector_id, div_id, colorset_id)
@@ -34,7 +34,8 @@
           },
           ylabel: chart_data_title,
           xlabel: "Time",
-          colors: colorSets[colorset_id]
+          colors: colorSets[colorset_id],
+          labels: [ "Time", chart_data_title]
         }
         );
         chart_1.resize(div_width, window.screen.height*0.75/2)
@@ -42,15 +43,17 @@
     </script>
 <div id="layout">
     <!-- Menu toggle -->
-    <a href="#menu" id="menuLink" class="pure-menu-link">
+    <a href="#menu" id="menuLink" class="naarad-menu-link">
         <span></span>
     </a>
     {%- if metric_list %}
     <div id="menu">
-        <div class="pure-menu pure-menu-open">
-            <a class="pure-menu-heading" href="client_charting.html">naarad</a>
+        <div class="naarad-menu naarad-menu-open">
+            <a class="naarad-menu-heading" href="client_charting.html">naarad</a>
             <ul>
+                {% if summary_enabled %}
                 <li><a href="summary_report.html">Summary</a></li>
+                {% endif %}
                 {%- for metric_name in metric_list %}
                 <li><a href="{{ metric_name.label }}_report.html">{{ metric_name.label }}</a></li>
                 {%- endfor %}
@@ -58,8 +61,8 @@
         </div>
     </div>
     {%- endif %}
-<div id="main">
-    <div id="selection-div"> 
+<div id="main" style="margin-top:0px; margin-left:0px;">
+    <div id="selection-div">
       <label>
         <select id="select-chart-1">
           {%- for data_series in metric_data %}

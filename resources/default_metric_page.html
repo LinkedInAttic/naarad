@@ -1,20 +1,20 @@
 <body>
 <div id="layout">
 
-    <a href="#menu" id="menuLink" class="pure-menu-link">
+    <a href="#menu" id="menuLink" class="naarad-menu-link">
         <span></span>
     </a>
     {%- if metric_list %}
     <div id="menu">
-        <div class="pure-menu pure-menu-open">
-            <a class="pure-menu-heading" href="client_charting.html">naarad</a>
+        <div class="naarad-menu naarad-menu-open">
+            <a class="naarad-menu-heading" href="client_charting.html">naarad</a>
             <ul>
                 {% if summary_enabled %}
                 <li><a href="summary_report.html">Summary</a></li>
                 {% endif %}
                 {%- for metric_name in metric_list %}
                 {%- if metric_name.label == metric %}
-                <li class="pure-menu-selected menu-item-divided">
+                <li class="naarad-menu-selected menu-item-divided">
                     <a href="{{ metric_name.label }}_report.html">{{ metric_name.label }}</a>
                 </li>
                 {%- else %}
@@ -27,9 +27,9 @@
     {%- endif %}
     <div id="main">
 {%- if metric_stats %}
-<div id="{{ metric }}-summary-table" class="pure-u-1-1 box">
+<div id="{{ metric }}-summary-table" class="naarad">
 <h3>Metrics Summary</h3>
-<table class="pure-table pure-table-bordered sortable">
+<table class="naarad-table sortable">
 <thead><tr>
 {%- for header in metric_stats[0] %}
 <th>{{ header }}</th>
@@ -52,7 +52,7 @@
 {%- endif %}
 
 {%- if plot_div_content %}
-<div id="{{ metric }}-metric-plots" class="pure-u-1-1 box">
+<div id="{{ metric }}-metric-plots" class="naarad">
 <h3>Metric Plots</h3>
 <p>
 {{ plot_div_content }}

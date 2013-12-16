@@ -30,3 +30,11 @@ pytz
 http://pytz.sourceforge.net/
 Copyright 2008-2013 Stuart Bishop
 License: MIT
+
+sorttable.js
+http://www.kryogenix.org/code/browser/sorttable/#licence
+License: X11 License
+
+pygal
+http://pygal.org
+License: GNU LGPL v3+ (https://www.gnu.org/licenses/lgpl.html)

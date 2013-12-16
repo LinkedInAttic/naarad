@@ -7,12 +7,10 @@ Unless required by applicable law or agreed to in writing, software distribute
 """
 import logging
 import os
+import shutil
 import glob
-import re
 import naarad.utils
 from jinja2 import Template, Environment, PackageLoader, FileSystemLoader
-from collections import defaultdict
-
 
 logger = logging.getLogger('naarad.reporting.Report')
 
@@ -22,10 +20,10 @@ class Report(object):
     self.report_templates = {
       'header': 'default_report_header.html',
       'summary': 'default_summary_page.html',
-      'summary_content': 'summary_content.html',
+      'summary_content': 'default_summary_content.html',
       'metric': 'default_metric_page.html',
       'footer': 'default_report_footer.html',
-      'client_charting': 'client_charting_template.html'
+      'client_charting': 'default_client_charting_page.html'
     }
     if report_name == '':
       self.report_name = 'naarad analysis report'
@@ -34,8 +32,8 @@ class Report(object):
     self.output_directory = output_directory
     self.metric_list = metric_list
     self.correlated_plots = correlated_plots
-    self.stylesheet_includes = ['http://yui.yahooapis.com/pure/0.3.0/pure-min.css', 'http://purecss.io/css/layouts/side-menu.css']
-    self.javascript_includes = ['http://www.kryogenix.org/code/browser/sorttable/sorttable.js','http://purecss.io/js/ui.js', 'http://dygraphs.com/dygraph-combined.js']
+    self.stylesheet_includes = []
+    self.javascript_includes = ['sorttable.js', 'dygraph-combined.js']
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -49,6 +47,17 @@ class Report(object):
         self.report_templates['summary'] = self.summary_template
       if 'summary_content_template' in other_options:
         self.report_templates['summary_content'] = self.summary_template
+
+  def copy_local_includes(self):
+    resource_folder = self.get_resources_location()
+    for stylesheet in self.stylesheet_includes:
+      if ('http' not in stylesheet) and naarad.utils.is_valid_file(os.path.join(resource_folder,stylesheet)):
+        shutil.copy(os.path.join(resource_folder,stylesheet),self.output_directory)
+    for javascript in self.javascript_includes:
+      if ('http' not in javascript) and naarad.utils.is_valid_file(os.path.join(resource_folder,javascript)):
+        shutil.copy(os.path.join(resource_folder,javascript), self.output_directory)
+    return None
+
 
   def get_summary_table(self, summary_stats_file):
     summary_stats = []
@@ -90,17 +99,18 @@ class Report(object):
   def strip_file_extension(self, file_name):
     filename = file_name.split('.')
     return '.'.join(filename[0:-1])
-  def generate_client_charting_page(self, template_environment, data_csv_list):
+  def generate_client_charting_page(self, template_environment, data_csv_list, summary_enabled):
     client_charting_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes) + '\n'
-    client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=data_csv_list) + '\n'
+    client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=data_csv_list,summary_enabled=summary_enabled) + '\n'
 #    client_charting_html += template_environment.get_template(self.report_templates['footer']).render()
     return client_charting_html
 
-  def get_templates_location(self):
-    return os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'templates'))
+  def get_resources_location(self):
+    return os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'resources'))
 
   def generate(self):
-    template_loader = FileSystemLoader(self.get_templates_location())
+    template_loader = FileSystemLoader(self.get_resources_location())
+    self.copy_local_includes()
     template_environment = Environment(loader=template_loader)
     summary_html_content = ''
     coplot_html_content = ''
@@ -137,6 +147,6 @@ class Report(object):
         summary_report.write(self.generate_summary_page(template_environment, summary_html_content, coplot_html_content))
 
     with open(os.path.join(self.output_directory, 'client_charting.html'),'w') as client_charting_report:
-      client_charting_report.write(self.generate_client_charting_page(template_environment, client_charting_data))
+      client_charting_report.write(self.generate_client_charting_page(template_environment, client_charting_data, summary_enabled))
 
     return True

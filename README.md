@@ -3,7 +3,7 @@ Naarad is a highly configurable system analysis tool that parses and plots times
 It can be used for performance analysis of your service/application. 
 You collect data for the metrics you want to monitor and:
 
-* Naarad parses JVM Garbage Collection (GC), System (SAR), Mysql (Innotop) and Jmeter (JTL/XML) logs
+* Naarad parses JVM Garbage Collection (GC), System/Network (SAR), Mysql (Innotop) and Jmeter (JTL/XML) logs
 * Naarad reads other metrics you have pre-processed and written in CSV format
 * Naarad plots the metrics you specify.
 
@@ -151,7 +151,7 @@ You can also define your own metric, say e.g., MYAPP-PERF and write a section wi
 
 <pre><code>[MYAPP-PERF]
 infile=/app/logs/myapplog.csv
-columns=throughput,latency
+columns=throughput latency
 sep=,
 
 [GRAPH]
