@@ -26,6 +26,10 @@ class Metric(object):
   ignore = False
   timezone = "PDT"
   options = None
+  
+  sub_metrics = None   #users can specify what sub_metrics to process/plot;  
+  unit = ''  # the unit of the metric
+  
 
   def __init__ (self, metric_type, infile, hostname, output_directory, label, ts_start, ts_end, **other_options):
     self.metric_type = metric_type

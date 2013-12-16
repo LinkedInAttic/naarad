@@ -2,7 +2,7 @@
 hostname=localhost
 access=local
 infile=procvmstat.out
-rows=nr_free_pages nr_inactive_anon
+sub_metrics=nr_free_pages nr_inactive_anon
 
 [GRAPH]
 graphing_library=matplotlib

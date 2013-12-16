@@ -2,7 +2,8 @@
 hostname=localhost
 access=local
 infile=proczoneinfo.out
-rows=Node.0.zone.DMA.pages.min Node.0.zone.DMA.nr_free_pages
+sub_metrics=pages.min nr_free_pages
+zones=Node.0.zone.DMA
 
 [GRAPH]
 graphing_library=matplotlib
