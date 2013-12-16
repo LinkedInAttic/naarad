@@ -1,6 +1,5 @@
 [PROCZONEINFO]
 hostname=localhost
-access=local
 infile=proczoneinfo.out
 sub_metrics=pages.min nr_free_pages
 zones=Node.0.zone.DMA

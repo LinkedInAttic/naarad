@@ -1,6 +1,5 @@
 [PROCVMSTAT]
 hostname=localhost
-access=local
 infile=procvmstat.out
 sub_metrics=nr_free_pages nr_inactive_anon
 

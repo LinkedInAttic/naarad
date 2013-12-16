@@ -1,6 +1,5 @@
 [PROCMEMINFO]
 hostname=localhost
-access=local
 infile=procmeminfo.out
 sub_metrics=MemTotal MemFree Active Inactive
 
