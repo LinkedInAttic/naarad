@@ -114,6 +114,7 @@ class Report(object):
     template_environment = Environment(loader=template_loader)
     summary_html_content = ''
     coplot_html_content = ''
+    metric_html = ''
     summary_enabled = self.enable_summary_tab()
     client_charting_data = []
 
@@ -135,7 +136,8 @@ class Report(object):
           metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes)
           metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, plot_div_content=div_html, metric=metric.label, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
           metric_html += template_environment.get_template(self.report_templates['footer']).render()
-      with open(os.path.join(self.output_directory, metric.label + '_report.html'), 'w') as metric_report:
+      if metric_html != '':
+        with open(os.path.join(self.output_directory, metric.label + '_report.html'), 'w') as metric_report:
           metric_report.write(metric_html)
 
     for coplot in self.correlated_plots:
