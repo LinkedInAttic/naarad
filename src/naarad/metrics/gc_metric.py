@@ -4,7 +4,7 @@
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
- 
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +25,7 @@ class GCMetric(Metric):
   """ Class for GC logs, deriving from class Metric """
   clock_format = '%Y-%m-%d %H:%M:%S'
   rate_types = ()
-  val_types = ('alloc', 'promo', 'used0', 'used1', 'used', 'commit0', 'commit1', 'commit', 'gen0', 'gen0t', 'gen0usr', 'gen0sys',
+  val_types = ('alloc', 'promo', 'used0', 'used1', 'used', 'commit0', 'commit1', 'commit', 'gen0', 'gen0t', 'gen0usr', 'gen0sys', 'gen0real',
       'cmsIM', 'cmsRM', 'cmsRS', 'GC', 'cmsCM', 'cmsCP', 'cmsCS', 'cmsCR', 'safept', 'apptime')
   def __init__ (self, metric_type, infile, hostname, outdir, label, ts_start, ts_end, **other_options):
     Metric.__init__(self, metric_type, infile, hostname, outdir, label, ts_start, ts_end)
@@ -42,6 +42,7 @@ class GCMetric(Metric):
       "gen0t" :" young gen collection time, including gc_prologue & gc_epilogue",
       "gen0usr" :" young gen collection time in cpu user secs",
       "gen0sys" :" young gen collection time in cpu sys secs",
+      "gen0real" :" young gen collection time in elapsed secs",
       "gen1i" :" train generation incremental collection",
       "gen1t" :" old generation collection/full GC",
       "cmsIM" :" CMS initial mark pause",

@@ -18,7 +18,7 @@ logger = logging.getLogger('naarad.metrics.SARMetric')
 class SARMetric(Metric):
   """ Class for SAR cpuusage logs, deriving from class Metric """
   supported_sar_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-memory', 'SAR-memutil', 'SAR-paging', 
-      'SAR-etcp', 'SAR-tcp', 'SAR-dev', 'SAR-edev', 'SAR-sock')
+      'SAR-etcp', 'SAR-tcp', 'SAR-dev', 'SAR-edev', 'SAR-sock', 'SAR-swapping')
   device_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-dev', 'SAR-edev')
   def __init__(self, metric_type, infile, hostname, outdir, label, ts_start, ts_end, **other_options):
     metric_type = self.extract_metric_name(metric_type)

@@ -2,7 +2,7 @@
 """
 © 2013 LinkedIn Corp. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
- 
+
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import calendar
@@ -123,8 +123,9 @@ def convert_to_24hr_format(ts):
     return ts
   if words[1] == 'PM':
     tmp = words[0].split(':')
-    hour = int(tmp[0]) + 12
-    tmp[0] = str(hour)
+    if tmp[0] != '12':
+      hour = int(tmp[0]) + 12
+      tmp[0] = str(hour)
     ts = ":".join(tmp)
   elif words[1] == 'AM':
     tmp = words[0].split(':')
@@ -250,10 +251,10 @@ def normalize_float_for_display(data_val):
 
 def calculate_stats(data_list, stats_to_calculate = ['mean', 'std'], percentiles_to_calculate = []):
   """
-  Calculate statistics for given data. 
+  Calculate statistics for given data.
 
   :param list data_list: List of floats
-  :param list stats_to_calculate: List of strings with statistics to calculate. Supported stats are defined in constant stats_to_numpy_method_map 
+  :param list stats_to_calculate: List of strings with statistics to calculate. Supported stats are defined in constant stats_to_numpy_method_map
   :param list percentiles_to_calculate: List of floats that defined which percentiles to calculate.
   :return: tuple of dictionaries containing calculated statistics and percentiles
   """

@@ -111,6 +111,7 @@
 # gen0t(s)    - young gen collection time, including gc_prologue & gc_epilogue
 # gen0usr(s)  - young gen collection time in cpu user secs
 # gen0sys(s)  - young gen collection time in cpu sys secs
+# gen0real(s) - young gen collection time in elapsed time secs
 # gen1i(s)    - train generation incremental collection
 # gen1t(s)    - old generation collection/full GC
 # cmsIM(s)    - CMS initial mark pause
@@ -205,6 +206,7 @@ BEGIN {
   # These must be greater than the totgc_idx.
   gen0usr_idx = ++i;    # CPU user time in gen0
   gen0sys_idx = ++i;    # CPU sys time in gen0
+  gen0real_idx = ++i;    # CPU sys time in gen0
   cmsCM_idx = ++i;	# CMS Concurrent Mark
   cmsCP_idx = ++i;	# CMS Concurrent Preclean
   cmsCS_idx = ++i;	# CMS Concurrent Sweep
@@ -252,6 +254,7 @@ BEGIN {
   name_v[gen0t_idx]	= "gen0t";
   name_v[gen0usr_idx]	= "gen0usr";
   name_v[gen0sys_idx]	= "gen0sys";
+  name_v[gen0real_idx]	= "gen0real";
   name_v[gen1i_idx]	= "gen1i";
   name_v[gen1t_idx]	= "gen1t";
   name_v[cmsIM_idx]	= "cmsIM";
@@ -890,6 +893,13 @@ $0 ~ "\\[GC " timestamp_re "\\[" fw_yng_gen_re ": " heap_report_re "\\] " heap_r
       match(tString, gc_time_re);
       secs = substr(tString, RSTART, RLENGTH) + 0;
       recordStats(gen0sys_idx, secs);
+    }
+    match(tString, "real=");
+    if (RSTART > 0) {
+      tString = substr(tString, RSTART + RLENGTH);
+      match(tString, gc_time_re);
+      secs = substr(tString, RSTART, RLENGTH) + 0;
+      recordStats(gen0real_idx, secs);
     }
   }
   printInterval();

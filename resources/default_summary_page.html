@@ -10,10 +10,10 @@
             <a class="naarad-menu-heading" href="client_charting.html">naarad</a>
             <ul>
                 <li class="naarad-menu-selected menu-item-divided">
-                    <a href="summary_report.html">Summary</a>
+                    <a href="summary_report.html" title="Summary">Summary</a>
                 </li>
                 {%- for metric_name in metric_list %}
-                <li><a href="{{ metric_name.label }}_report.html">{{ metric_name.label }}</a></li>
+                <li><a href="{{ metric_name.label }}_report.html" title="{{ metric_name.label }}">{{ metric_name.label }}</a></li>
                 {%- endfor %}
             </ul>
         </div>
