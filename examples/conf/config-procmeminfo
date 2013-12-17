@@ -1,0 +1,7 @@
+[PROCMEMINFO]
+hostname=localhost
+infile=procmeminfo.out
+sub_metrics=MemTotal MemFree Active Inactive
+
+[GRAPH]
+graphing_library=matplotlib

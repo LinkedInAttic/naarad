@@ -1,0 +1,7 @@
+[PROCVMSTAT]
+hostname=localhost
+infile=procvmstat.out
+sub_metrics=nr_free_pages nr_inactive_anon
+
+[GRAPH]
+graphing_library=matplotlib
