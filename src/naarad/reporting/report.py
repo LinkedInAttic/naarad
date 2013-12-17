@@ -99,9 +99,10 @@ class Report(object):
   def strip_file_extension(self, file_name):
     filename = file_name.split('.')
     return '.'.join(filename[0:-1])
+
   def generate_client_charting_page(self, template_environment, data_csv_list, summary_enabled):
     client_charting_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes) + '\n'
-    client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=data_csv_list,summary_enabled=summary_enabled) + '\n'
+    client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=sorted(data_csv_list),summary_enabled=summary_enabled) + '\n'
 #    client_charting_html += template_environment.get_template(self.report_templates['footer']).render()
     return client_charting_html
 
@@ -121,7 +122,7 @@ class Report(object):
     for metric in self.metric_list:
       client_charting_data.extend(map(self.strip_file_extension,map(os.path.basename,metric.csv_files)))
       div_html = ''
-      for plot_div in metric.plot_files:
+      for plot_div in sorted(metric.plot_files):
         with open(plot_div,'r') as div_file:
             div_html += '\n' + div_file.read()
 
