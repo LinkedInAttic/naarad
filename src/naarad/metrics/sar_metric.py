@@ -48,9 +48,10 @@ class SARMetric(Metric):
     column = naarad.utils.sanitize_string(col)
     if device is None:
       outcsv = os.path.join(self.outdir, "{0}.{1}.csv".format(self.label, column))
+      self.csv_column_map[outcsv] = col
     else:
       outcsv = os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.label, device, column))
-    self.csv_column_map[outcsv] = col
+      self.csv_column_map[outcsv] = device + '.' + col
     return outcsv
 
   def parse(self):
