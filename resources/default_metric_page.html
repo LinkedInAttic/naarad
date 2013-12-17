@@ -10,15 +10,15 @@
             <a class="naarad-menu-heading" href="client_charting.html">naarad</a>
             <ul>
                 {% if summary_enabled %}
-                <li><a href="summary_report.html">Summary</a></li>
+                <li><a href="summary_report.html" title="Summary">Summary</a></li>
                 {% endif %}
                 {%- for metric_name in metric_list %}
                 {%- if metric_name.label == metric %}
                 <li class="naarad-menu-selected menu-item-divided">
-                    <a href="{{ metric_name.label }}_report.html">{{ metric_name.label }}</a>
+                <a href="{{ metric_name.label }}_report.html" title="{{ metric_name.label }}">{{ metric_name.label }}</a>
                 </li>
                 {%- else %}
-                <li><a href="{{ metric_name.label }}_report.html">{{ metric_name.label }}</a></li>
+                <li><a href="{{ metric_name.label }}_report.html" title="{{ metric_name.label }}">{{ metric_name.label }}</a></li>
                 {%- endif %}
                 {%- endfor %}
             </ul>
