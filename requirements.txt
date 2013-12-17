@@ -4,3 +4,4 @@ numpy
 argparse
 pytz
 pygal
+jinja2
