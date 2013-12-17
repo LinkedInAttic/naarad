@@ -116,6 +116,7 @@ class Report(object):
     coplot_html_content = ''
     summary_enabled = self.enable_summary_tab()
     client_charting_data = []
+    metric_html = ''
 
     for metric in self.metric_list:
       client_charting_data.extend(map(self.strip_file_extension,map(os.path.basename,metric.csv_files)))
