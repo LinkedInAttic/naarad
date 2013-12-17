@@ -123,7 +123,7 @@ def convert_to_24hr_format(ts):
     return ts
   if words[1] == 'PM':
     tmp = words[0].split(':')
-    if tmp != '12':
+    if tmp[0] != '12':
       hour = int(tmp[0]) + 12
       tmp[0] = str(hour)
     ts = ":".join(tmp)
