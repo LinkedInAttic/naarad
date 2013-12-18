@@ -269,7 +269,7 @@ class JmeterMetric(Metric):
         else:
           plot_data[transaction_name] = [plot]
       for transaction in plot_data:
-        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.resource_directory, self.metric_type + '.' + transaction )
+        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.resource_directory, self.resource_path, self.metric_type + '.' + transaction )
         if graphed:
           self.plot_files.append(div_file)
       return True
