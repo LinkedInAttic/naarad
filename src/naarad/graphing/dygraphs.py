@@ -11,7 +11,7 @@ import logging
 
 logger = logging.getLogger('naarad.graphing.dygraphs')
 
-def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=None, precision=None, graph_height="600", graph_width="1500"):
+def graph_csv(output_directory, resource_path, csv_file, plot_title, output_filename, y_label=None, precision=None, graph_height="600", graph_width="1500"):
   """ Single metric graphing function """
   if not os.path.getsize(csv_file):
     return False, ""
@@ -21,7 +21,7 @@ def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=N
   script_string = """<script type=\"text/javascript\">
         g2 = new Dygraph(
           document.getElementById(\"""" + div_id + """"),
-            \"""" + os.path.basename(csv_file) +  """",
+            \"""" + resource_path + '/' + os.path.basename(csv_file) +  """",
             {
                         xValueFormatter: Dygraph.dateString_,
                         xValueParser: function(x) {
@@ -47,10 +47,10 @@ def graph_csv(output_directory, csv_file, plot_title, output_filename, y_label=N
   #Ritesh: TODO Also generate PNGs if someone needs them separately
   return True, os.path.join(output_directory, output_filename + '.div')
 
-def graph_data(list_of_plots, output_directory, output_filename):
+def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   if len(list_of_plots) > 0:
     plot = list_of_plots[0]
-    success, div_file = graph_csv(output_directory=output_directory, csv_file=plot.input_csv, plot_title=plot.graph_title, output_filename=output_filename, y_label=plot.y_label, precision=None, graph_height=plot.graph_height, graph_width=plot.graph_width)
+    success, div_file = graph_csv(output_directory=output_directory, resource_path=resource_path, csv_file=plot.input_csv, plot_title=plot.graph_title, output_filename=output_filename, y_label=plot.y_label, precision=None, graph_height=plot.graph_height, graph_width=plot.graph_width)
     if len(list_of_plots) > 1:
       logger.warning('dygraph module currently does not support co-relation of multiple plots. Only plotting %s', plot.graph_title)
     return success, div_file

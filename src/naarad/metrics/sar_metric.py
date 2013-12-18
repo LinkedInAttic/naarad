@@ -20,9 +20,9 @@ class SARMetric(Metric):
   supported_sar_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-memory', 'SAR-memutil', 'SAR-paging', 
       'SAR-etcp', 'SAR-tcp', 'SAR-dev', 'SAR-edev', 'SAR-sock', 'SAR-swapping')
   device_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-dev', 'SAR-edev')
-  def __init__(self, metric_type, infile, hostname, outdir, label, ts_start, ts_end, **other_options):
+  def __init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, **other_options):
     metric_type = self.extract_metric_name(metric_type)
-    Metric.__init__(self, metric_type, infile,  hostname, outdir, label, ts_start, ts_end)
+    Metric.__init__(self, metric_type, infile,  hostname, outdir, resource_path, label, ts_start, ts_end)
     if self.metric_type in important_sub_metrics_import:
       self.important_sub_metrics = important_sub_metrics_import[self.metric_type]
     self.options = None
@@ -47,10 +47,10 @@ class SARMetric(Metric):
   def get_csv(self, col, device=None):
     column = naarad.utils.sanitize_string(col)
     if device is None:
-      outcsv = os.path.join(self.outdir, "{0}.{1}.csv".format(self.label, column))
+      outcsv = os.path.join(self.resource_directory, "{0}.{1}.csv".format(self.label, column))
       self.csv_column_map[outcsv] = col
     else:
-      outcsv = os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.label, device, column))
+      outcsv = os.path.join(self.resource_directory, "{0}.{1}.{2}.csv".format(self.label, device, column))
       self.csv_column_map[outcsv] = device + '.' + col
     return outcsv
 
@@ -59,6 +59,8 @@ class SARMetric(Metric):
     logger.info("Working on SAR metric: %s", self.infile)
     if not os.path.isdir(self.outdir):
       os.makedirs(self.outdir)
+    if not os.path.isdir(self.resource_directory):
+      os.makedirs(self.resource_directory)
     with open(self.infile, 'r') as infile:
       data = {}
       line = infile.readline()

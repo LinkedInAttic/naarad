@@ -195,6 +195,7 @@ def main():
   arg_parser.add_argument('config', help="file with specifications for each metric and graphs")
   arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
   arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
+  arg_parser.add_argument('-r', '--resource_path', help="output sub-directory where resources such as images/svg/csv etc will be stored", default='resources')
   arg_parser.add_argument('-V', '--variables', action="append", help="User defined variables (in form key=value) for substitution in the config file. Config should have the variable names in format %%(key)s")
   arg_parser.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
   arg_parser.add_argument('-l', '--log', help="log level")
@@ -235,6 +236,7 @@ def main():
 
     indir_default = args.input_dir
     outdir_default = args.output_dir
+    resource_path = args.resource_path
     #user defined variables in form "key=value"
     if args.variables:
       for var in args.variables:
@@ -311,9 +313,9 @@ def main():
           #TODO: Make user specify metric_type in config and not infer from section
           metric_type = section.split('-')[0]
           if not metric_type in metric_classes:
-            new_metric = Metric(section, infile, hostname, outdir_default, label, ts_start, ts_end, **kwargs)
+            new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, **kwargs)
           else:
-            new_metric = metric_classes[metric_type](section, infile, hostname,  outdir_default, label, ts_start, ts_end, **kwargs)
+            new_metric = metric_classes[metric_type](section, infile, hostname,  outdir_default, resource_path, label, ts_start, ts_end, **kwargs)
           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
             new_metric.ignore = True
           if config_obj.has_option(section, 'calc_metrics'):
@@ -325,6 +327,12 @@ def main():
     if outdir_default:
       try:
         os.makedirs(outdir_default)
+      except OSError as exeption:
+        if exeption.errno != errno.EEXIST:
+          raise
+      try:
+        resource_directory = os.path.join(outdir_default, resource_path)
+        os.makedirs(resource_directory)
       except OSError as exeption:
         if exeption.errno != errno.EEXIST:
           raise
@@ -344,10 +352,10 @@ def main():
     for t in threads:
       t.join()
     if len(crossplots) > 0:
-      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, outdir_default, filler)
+      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path, filler)
     else:
       correlated_plots = []
-    rpt = Report(None,outdir_default,metrics,correlated_plots=correlated_plots)
+    rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
     rpt.generate()
 if __name__ == '__main__':
   main()
