@@ -62,7 +62,7 @@ def curate_plot_list(plots):
     plots.remove(node)
   return plots
 
-def graph_data(list_of_plots, output_directory, output_filename):
+def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   plots = curate_plot_list(list_of_plots)
   plot_count = len(plots)
 
@@ -150,5 +150,5 @@ def graph_data(list_of_plots, output_directory, output_filename):
   fig.savefig(plot_file_name)
   plt.close()
   with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
-    div_file.write('<img src="' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '"/>')
+    div_file.write('<img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '"/>')
   return True, os.path.join(output_directory, output_filename + '.div')

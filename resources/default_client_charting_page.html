@@ -49,7 +49,7 @@
     {%- if metric_list %}
     <div id="menu">
         <div class="naarad-menu naarad-menu-open">
-            <a class="naarad-menu-heading" href="client_charting.html">naarad</a>
+            <a class="naarad-menu-heading" href="report.html">naarad</a>
             <ul>
                 {% if summary_enabled %}
                 <li><a href="summary_report.html" title="Summary">Summary</a></li>
@@ -66,7 +66,7 @@
       <label>
         <select id="select-chart-1">
           {%- for data_series in metric_data %}
-          <option value="{{ data_series }}.csv">{{ data_series }}</option>
+          <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
           {% endfor %}
         </select>
       </label>
@@ -74,7 +74,7 @@
       <label>
         <select id="select-chart-2">
           {%- for data_series in metric_data %}
-          <option value="{{ data_series }}.csv">{{ data_series }}</option>
+          <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
           {% endfor %}
         </select>
       </label>

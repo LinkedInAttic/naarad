@@ -16,13 +16,13 @@ logger = logging.getLogger('naarad.metrics.INNOMetric')
 class INNOMetric(Metric):
   C_MAX_COMMANDS = 10
   graph_lib = None
-  def __init__(self, metric_type, infile, hostname, outdir, label, ts_start, ts_end, **other_options):
-    Metric.__init__(self, metric_type, infile,  hostname, outdir, label, ts_start, ts_end)
+  def __init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, **other_options):
+    Metric.__init__(self, metric_type, infile,  hostname, outdir, resource_path, label, ts_start, ts_end)
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
 
   def get_csv_C(self, command, column):
-    outcsv = os.path.join(self.outdir, "{0}.{1}.{2}.csv".format(self.metric_type, command, column))
+    outcsv = os.path.join(self.resource_directory, "{0}.{1}.{2}.csv".format(self.metric_type, command, column))
     self.csv_column_map[outcsv] = command + '.' + column
     return outcsv
 

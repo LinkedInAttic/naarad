@@ -27,8 +27,8 @@ class ProcMeminfoMetric(Metric):
   unit = 'KBs'  # The unit of the metric. For /proc/meminfo, they are all in KBs
   sub_metrics = None
   
-  def __init__ (self, metric_type, infile, hostname, output_directory, label, ts_start, ts_end, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, output_directory, label, ts_start, ts_end)         
+  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end, **other_options):
+    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end)
     
     # in particular, Section can specify a subset of all rows (default has 43 rows):  "sub_metrics=nr_free_pages nr_inactive_anon"
     for (key, val) in other_options.iteritems():

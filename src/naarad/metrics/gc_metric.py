@@ -27,8 +27,8 @@ class GCMetric(Metric):
   rate_types = ()
   val_types = ('alloc', 'promo', 'used0', 'used1', 'used', 'commit0', 'commit1', 'commit', 'gen0', 'gen0t', 'gen0usr', 'gen0sys', 'gen0real',
       'cmsIM', 'cmsRM', 'cmsRS', 'GC', 'cmsCM', 'cmsCP', 'cmsCS', 'cmsCR', 'safept', 'apptime')
-  def __init__ (self, metric_type, infile, hostname, outdir, label, ts_start, ts_end, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, outdir, label, ts_start, ts_end)
+  def __init__ (self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, **other_options):
+    Metric.__init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end)
     # TODO: Make this list configurable
     self.important_sub_metrics = important_sub_metrics_import['GC']
     self.gc_options = self.val_types
@@ -79,7 +79,7 @@ class GCMetric(Metric):
       return beginning_date + timedelta
 
   def parse_val_types(self, sub_metric, no_age_file):
-    outfile = os.path.join(self.outdir, self.metric_type + '-' + sub_metric + '-out.txt')
+    outfile = os.path.join(self.resource_directory, self.metric_type + '-' + sub_metric + '-out.txt')
     awk_cmd = os.path.join(self.bin_path, 'PrintGCStats')
     cmd = awk_cmd + ' -v plot=' + sub_metric + ' -v interval=1 ' + no_age_file + ' > ' +  outfile
     thread_id = threading.current_thread().ident
@@ -104,8 +104,10 @@ class GCMetric(Metric):
     # check if outdir exists, if not, create it
     if not os.path.isdir(self.outdir):
       os.makedirs(self.outdir)
+    if not os.path.isdir(self.resource_directory):
+      os.makedirs(self.resource_directory)
 
-    no_age_file = os.path.join(self.outdir, self.label + '-noage')
+    no_age_file = os.path.join(self.resource_directory, self.label + '-noage')
     app_stop_file = self.get_csv('appstop')
 
     stop = {}
@@ -173,7 +175,7 @@ class GCMetric(Metric):
       for x in self.rate_types:
         if not x in self.gc_options:
           continue
-        outfile = os.path.join(self.outdir, self.metric_type + '-' + x + '-out.txt')
+        outfile = os.path.join(self.resource_directory, self.metric_type + '-' + x + '-out.txt')
         awk_cmd = os.path.join(self.bin_path, 'PrintGCStats')
         cmd = awk_cmd + ' -v plot=' + x + ' -v interval=1 ' + no_age_file + ' > ' +  outfile
         logger.info("Parsing a GC metric: " + cmd)

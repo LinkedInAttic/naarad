@@ -1,6 +1,6 @@
 [JMETER]
 infile=perf-result.xml
-access=local
+aggregation_granularity=minute
 
 [GRAPH]
 graphing_library=matplotlib
