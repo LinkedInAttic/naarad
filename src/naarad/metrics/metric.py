@@ -31,11 +31,13 @@ class Metric(object):
   unit = ''  # the unit of the metric
   
 
-  def __init__ (self, metric_type, infile, hostname, output_directory, label, ts_start, ts_end, **other_options):
+  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end, **other_options):
     self.metric_type = metric_type
     self.infile = infile
     self.hostname = hostname
     self.outdir = output_directory
+    self.resource_path = resource_path
+    self.resource_directory = os.path.join(self.outdir, self.resource_path)
     self.label = label
     self.ts_start = ts_start
     self.ts_end = ts_end
@@ -92,16 +94,16 @@ class Metric(object):
 
   def get_csv(self, column):
     col = naarad.utils.sanitize_string(column)
-    csv = os.path.join(self.outdir, self.metric_type + '.' + col + '.csv')
+    csv = os.path.join(self.resource_directory, self.metric_type + '.' + col + '.csv')
     self.csv_column_map[csv] = column
     return csv
 
   def get_important_sub_metrics_csv(self):
-    csv = os.path.join(self.outdir, self.metric_type + '.important_sub_metrics.csv')
+    csv = os.path.join(self.resource_directory, self.metric_type + '.important_sub_metrics.csv')
     return csv
 
   def get_stats_csv(self):
-    csv = os.path.join(self.outdir, self.metric_type + '.stats.csv')
+    csv = os.path.join(self.resource_directory, self.metric_type + '.stats.csv')
     return csv
 
   def get_percentiles_csv_from_data_csv(self, data_csv):
@@ -235,7 +237,7 @@ class Metric(object):
       column = self.csv_column_map[out_csv]
       column = naarad.utils.sanitize_string(column)
       plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
-      graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.outdir, graph_title)
+      graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.resource_directory, self.resource_path, graph_title)
       if graphed:
         self.plot_files.append(div_file)
     return True

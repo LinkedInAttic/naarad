@@ -30,7 +30,7 @@ def curate_plot_list(plots):
   return plots
 
 
-def graph_data(list_of_plots, output_directory, output_filename):
+def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   date_plot = pygal.DateY(x_label_rotation=20, height=500, width=1200, legend_at_bottom=True, style=pygal.style.BlueStyle)
   for plot in list_of_plots:
     plot_data = []
@@ -44,5 +44,5 @@ def graph_data(list_of_plots, output_directory, output_filename):
     date_plot.add(plot.graph_title, plot_data)
     date_plot.render_to_file(os.path.join(output_directory,output_filename + '.svg'))
     with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
-      div_file.write('<figure><embed type="image/svg+xml" src="' + output_filename + '.svg' + '"/></figure>')
+      div_file.write('<figure><embed type="image/svg+xml" src="' + resource_path + '/' + output_filename + '.svg' + '"/></figure>')
     return True,  os.path.join(output_directory, output_filename + '.div')

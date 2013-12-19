@@ -16,7 +16,7 @@ logger = logging.getLogger('naarad.reporting.Report')
 
 class Report(object):
 
-  def __init__(self, report_name, output_directory, metric_list, correlated_plots,  **other_options):
+  def __init__(self, report_name, output_directory, resource_directory, resource_path, metric_list, correlated_plots,  **other_options):
     self.report_templates = {
       'header': 'default_report_header.html',
       'summary': 'default_summary_page.html',
@@ -30,6 +30,8 @@ class Report(object):
     else:
       self.report_name = report_name
     self.output_directory = output_directory
+    self.resource_directory = resource_directory
+    self.resource_path = resource_path
     self.metric_list = metric_list
     self.correlated_plots = correlated_plots
     self.stylesheet_includes = []
@@ -52,10 +54,12 @@ class Report(object):
     resource_folder = self.get_resources_location()
     for stylesheet in self.stylesheet_includes:
       if ('http' not in stylesheet) and naarad.utils.is_valid_file(os.path.join(resource_folder,stylesheet)):
-        shutil.copy(os.path.join(resource_folder,stylesheet),self.output_directory)
+        shutil.copy(os.path.join(resource_folder,stylesheet),self.resource_directory)
+
     for javascript in self.javascript_includes:
       if ('http' not in javascript) and naarad.utils.is_valid_file(os.path.join(resource_folder,javascript)):
-        shutil.copy(os.path.join(resource_folder,javascript), self.output_directory)
+        shutil.copy(os.path.join(resource_folder,javascript), self.resource_directory)
+
     return None
 
 
@@ -91,7 +95,7 @@ class Report(object):
         return False
 
   def generate_summary_page(self, template_environment, summary_html_content, coplot_html_content):
-    summary_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes) + '\n'
+    summary_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes, resource_path=self.resource_path) + '\n'
     summary_html += template_environment.get_template(self.report_templates['summary']).render(metric_list=sorted(self.metric_list), summary_html_content=summary_html_content, correlated_plot_content=coplot_html_content) + '\n'
     summary_html += template_environment.get_template(self.report_templates['footer']).render()
     return summary_html
@@ -101,8 +105,8 @@ class Report(object):
     return '.'.join(filename[0:-1])
 
   def generate_client_charting_page(self, template_environment, data_csv_list, summary_enabled):
-    client_charting_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes) + '\n'
-    client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=sorted(data_csv_list),summary_enabled=summary_enabled) + '\n'
+    client_charting_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes, resource_path=self.resource_path) + '\n'
+    client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=sorted(data_csv_list),summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
 #    client_charting_html += template_environment.get_template(self.report_templates['footer']).render()
     return client_charting_html
 
@@ -135,7 +139,7 @@ class Report(object):
       for metric_stats_file in metric.stats_files:
         if naarad.utils.is_valid_file(metric_stats_file) or len(metric.plot_files) > 0:
           metric_stats = self.get_summary_table(metric_stats_file)
-          metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes)
+          metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes, resource_path=self.resource_path)
           metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, plot_div_content=div_html, metric=metric.label, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
           metric_html += template_environment.get_template(self.report_templates['footer']).render()
       if metric_html != '':
@@ -150,7 +154,7 @@ class Report(object):
       with open(os.path.join(self.output_directory, 'summary_report.html'),'w') as summary_report:
         summary_report.write(self.generate_summary_page(template_environment, summary_html_content, coplot_html_content))
 
-    with open(os.path.join(self.output_directory, 'client_charting.html'),'w') as client_charting_report:
+    with open(os.path.join(self.output_directory, 'report.html'),'w') as client_charting_report:
       client_charting_report.write(self.generate_client_charting_page(template_environment, client_charting_data, summary_enabled))
 
     return True

@@ -21,8 +21,8 @@ import naarad.naarad_imports
 logger = logging.getLogger('naarad.metrics.JmeterMetric')
 
 class JmeterMetric(Metric):
-  def __init__ (self, metric_type, infile, hostname, output_directory, label, ts_start, ts_end, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, output_directory, label, ts_start, ts_end)
+  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end, **other_options):
+    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end)
     self.metric_description = {
       'lb': 'Transaction Name',
       'lt': 'Time to First byte',
@@ -47,13 +47,14 @@ class JmeterMetric(Metric):
       'ErrorsPerSecond': 'qps'
     }
     self.calculated_stats = {}
-    #self.csv_files = []
-    #self.plot_files = []
-    #self.stats_files = []
-    #self.important_stats_files = []
-    #self.percentiles_files = []
+    self.aggregation_granularity = 'minute'
     self.calculated_percentiles = {}
     self.important_sub_metrics = naarad.naarad_imports.important_sub_metrics_import['JMETER']
+    if other_options:
+      for (key, val) in other_options.iteritems():
+        setattr(self, key, val)
+
+
 
   def get_csv(self, transaction_name, column):
     col = naarad.utils.sanitize_string(column)
@@ -68,7 +69,7 @@ class JmeterMetric(Metric):
 
     if transaction_name == '__overall_summary__':
       transaction_name = 'Overall_Summary'
-    csv = os.path.join(self.outdir, self.metric_type + '.' + transaction_name + '.' + col + '.csv')
+    csv = os.path.join(self.resource_directory, self.metric_type + '.' + transaction_name + '.' + col + '.csv')
     self.csv_column_map[csv] = column
     return csv
 
@@ -188,8 +189,8 @@ class JmeterMetric(Metric):
     file_status = naarad.utils.is_valid_file(self.infile)
     if not file_status:
       return False
-    # TBD: Read from user configuration
-    status = self.parse_xml_jtl('minute')
+
+    status = self.parse_xml_jtl(self.aggregation_granularity)
     gc.collect()
     return status
 
@@ -228,7 +229,7 @@ class JmeterMetric(Metric):
     return True
 
   def calculate_stats(self):
-    stats_csv = os.path.join(self.outdir, self.metric_type + '.stats.csv')
+    stats_csv = os.path.join(self.resource_directory, self.metric_type + '.stats.csv')
     csv_header = 'sub_metric,mean,std. deviation,median,min,max,90%,95%,99%\n'
 
     with open(stats_csv,'w') as FH:
@@ -269,7 +270,7 @@ class JmeterMetric(Metric):
         else:
           plot_data[transaction_name] = [plot]
       for transaction in plot_data:
-        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.outdir, self.metric_type + '.' + transaction )
+        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.resource_directory, self.resource_path, self.metric_type + '.' + transaction )
         if graphed:
           self.plot_files.append(div_file)
       return True
