@@ -68,7 +68,9 @@ class ProcVmstatMetric(Metric):
           continue
           
         ts = words[0] + " " + words[1]
-      
+        if self.ts_out_of_range(ts):
+          continue
+                
         if col in self.csv_column_map: 
           out_csv = self.csv_column_map[col] 
         else:
@@ -80,8 +82,7 @@ class ProcVmstatMetric(Metric):
         if not col in self.metric_description:
           self.metric_description[col] = 'No description'
         
-        if not self.ts_out_of_range(ts):
-          data[out_csv].append(ts + "," + words[3])
+        data[out_csv].append(ts + "," + words[3])
     
     #post processing, putting data in csv files;   
     for csv in data.keys():      
