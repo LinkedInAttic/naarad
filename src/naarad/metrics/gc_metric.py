@@ -31,6 +31,7 @@ class GCMetric(Metric):
     Metric.__init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end)
     # TODO: Make this list configurable
     self.important_sub_metrics = important_sub_metrics_import['GC']
+    self.gc_options = self.val_types
     for (key, val) in other_options.iteritems():
       if key == 'gc-options':
         self.gc_options = val.split()
