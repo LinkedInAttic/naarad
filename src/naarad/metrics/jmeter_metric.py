@@ -47,13 +47,14 @@ class JmeterMetric(Metric):
       'ErrorsPerSecond': 'qps'
     }
     self.calculated_stats = {}
-    #self.csv_files = []
-    #self.plot_files = []
-    #self.stats_files = []
-    #self.important_stats_files = []
-    #self.percentiles_files = []
+    self.aggregation_granularity = 'minute'
     self.calculated_percentiles = {}
     self.important_sub_metrics = naarad.naarad_imports.important_sub_metrics_import['JMETER']
+    if other_options:
+      for (key, val) in other_options.iteritems():
+        setattr(self, key, val)
+
+
 
   def get_csv(self, transaction_name, column):
     col = naarad.utils.sanitize_string(column)
@@ -188,8 +189,8 @@ class JmeterMetric(Metric):
     file_status = naarad.utils.is_valid_file(self.infile)
     if not file_status:
       return False
-    # TBD: Read from user configuration
-    status = self.parse_xml_jtl('minute')
+
+    status = self.parse_xml_jtl(self.aggregation_granularity)
     gc.collect()
     return status
 
@@ -269,7 +270,7 @@ class JmeterMetric(Metric):
         else:
           plot_data[transaction_name] = [plot]
       for transaction in plot_data:
-        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.resource_directory, self.metric_type + '.' + transaction )
+        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.resource_directory, self.resource_path, self.metric_type + '.' + transaction )
         if graphed:
           self.plot_files.append(div_file)
       return True
