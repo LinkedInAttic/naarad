@@ -23,7 +23,7 @@ class SARMetric(Metric):
   def __init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, **other_options):
     metric_type = self.extract_metric_name(metric_type)
     Metric.__init__(self, metric_type, infile,  hostname, outdir, resource_path, label, ts_start, ts_end)
-    if self.metric_type in important_sub_metrics_import:
+    if self.metric_type in important_sub_metrics_import.keys():
       self.important_sub_metrics = important_sub_metrics_import[self.metric_type]
     self.options = None
     self.devices = None

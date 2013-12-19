@@ -147,6 +147,7 @@ class Metric(object):
     headers = 'sub-metric,mean,std,p50,p75,p90,p95,p99\n'
     metric_stats_csv_file = self.get_stats_csv()
     imp_metric_stats_csv_file = self.get_important_sub_metrics_csv()
+    imp_metric_stats_present = False  
     logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
     with open(metric_stats_csv_file, 'w') as FH_W:
       with open(imp_metric_stats_csv_file, 'w') as FH_W_IMP:
@@ -174,9 +175,10 @@ class Metric(object):
           # Important sub-metrics and their stats go in imp_metric_stats_csv_file
           if column in self.important_sub_metrics:
             FH_W_IMP.write(','.join(to_write) + '\n')
-        self.important_stats_files.append(imp_metric_stats_csv_file)
+            imp_metric_stats_present = True
+        if imp_metric_stats_present:
+          self.important_stats_files.append(imp_metric_stats_csv_file)
       self.stats_files.append(metric_stats_csv_file)
-
 
 
   def calc(self):
@@ -236,7 +238,10 @@ class Metric(object):
       graph_title = '.'.join(csv_filename.split('.')[0:-1])
       column = self.csv_column_map[out_csv]
       column = naarad.utils.sanitize_string(column)
-      plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
+      if self.metric_description and column in self.metric_description.keys():
+        plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=self.metric_description[column], precision=None, graph_height=600, graph_width=1200, graph_type='line')]
+      else:
+        plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
       graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.resource_directory, self.resource_path, graph_title)
       if graphed:
         self.plot_files.append(div_file)
