@@ -59,18 +59,19 @@ class ProcVmstatMetric(Metric):
     with open(self.infile) as fh:
       data = {}  # stores the data of each column
       for line in fh:
-        words = line.split()  
-        # [0] is day; [1] is seconds; [2] is field name; [3] is value
-        col = words[2]
-        
-        # if sub_metrics is specified, only process those specified in config.         
-        if self.sub_metrics and col not in self.sub_metrics:
+        words = line.split()          # [0] is day; [1] is seconds; [2] is field name; [3] is value        
+        if len(words) < 3:
           continue
           
         ts = words[0] + " " + words[1]
         if self.ts_out_of_range(ts):
           continue
-                
+          
+        col = words[2]        
+        # if sub_metrics is specified, only process those specified in config.         
+        if self.sub_metrics and col not in self.sub_metrics:
+          continue         
+
         if col in self.csv_column_map: 
           out_csv = self.csv_column_map[col] 
         else:
