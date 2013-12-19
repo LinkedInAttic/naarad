@@ -79,8 +79,9 @@ class ProcVmstatMetric(Metric):
         # provide default description (Metric.graph() requires a description)
         if not col in self.metric_description:
           self.metric_description[col] = 'No description'
-      
-        data[out_csv].append(ts + "," + words[3])
+        
+        if not self.ts_out_of_range(ts):
+          data[out_csv].append(ts + "," + words[3])
     
     #post processing, putting data in csv files;   
     for csv in data.keys():      
