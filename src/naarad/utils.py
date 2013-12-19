@@ -296,3 +296,52 @@ def is_valid_file(filename):
     logger.warning('%s : file does not exist.', filename)
     return False
   return True
+
+def detect_timestamp_format(timestamp):
+  """
+  Given an input timestamp string, determine what format is it likely in.
+
+  :param string timestamp: the timestamp string for which we need to determine format
+  :return: best guess timestamp format
+  """
+  time_formats = {'epoch': re.compile(r'^[0-9]{10}$'), 'epoch_ms': re.compile(r'^[0-9]{13}$'),
+                  '%Y-%m-%d %H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+                  '%Y-%m-%dT%H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+                  '%Y-%m-%d_%H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+                  '%Y-%m-%d %H:%M:%S.%f': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9][0-9][0-9]$'),
+                  '%Y-%m-%dT%H:%M:%S.%f': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9][0-9][0-9]$'),
+                  '%Y-%m-%d_%H:%M:%S.%f': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9][0-9][0-9]$'),
+                  '%Y%m%d %H:%M:%S': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+                  '%Y%m%dT%H:%M:%S': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+                  '%Y%m%d_%H:%M:%S': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+                  '%Y%m%d %H:%M:%S.%f': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9][0-9][0-9]$'),
+                  '%Y%m%dT%H:%M:%S.%f': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9][0-9][0-9]$'),
+                  '%Y%m%d_%H:%M:%S.%f': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9][0-9][0-9]$'),
+                  '%H:%M:%S': re.compile(r'^[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+                  '%H:%M:%S.%f': re.compile(r'^[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9][0-9][0-9]$')}
+  for time_format in time_formats:
+    if re.match(time_formats[time_format],timestamp):
+      return time_format
+  return 'unknown'
+
+def get_standardized_timestamp(timestamp, ts_format):
+  """
+  Given a timestamp string, return a time stamp in the format YYYY-MM-DD HH:MM:SS.sss. If no date is present in
+  timestamp then today's date will be added as a prefix
+  """
+  if not ts_format:
+    ts_format = detect_timestamp_format(timestamp)
+
+  if ts_format == 'unknown':
+    logger.error('Unable to determine timestamp format for : %s', timestamp)
+    return -1
+  elif ts_format == 'epoch':
+    ts = datetime.datetime.utcfromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S.%f')
+  elif ts_format == 'epoch_ms':
+    ts = datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')
+  elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
+    date_today = str(datetime.date.today())
+    ts = datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
+  else:
+    ts = datetime.datetime.strptime(timestamp,ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
+  return ts

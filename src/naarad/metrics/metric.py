@@ -112,6 +112,7 @@ class Metric(object):
 
   def parse(self):
     logger.info("Working on" + self.infile)
+    timestamp_format = None
     with open(self.infile, 'r') as infile:
       data = {}
       for line in infile:
@@ -124,10 +125,13 @@ class Metric(object):
         if len(words) < len(self.columns):
           logger.error("ERROR: Number of columns given in config is more than number of columns present in file {0}\n".format(self.infile))
           return False
-        ts = naarad.utils.reconcile_timezones(words[0], self.timezone, self.graph_timezone)
+        if not timestamp_format or timestamp_format == 'unknown':
+          timestamp_format = naarad.utils.detect_timestamp_format(words[0])
+        if timestamp_format == 'unknown':
+          continue
+        ts = naarad.utils.reconcile_timezones(naarad.utils.get_standardized_timestamp(words[0], timestamp_format), self.timezone, self.graph_timezone)
         for i in range(len(self.columns)):
           out_csv = self.get_csv(self.columns[i])
-          #print "adding %s to dict for %s" %(out_csv, self.columns[i])
           if out_csv in data:
             data[out_csv].append( ts + ',' + words[i+1] )
           else:
