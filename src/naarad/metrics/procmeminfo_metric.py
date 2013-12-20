@@ -57,27 +57,27 @@ class ProcMeminfoMetric(Metric):
     with open(self.infile) as fh:
       data = {}  # stores the data of each column
       for line in fh:
-        words = line.split()  
-        # [0] is day; [1] is seconds; [2] is field name:; [3] is value  [4] is unit
-        col = words[2].strip(':')
-        
+        words = line.split()        # [0] is day; [1] is seconds; [2] is field name:; [3] is value  [4] is unit
+                
+        if len(words) < 3:
+          continue         
+
+        ts = words[0] + " " + words[1]      
+        if self.ts_out_of_range(ts):
+          continue
+          
+        col = words[2].strip(':')        
         # only process sub_metrics specified in config. 
         if self.sub_metrics and col not in self.sub_metrics:
           continue
           
-        ts = words[0] + " " + words[1]
-      
-        if col in self.csv_column_map: 
-          out_csv = self.csv_column_map[col] 
+
+        if col in self.column_csv_map: 
+          out_csv = self.column_csv_map[col] 
         else:
-          out_csv = Metric.get_csv(self,col)     
-          self.csv_column_map[col] = out_csv   
+          out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
           data[out_csv] = []        
-      
-        # provide default description (Metric.graph() requires a description)
-        if not col in self.metric_description:
-          self.metric_description[col] = 'No description'
-      
+
         data[out_csv].append(ts + "," + words[3])
     
     #post processing, putting data in csv files;   

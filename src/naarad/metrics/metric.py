@@ -51,6 +51,7 @@ class Metric(object):
     self.stats_files = []
     self.important_stats_files = []
     self.percentiles_files = []
+    self.column_csv_map = {}
     self.csv_column_map = {}
     self.metric_description = defaultdict(lambda: 'None')
     self.important_sub_metrics = ()
@@ -96,6 +97,7 @@ class Metric(object):
     col = naarad.utils.sanitize_string(column)
     csv = os.path.join(self.resource_directory, self.metric_type + '.' + col + '.csv')
     self.csv_column_map[csv] = column
+    self.column_csv_map[column] = csv
     return csv
 
   def get_important_sub_metrics_csv(self):

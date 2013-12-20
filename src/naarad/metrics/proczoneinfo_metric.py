@@ -68,9 +68,15 @@ class ProcZoneinfoMetric(Metric):
     with open(self.infile) as fh:
       data = {}  # stores the data of each column
       for line in fh:
-        words = line.replace(',',' ').split()  
-        # [0] is day; [1] is seconds; [2...] is field names:;        
+        words = line.replace(',',' ').split()           # [0] is day; [1] is seconds; [2...] is field names:;        
         
+        if len(words) < 3:
+          continue
+          
+        ts = words[0] + " " + words[1]
+        if self.ts_out_of_range(ts):
+          continue
+          
         if words[2] == 'Node':  # Node 0 zone      DMA
           cols = words[2:]
           cur_zone = '.'.join(cols) 
@@ -95,20 +101,14 @@ class ProcZoneinfoMetric(Metric):
         
         # only process sub_metrics specified in config. 
         if self.sub_metrics and cur_submetric and cur_submetric not in self.sub_metrics:
-          continue
-          
-        ts = words[0] + " " + words[1]
-        if col in self.csv_column_map: 
-          out_csv = self.csv_column_map[col] 
+          continue        
+         
+        if col in self.column_csv_map: 
+          out_csv = self.column_csv_map[col] 
         else:
-          out_csv = Metric.get_csv(self,col)     
-          self.csv_column_map[col] = out_csv   
+          out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
           data[out_csv] = []        
-      
-        # provide default description (Metric.graph() requires a description)
-        if not col in self.metric_description:
-          self.metric_description[col] = 'No description'
-      
+         
         data[out_csv].append(ts + "," + cur_value)
     
     #post processing, putting data in csv files;   

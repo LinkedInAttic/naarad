@@ -2,6 +2,8 @@
 hostname=localhost
 infile=procmeminfo.out
 sub_metrics=MemTotal MemFree Active Inactive
+ts_start=2013-12-05 12:04:58
+ts_end=2013-12-05 12:14:58
 
 [GRAPH]
 graphing_library=matplotlib
