@@ -272,7 +272,7 @@ def main():
       else:
         # Metric sections
         ts_start = None
-        ts_end = "now"
+        ts_end = None
         precision = None
         hostname = "localhost"        
         
