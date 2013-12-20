@@ -73,16 +73,14 @@ class ProcMeminfoMetric(Metric):
           
 
         if col in self.csv_column_map: 
+          # not the first time to process this submetric. 
           out_csv = self.csv_column_map[col] 
         else:
-          out_csv = Metric.get_csv(self,col)     
+          # first time to process this submetric, initialize the data[]
+          out_csv = self.get_csv(col)     
           self.csv_column_map[col] = out_csv   
           data[out_csv] = []        
-      
-        # provide default description (Metric.graph() requires a description)
-        if not col in self.metric_description:
-          self.metric_description[col] = 'No description'
-        
+
         data[out_csv].append(ts + "," + words[3])
     
     #post processing, putting data in csv files;   
