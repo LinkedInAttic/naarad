@@ -39,8 +39,8 @@ class Metric(object):
     self.resource_path = resource_path
     self.resource_directory = os.path.join(self.outdir, self.resource_path)
     self.label = label
-    self.ts_start = ts_start
-    self.ts_end = ts_end
+    self.ts_start = naarad.utils.get_standardized_timestamp(ts_start, None)
+    self.ts_end = naarad.utils.get_standardized_timestamp(ts_end, None)
     self.calc_metrics = None
     self.precision = None
     self.sep = ','
@@ -112,6 +112,8 @@ class Metric(object):
 
   def parse(self):
     logger.info("Working on" + self.infile)
+    timestamp_format = None
+    qps = defaultdict(int)
     with open(self.infile, 'r') as infile:
       data = {}
       for line in infile:
@@ -124,16 +126,24 @@ class Metric(object):
         if len(words) < len(self.columns):
           logger.error("ERROR: Number of columns given in config is more than number of columns present in file {0}\n".format(self.infile))
           return False
-        ts = naarad.utils.reconcile_timezones(words[0], self.timezone, self.graph_timezone)
+        if not timestamp_format or timestamp_format == 'unknown':
+          timestamp_format = naarad.utils.detect_timestamp_format(words[0])
+        if timestamp_format == 'unknown':
+          continue
+        ts = naarad.utils.reconcile_timezones(naarad.utils.get_standardized_timestamp(words[0], timestamp_format), self.timezone, self.graph_timezone)
+        if self.ts_out_of_range(ts):
+          continue
+        qps[ts.split('.')[0]] += 1
         for i in range(len(self.columns)):
           out_csv = self.get_csv(self.columns[i])
-          #print "adding %s to dict for %s" %(out_csv, self.columns[i])
           if out_csv in data:
             data[out_csv].append( ts + ',' + words[i+1] )
           else:
             data[out_csv] = []
             data[out_csv].append( ts + ',' + words[i+1] )
     # Post processing, putting data in csv files
+
+    data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]),qps.items())
     for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
