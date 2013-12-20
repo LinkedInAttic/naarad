@@ -113,6 +113,7 @@ class Metric(object):
   def parse(self):
     logger.info("Working on" + self.infile)
     timestamp_format = None
+    qps = defaultdict(int)
     with open(self.infile, 'r') as infile:
       data = {}
       for line in infile:
@@ -132,6 +133,7 @@ class Metric(object):
         ts = naarad.utils.reconcile_timezones(naarad.utils.get_standardized_timestamp(words[0], timestamp_format), self.timezone, self.graph_timezone)
         if self.ts_out_of_range(ts):
           continue
+        qps[ts.split('.')[0]] += 1
         for i in range(len(self.columns)):
           out_csv = self.get_csv(self.columns[i])
           if out_csv in data:
@@ -140,6 +142,8 @@ class Metric(object):
             data[out_csv] = []
             data[out_csv].append( ts + ',' + words[i+1] )
     # Post processing, putting data in csv files
+
+    data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]),qps.items())
     for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
