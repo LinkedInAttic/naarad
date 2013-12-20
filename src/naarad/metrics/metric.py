@@ -148,10 +148,10 @@ class Metric(object):
     metric_stats_csv_file = self.get_stats_csv()
     imp_metric_stats_csv_file = self.get_important_sub_metrics_csv()
     imp_metric_stats_present = False  
+    metric_stats_present = False
     logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
     with open(metric_stats_csv_file, 'w') as FH_W:
       with open(imp_metric_stats_csv_file, 'w') as FH_W_IMP:
-        FH_W.write(headers)
         for csv_file in self.csv_files:
           data = []
           if not os.path.getsize(csv_file):
@@ -169,6 +169,9 @@ class Metric(object):
           self.percentiles_files.append(percentile_csv_file)
           to_write = [column, calculated_stats['mean'], calculated_stats['std'], calculated_percentiles[50], calculated_percentiles[75], calculated_percentiles[90], calculated_percentiles[95], calculated_percentiles[99]]
           to_write = map(lambda x: naarad.utils.normalize_float_for_display(x), to_write)
+          if not metric_stats_present:
+            metric_stats_present = True
+            FH_W.write(headers)
           FH_W.write(','.join(to_write) + '\n') 
           # Important sub-metrics and their stats go in imp_metric_stats_csv_file
           if column in self.important_sub_metrics:
