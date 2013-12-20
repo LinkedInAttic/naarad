@@ -39,8 +39,8 @@ class Metric(object):
     self.resource_path = resource_path
     self.resource_directory = os.path.join(self.outdir, self.resource_path)
     self.label = label
-    self.ts_start = ts_start
-    self.ts_end = ts_end
+    self.ts_start = naarad.utils.get_standardized_timestamp(ts_start, None)
+    self.ts_end = naarad.utils.get_standardized_timestamp(ts_end, None)
     self.calc_metrics = None
     self.precision = None
     self.sep = ','
@@ -130,6 +130,8 @@ class Metric(object):
         if timestamp_format == 'unknown':
           continue
         ts = naarad.utils.reconcile_timezones(naarad.utils.get_standardized_timestamp(words[0], timestamp_format), self.timezone, self.graph_timezone)
+        if self.ts_out_of_range(ts):
+          continue
         for i in range(len(self.columns)):
           out_csv = self.get_csv(self.columns[i])
           if out_csv in data:
