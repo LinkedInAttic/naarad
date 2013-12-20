@@ -109,11 +109,7 @@ class ProcZoneinfoMetric(Metric):
           out_csv = Metric.get_csv(self,col)     
           self.csv_column_map[col] = out_csv   
           data[out_csv] = []        
-      
-        # provide default description (Metric.graph() requires a description)
-        if not col in self.metric_description:
-          self.metric_description[col] = 'No description'
-          
+         
         data[out_csv].append(ts + "," + cur_value)
     
     #post processing, putting data in csv files;   

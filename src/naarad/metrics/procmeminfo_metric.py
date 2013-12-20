@@ -72,13 +72,10 @@ class ProcMeminfoMetric(Metric):
           continue
           
 
-        if col in self.csv_column_map: 
-          # not the first time to process this submetric. 
-          out_csv = self.csv_column_map[col] 
+        if col in self.column_csv_map: 
+          out_csv = self.column_csv_map[col] 
         else:
-          # first time to process this submetric, initialize the data[]
-          out_csv = self.get_csv(col)     
-          self.csv_column_map[col] = out_csv   
+          out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
           data[out_csv] = []        
 
         data[out_csv].append(ts + "," + words[3])
