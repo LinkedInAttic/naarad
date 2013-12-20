@@ -102,12 +102,11 @@ class ProcZoneinfoMetric(Metric):
         # only process sub_metrics specified in config. 
         if self.sub_metrics and cur_submetric and cur_submetric not in self.sub_metrics:
           continue        
-
-        if col in self.csv_column_map: 
-          out_csv = self.csv_column_map[col] 
+         
+        if col in self.column_csv_map: 
+          out_csv = self.column_csv_map[col] 
         else:
-          out_csv = Metric.get_csv(self,col)     
-          self.csv_column_map[col] = out_csv   
+          out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
           data[out_csv] = []        
          
         data[out_csv].append(ts + "," + cur_value)
