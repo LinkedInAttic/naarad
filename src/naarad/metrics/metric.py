@@ -152,8 +152,6 @@ class Metric(object):
     with open(metric_stats_csv_file, 'w') as FH_W:
       with open(imp_metric_stats_csv_file, 'w') as FH_W_IMP:
         FH_W.write(headers)
-        if self.important_sub_metrics:
-          FH_W_IMP.write(headers)
         for csv_file in self.csv_files:
           data = []
           if not os.path.getsize(csv_file):
@@ -174,8 +172,10 @@ class Metric(object):
           FH_W.write(','.join(to_write) + '\n') 
           # Important sub-metrics and their stats go in imp_metric_stats_csv_file
           if column in self.important_sub_metrics:
+            if not important_sub_metrics:
+              FH_W_IMP.write(headers)
+              imp_metric_stats_present = True
             FH_W_IMP.write(','.join(to_write) + '\n')
-            imp_metric_stats_present = True
         if imp_metric_stats_present:
           self.important_stats_files.append(imp_metric_stats_csv_file)
       self.stats_files.append(metric_stats_csv_file)
