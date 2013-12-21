@@ -12,6 +12,9 @@
         var chart_data_title = "" ;
         if(advanced_source) {
             chart_data_source = document.getElementById(selector_id).value;
+            if(chart_data_source == ""){
+                return;
+            }
             var source = chart_data_source.split("/");
             chart_data_title = source[source.length-1];
         } else {
