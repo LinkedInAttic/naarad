@@ -5,11 +5,20 @@
       ["#993399", "#B3CDE3", "#CCEBC5"],
       null
       ]
-      function plot(selector_id, div_id, colorset_id)
+      function plot(selector_id, div_id, colorset_id, advanced_source)
       {
         var chart_data_selector = document.getElementById(selector_id);
-        var chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
-        var chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
+        var chart_data_source = "";
+        var chart_data_title = "" ;
+        if(advanced_source) {
+            chart_data_source = document.getElementById(selector_id).value;
+            var source = chart_data_source.split("/");
+            chart_data_title = source[source.length-1];
+        } else {
+            chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
+            chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
+        }
+
         var div_width = document.getElementById(div_id).clientWidth;
         var div_height = document.getElementById(div_id).clientHeight;
         chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,
@@ -40,6 +49,20 @@
         );
         chart_1.resize(div_width, window.screen.height*0.75/2)
       }
+      function show_advanced_options()
+      {
+        document.getElementById("txtDataSource1").value=""
+        document.getElementById("txtDataSource2").value=""
+        document.getElementById("advanced-options-div").hidden=false;
+        document.getElementById("btnAdvanced").setAttribute( "onClick", "javascript: hide_advanced_options();" );
+      }
+      function hide_advanced_options()
+      {
+        document.getElementById("txtDataSource1").value=""
+        document.getElementById("txtDataSource2").value=""
+        document.getElementById("advanced-options-div").hidden=true;
+        document.getElementById("btnAdvanced").setAttribute( "onClick", "javascript: show_advanced_options();" );
+      }
     </script>
 <div id="layout">
     <!-- Menu toggle -->
@@ -62,6 +85,12 @@
     </div>
     {%- endif %}
 <div id="main" style="margin-top:0px; margin-left:0px;">
+    <div id="advanced-options-div" hidden="true">
+        Data Source 1:<input type="text" name="txtDataSource1" id="txtDataSource1"/>
+        <button type="button" onclick="plot('txtDataSource1','charting-div-1',0,true)">plot</button>
+        Data Source 2:<input type="text" name="txtDataSource1" id="txtDataSource2"/>
+        <button type="button" onclick="plot('txtDataSource2','charting-div-2',1,true)">plot</button>
+    </div>
     <div id="selection-div">
       <label>
         <select id="select-chart-1">
@@ -70,7 +99,7 @@
           {% endfor %}
         </select>
       </label>
-      <button type="button" onclick="plot('select-chart-1','charting-div-1',0)">plot</button>
+      <button type="button" onclick="plot('select-chart-1','charting-div-1',0,false)">plot</button>
       <label>
         <select id="select-chart-2">
           {%- for data_series in metric_data %}
@@ -78,7 +107,8 @@
           {% endfor %}
         </select>
       </label>
-      <button type="button" onclick="plot('select-chart-2','charting-div-2',1)">plot</button>
+      <button type="button" onclick="plot('select-chart-2','charting-div-2',1,false)">plot</button>
+        <button type="button" onclick="show_advanced_options()" id="btnAdvanced">advanced</button>
     </div>
     <div id="charting-div-1" style="height:50%; width:100%;"></div>
     <div id="charting-div-2" style="height:50%; width:100%;"></div>
