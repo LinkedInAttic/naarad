@@ -341,8 +341,6 @@ def get_standardized_timestamp(timestamp, ts_format):
   elif ts_format == 'unknown':
     logger.error('Unable to determine timestamp format for : %s', timestamp)
     return -1
-  elif ts_format == '%Y-%m-%d %H:%M:%S.%f':
-    return timestamp
   elif ts_format == 'epoch':
     ts = datetime.datetime.utcfromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S.%f')
   elif ts_format == 'epoch_ms':
