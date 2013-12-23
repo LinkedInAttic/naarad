@@ -130,7 +130,10 @@ class Metric(object):
           timestamp_format = naarad.utils.detect_timestamp_format(words[0])
         if timestamp_format == 'unknown':
           continue
-        ts = naarad.utils.reconcile_timezones(naarad.utils.get_standardized_timestamp(words[0], timestamp_format), self.timezone, self.graph_timezone)
+        ts = naarad.utils.get_standardized_timestamp(words[0], timestamp_format)
+        if ts == -1:
+          continue
+        ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
         if self.ts_out_of_range(ts):
           continue
         qps[ts.split('.')[0]] += 1
