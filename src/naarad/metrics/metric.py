@@ -52,7 +52,8 @@ class Metric(object):
     self.important_stats_files = []
     self.percentiles_files = []
     self.csv_column_map = {}
-    self.metric_description = defaultdict(lambda: 'None')
+    self.metric_description = {}
+    self.status = ''
     self.important_sub_metrics = ()
     if other_options:
       for (key, val) in other_options.iteritems():
@@ -239,8 +240,6 @@ class Metric(object):
             NEW_FH.write('\n')
 
   def graph(self, graphing_library = 'matplotlib'):
-    html_string = []
-    html_string.append('<h1>Metric: {0}</h1>\n'.format(self.metric_type))
     graphed = False
     logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
     for out_csv in self.csv_files:
