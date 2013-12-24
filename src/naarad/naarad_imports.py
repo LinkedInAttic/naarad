@@ -34,5 +34,6 @@ reporting_modules = {
 important_sub_metrics_import = {
     'GC': ('GC', 'used'),
     'SAR-cpuusage': ('%sys', '%usr'),
+    'SAR-device': ('%util', 'await'),
     'JMETER': ('Overall_Summary.ResponseTime', 'Overall_Summary.DataThroughput', 'Overall_Summary.qps')
 }

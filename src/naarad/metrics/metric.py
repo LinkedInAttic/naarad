@@ -189,7 +189,13 @@ class Metric(object):
             FH_W.write(headers)
           FH_W.write(','.join(to_write) + '\n') 
           # Important sub-metrics and their stats go in imp_metric_stats_csv_file
-          if column in self.important_sub_metrics:
+          sub_metric = column
+          try:
+            if self.device_types and self.metric_type in self.device_types:
+              sub_metric = column.split('.')[1]
+          except AttributeError:
+              pass
+          if sub_metric in self.important_sub_metrics:
             if not imp_metric_stats_present:
               FH_W_IMP.write(headers)
               imp_metric_stats_present = True

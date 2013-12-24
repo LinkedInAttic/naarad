@@ -41,7 +41,8 @@ class SARMetric(Metric):
     for metric_type in self.supported_sar_types:
       if metric_type in metric_name:
         return metric_type
-    logger.error('Section name does not contain a valid metric type, using type: "SAR-generic". Naarad works better if it knows the metric type. Valid SAR metric names are: %s', self.supported_sar_types)
+    logger.error('Section [%s] does not contain a valid metric type, using type: "SAR-generic". Naarad works better '
+                 'if it knows the metric type. Valid SAR metric names are: %s', metric_name, self.supported_sar_types)
     return 'SAR-generic'
 
   def get_csv(self, col, device=None):
