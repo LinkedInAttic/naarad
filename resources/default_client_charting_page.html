@@ -54,17 +54,37 @@
       }
       function show_advanced_options()
       {
-        document.getElementById("txtDataSource1").value=""
         document.getElementById("txtDataSource2").value=""
         document.getElementById("advanced-options-div").hidden=false;
         document.getElementById("btnAdvanced").setAttribute( "onClick", "javascript: hide_advanced_options();" );
       }
       function hide_advanced_options()
       {
-        document.getElementById("txtDataSource1").value=""
         document.getElementById("txtDataSource2").value=""
+        document.getElementById("select-chart-2").innerHTML = document.getElementById("select-chart-1").innerHTML;
         document.getElementById("advanced-options-div").hidden=true;
         document.getElementById("btnAdvanced").setAttribute( "onClick", "javascript: show_advanced_options();" );
+      }
+      function update_data_source2_list()
+      {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+       	  if(xhr.readyState == xhr.DONE) {
+		    files_list = xhr.responseText.split(",");
+		    console.log(files_list.toString());
+		    document.getElementById("select-chart-2").innerHTML = "";
+		    for(i=0; i< files_list.length ; i++) {
+		      console.log(files_list[i]);
+		      var opt = document.createElement("option");
+		      opt.value = document.getElementById("txtDataSource2").value + '/' + files_list[i] + '.csv';
+		      opt.innerHTML = files_list[i];
+		      document.getElementById("select-chart-2").add(opt,null);
+		    }
+	      }
+        }
+        xhr.open("GET",document.getElementById("txtDataSource2").value + "/list.txt", true);
+        xhr.send(null);
+
       }
     </script>
 <div id="layout">
@@ -89,10 +109,12 @@
     {%- endif %}
 <div id="main" style="margin-top:0px; margin-left:0px;">
     <div id="advanced-options-div" hidden="true">
+        <!--
         Data Source 1:<input type="text" name="txtDataSource1" id="txtDataSource1"/>
         <button type="button" onclick="plot('txtDataSource1','charting-div-1',0,true)">plot</button>
-        Data Source 2:<input type="text" name="txtDataSource1" id="txtDataSource2"/>
-        <button type="button" onclick="plot('txtDataSource2','charting-div-2',1,true)">plot</button>
+        -->
+        Data Source 2 Resources Location:<input type="text" name="txtDataSource2" id="txtDataSource2"/>
+        <button type="button" onclick="update_data_source2_list()">update</button>
     </div>
     <div id="selection-div">
       <label>
@@ -108,6 +130,9 @@
           {%- for data_series in metric_data %}
           <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
           {% endfor %}
+        </select>
+        <select id="diff-select-chart-2" hidden="true">
+
         </select>
       </label>
       <button type="button" onclick="plot('select-chart-2','charting-div-2',1,false)">plot</button>

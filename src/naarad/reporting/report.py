@@ -8,9 +8,8 @@ Unless required by applicable law or agreed to in writing, software distribute
 import logging
 import os
 import shutil
-import glob
 import naarad.utils
-from jinja2 import Template, Environment, PackageLoader, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 
 logger = logging.getLogger('naarad.reporting.Report')
 
@@ -107,6 +106,8 @@ class Report(object):
   def generate_client_charting_page(self, template_environment, data_csv_list, summary_enabled):
     client_charting_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes, resource_path=self.resource_path) + '\n'
     client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=sorted(data_csv_list),summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
+    with open(os.path.join(self.resource_directory,'list.txt'),'w') as FH:
+      FH.write(','.join(sorted(data_csv_list)))
 #    client_charting_html += template_environment.get_template(self.report_templates['footer']).render()
     return client_charting_html
 
