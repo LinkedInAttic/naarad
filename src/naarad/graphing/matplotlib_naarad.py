@@ -81,10 +81,9 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
     current_plot_count += 1
     logger.info('Processing: ' + plot.input_csv + ' [ ' + output_filename + ' ]')
     timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})
-    #maximum_yvalue = numpy.amax(yval) * (1.0 + 0.005 * current_plot_count)
-    maximum_yvalue = numpy.amax(yval) * 1.005
-    #minimum_yvalue = numpy.amin(yval) * (1.0 - 0.005 * current_plot_count)
-    minimum_yvalue = 0
+    maximum_yvalue = numpy.amax(yval) * (1.0 + 0.005 * current_plot_count)
+    minimum_yvalue = numpy.amin(yval) * (1.0 - 0.005 * current_plot_count)
+
     if current_plot_count == 0:
       current_axis.yaxis.set_ticks_position('left')
     if current_plot_count > 1:
@@ -94,7 +93,7 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
       current_axis.yaxis.set_ticks_position('right')
       #Offset the right y axis to avoid overlap
       current_axis.spines['right'].set_position(('axes', 1 + 0.06 * (current_plot_count-2)))
-      current_axis.spines['right'].set_smart_bounds(True)
+      current_axis.spines['right'].set_smart_bounds(False)
       current_axis.spines['right'].set_color(get_current_color(current_plot_count))
       current_axis.set_frame_on(True)
       current_axis.patch.set_visible(False)
