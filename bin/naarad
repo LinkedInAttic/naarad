@@ -15,8 +15,7 @@ import logging
 import os
 import re
 import sys
-import threading
-import time
+import multiprocessing
 
 # Add src directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')))
@@ -98,7 +97,7 @@ def read_naarad_templates():
         logger.info('Adding template ' + template) 
         template_urls[template] = url
 
-def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock):
+def parse_and_plot_single_metrics(mp_queue, metric, graph_timezone, outdir_default, indir_default, graphing_library):
   metric.graph_timezone = graph_timezone
   if metric.outdir is None:
     metric.outdir = os.path.normpath(outdir_default)
@@ -113,10 +112,10 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
       if metric.parse():
         metric.calculate_stats()
         metric.calc()
-        graph_lock.acquire()
-        metric_html_string = metric.graph(graphing_library)
-        graph_lock.release()
-        metric_string_list.append(metric_html_string)
+        #graph_lock.acquire()
+        metric.graph(graphing_library)
+        #graph_lock.release()
+        mp_queue.put(metric)
       else:
         logger.error('Parsing failed for metric: '  + metric.label)
     else:
@@ -340,17 +339,21 @@ def main():
     else:
       sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
     Metric.graphing_modules = graphing_modules
-    metric_string_list = []
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
-    threads = []
-    graph_lock = threading.Lock()
+    processes = []
+    mp_metrics = []
+    queue = multiprocessing.Queue()
     for metric in metrics:
-      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
-      thread.start()
-      threads.append(thread)
-    for t in threads:
-      t.join()
+      process = multiprocessing.Process(target=parse_and_plot_single_metrics, args=(queue, metric, graph_timezone, outdir_default, indir_default, graphing_library))
+      process.start()
+      processes.append(process)
+    metrics = []
+    for process in processes:
+      metrics.append(queue.get())
+      process.join()
+    queue.close()
+
     if len(crossplots) > 0:
       correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path, filler)
     else:
