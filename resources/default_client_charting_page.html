@@ -69,13 +69,14 @@
       {
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
-       	  if(xhr.readyState == xhr.DONE) {
+       	  if(xhr.readyState == xhr.DONE && xhr.responseText != "" ) {
 		    files_list = xhr.responseText.split(",");
 		    console.log(files_list.toString());
 		    document.getElementById("select-chart-2").innerHTML = "";
 		    for(i=0; i< files_list.length ; i++) {
 		      console.log(files_list[i]);
 		      var opt = document.createElement("option");
+		      opt.style.background = "yellow";
 		      opt.value = document.getElementById("txtDataSource2").value + '/' + files_list[i] + '.csv';
 		      opt.innerHTML = files_list[i];
 		      document.getElementById("select-chart-2").add(opt,null);
