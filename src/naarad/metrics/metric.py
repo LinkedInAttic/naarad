@@ -176,7 +176,11 @@ class Metric(object):
           with open(csv_file, 'r') as FH:
             for line in FH:
               words = line.split(',')
-              data.append(float(words[1]))
+              try:
+                data.append(float(words[1]))
+              except ValueError:
+                pass
+
           calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
           with open(percentile_csv_file, 'w') as FH_P:
             for percentile in sorted(calculated_percentiles.iterkeys()):
