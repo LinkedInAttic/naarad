@@ -5,3 +5,4 @@ argparse
 pytz
 pygal
 jinja2
+multiprocessing
