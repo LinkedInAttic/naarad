@@ -169,6 +169,7 @@ class Metric(object):
       with open(imp_metric_stats_csv_file, 'w') as FH_W_IMP:
         for csv_file in self.csv_files:
           data = []
+          value_error = False
           if not os.path.getsize(csv_file):
             continue
           column = self.csv_column_map[csv_file]
@@ -176,7 +177,13 @@ class Metric(object):
           with open(csv_file, 'r') as FH:
             for line in FH:
               words = line.split(',')
-              data.append(float(words[1]))
+              try:
+                data.append(float(words[1]))
+              except ValueError:
+                if not value_error:
+                  logger.error("Cannot convert to float. Some data is ignored in file " + csv_file)
+                value_error = True
+                pass
           calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
           with open(percentile_csv_file, 'w') as FH_P:
             for percentile in sorted(calculated_percentiles.iterkeys()):
@@ -190,11 +197,8 @@ class Metric(object):
           FH_W.write(','.join(to_write) + '\n') 
           # Important sub-metrics and their stats go in imp_metric_stats_csv_file
           sub_metric = column
-          try:
-            if self.device_types and self.metric_type in self.device_types:
-              sub_metric = column.split('.')[1]
-          except AttributeError:
-              pass
+          if self.metric_type in self.device_types:
+            sub_metric = column.split('.')[1]
           if sub_metric in self.important_sub_metrics:
             if not imp_metric_stats_present:
               FH_W_IMP.write(headers)
