@@ -182,8 +182,8 @@ class Metric(object):
               except ValueError:
                 if not value_error:
                   logger.error("Cannot convert to float. Some data is ignored in file " + csv_file)
-                value_error = True
-                pass
+                  value_error = True
+                continue
           calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
           with open(percentile_csv_file, 'w') as FH_P:
             for percentile in sorted(calculated_percentiles.iterkeys()):
