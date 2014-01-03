@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 import datetime
 import logging
 import os
+import re
 import sys
 import threading
 
@@ -114,13 +115,15 @@ class GCMetric(Metric):
     stop = {}
     ts = None
 
+    gc_date_regex = re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+[+-][0-9]{4}:')
+
     no_age_fh = open(no_age_file, 'w')
     with open(self.infile, 'r') as inf:
       for line in inf:
-        words = line.split()
-        if naarad.utils.detect_timestamp_format(words[0].rstrip(':')) != 'unknown' and self.beginning_date is None:
+        if re.match(gc_date_regex, line) and self.beginning_date is None:
           #2012-02-23T21:29:35.894-0800: 17.070: [GC 17.086: [ParNew
-          # TODO(rmaheshw) : Use regex and groups to do this parsing instead of splits
+          # TODO : Use regex and groups to do this parsing instead of splits
+          words = line.split()
           jvmts = float(words[1].split('.')[0])
           tstamp = words[0].split('T')
           time = tstamp[1].split('.')
@@ -137,7 +140,8 @@ class GCMetric(Metric):
           else:
             no_age_fh.write(line)
         # capture stop time stats
-        if naarad.utils.detect_timestamp_format(words[0].rstrip(':')) != 'unknown' or 'stopped' in line:
+        if re.match(gc_date_regex, line) or 'stopped' in line:
+          words = line.split()
           if 'stopped' in line:
             if ts:
               if not ts in stop:
