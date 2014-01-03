@@ -24,13 +24,8 @@
             }
             },
           xValueParser: function(x) {
-             var date_components = x.split(" ");
-             var supported_format = date_components[0] + 'T' + date_components[1];
-             if(date_components[1].indexOf(".") == -1)
-             {
-                supported_format += ".0";
-             }
-             return Date.parse(supported_format);
+             var date_components = x.split(/[^0-9]/);
+             return new Date(date_components[0], date_components[1]-1, date_components[2], date_components[3], date_components[4], date_components[5], date_components[6] || 0);
           },
           ylabel: chart_data_title,
           xlabel: "Time",
