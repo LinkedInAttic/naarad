@@ -15,8 +15,7 @@ import logging
 import os
 import re
 import sys
-import threading
-import time
+import multiprocessing
 
 # Add src directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')))
@@ -98,7 +97,8 @@ def read_naarad_templates():
         logger.info('Adding template ' + template) 
         template_urls[template] = url
 
-def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock):
+def parse_and_plot_single_metrics(mp_queue, metric, graph_timezone, outdir_default, indir_default, graphing_library):
+  logger.info('Process ID: %s, Metric: %s',str(os.getpid()), metric.label)
   metric.graph_timezone = graph_timezone
   if metric.outdir is None:
     metric.outdir = os.path.normpath(outdir_default)
@@ -113,14 +113,18 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
       if metric.parse():
         metric.calculate_stats()
         metric.calc()
-        graph_lock.acquire()
-        metric_html_string = metric.graph(graphing_library)
-        graph_lock.release()
-        metric_string_list.append(metric_html_string)
+        metric.graph(graphing_library)
+        metric.status = 'OK'
       else:
+        metric.status = 'ERROR_PARSE'
         logger.error('Parsing failed for metric: '  + metric.label)
     else:
+      metric.status = 'ERROR_COLLECT'
       logger.error('Fetch/Collect failed for metric: ' + metric.label)
+  else:
+    metric.status = 'IGNORED'
+  mp_queue.put(metric)
+
 
 def transform_ts(start, end, timezone="PDT"):
   """
@@ -199,7 +203,7 @@ def main():
   arg_parser.add_argument('-V', '--variables', action="append", help="User defined variables (in form key=value) for substitution in the config file. Config should have the variable names in format %%(key)s")
   arg_parser.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
   arg_parser.add_argument('-l', '--log', help="log level")
-  #TODO(Ritesh) : Print a list of all templates supported with descriptions
+  #TODO : Print a list of all templates supported with descriptions
   #arg_parser.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
 
   args = arg_parser.parse_args()
@@ -340,22 +344,28 @@ def main():
     else:
       sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
     Metric.graphing_modules = graphing_modules
-    metric_string_list = []
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
-    threads = []
-    graph_lock = threading.Lock()
+    processes = []
+    mp_metrics = []
+    queue = multiprocessing.Queue()
     for metric in metrics:
-      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
-      thread.start()
-      threads.append(thread)
-    for t in threads:
-      t.join()
+      process = multiprocessing.Process(name=metric.label, target=parse_and_plot_single_metrics, args=(queue, metric, graph_timezone, outdir_default, indir_default, graphing_library))
+      process.start()
+      processes.append(process)
+
+    for process in processes:
+      metric = queue.get()
+      if metric.status == 'OK':
+        mp_metrics.append(metric)
+      process.join()
+    queue.close()
+    queue.join_thread()
     if len(crossplots) > 0:
-      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path, filler)
+      correlated_plots = naarad.utils.nway_plotting(crossplots, mp_metrics, resource_directory, resource_path, filler)
     else:
       correlated_plots = []
-    rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
+    rpt = Report(None, outdir_default, resource_directory, resource_path, mp_metrics, correlated_plots=correlated_plots)
     rpt.generate()
 if __name__ == '__main__':
   main()

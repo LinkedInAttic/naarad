@@ -53,7 +53,8 @@ class Metric(object):
     self.percentiles_files = []
     self.column_csv_map = {}
     self.csv_column_map = {}
-    self.metric_description = defaultdict(lambda: 'None')
+    self.metric_description = {}
+    self.status = ''
     self.important_sub_metrics = ()
     if other_options:
       for (key, val) in other_options.iteritems():
@@ -90,8 +91,7 @@ class Metric(object):
         logger.error("The given url of {0} is invalid.\n".format(self.infile))
         return False
     else:   
-      self.collect_local()
-      return True
+      return self.collect_local()
 
   def get_csv(self, column):
     col = naarad.utils.sanitize_string(column)
@@ -176,7 +176,12 @@ class Metric(object):
           with open(csv_file, 'r') as FH:
             for line in FH:
               words = line.split(',')
-              data.append(float(words[1]))
+              try:
+                data.append(float(words[1]))
+              except ValueError:
+                continue
+          if len(data) == 0:
+            continue
           calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
           with open(percentile_csv_file, 'w') as FH_P:
             for percentile in sorted(calculated_percentiles.iterkeys()):
@@ -246,8 +251,6 @@ class Metric(object):
             NEW_FH.write('\n')
 
   def graph(self, graphing_library = 'matplotlib'):
-    html_string = []
-    html_string.append('<h1>Metric: {0}</h1>\n'.format(self.metric_type))
     graphed = False
     logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
     for out_csv in self.csv_files:

@@ -26,7 +26,7 @@ class ProcZoneinfoMetric(Metric):
   """
   unit = 'pages'  # The unit of the metric. For /proc/zoneinfo, they are all in pages
     
-  skipped_sub_metrics = ('protection', 'pagesets', 'cpu:', 'count:', 'high:', 'batch:', 'vm', 'all_unreclaimable:', 'prev_priority:', 'start_pfn:', 'inactive_ratio:') 
+  skipped_sub_metrics = ('protection:', 'pagesets', 'cpu:', 'count:', 'high:', 'batch:', 'vm', 'all_unreclaimable:', 'prev_priority:', 'start_pfn:', 'inactive_ratio:') 
   processed_sub_metrics = ('min', 'high', 'scanned','spanned', 'present')
     
   zones = None   # Users can specify which zones to process/plot, e.g. zones= Node.0.zone.DMA
