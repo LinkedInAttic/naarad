@@ -30,7 +30,7 @@ from naarad.graphing import dygraphs
 from naarad.reporting.report import Report
 
 try:
-  from naarad.naarad_imports import metric_classes, graphing_modules
+  from naarad.naarad_imports import metric_classes, graphing_modules, device_type_metrics
 except ImportError:
   metric_classes = {}
   graphing_modules = {}
@@ -340,6 +340,7 @@ def main():
     else:
       sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
     Metric.graphing_modules = graphing_modules
+    Metric.device_types = device_type_metrics
     metric_string_list = []
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
