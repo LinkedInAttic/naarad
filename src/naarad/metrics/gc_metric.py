@@ -32,10 +32,10 @@ class GCMetric(Metric):
     Metric.__init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end)
     # TODO: Make this list configurable
     self.important_sub_metrics = important_sub_metrics_import['GC']
-    self.gc_options = self.val_types
+    self.sub_metrics = self.val_types
     for (key, val) in other_options.iteritems():
       if key == 'gc-options':
-        self.gc_options = val.split()
+        self.sub_metrics = val.split()
       else:
         setattr(self, key, val)
     self.metric_description = {
@@ -174,7 +174,7 @@ class GCMetric(Metric):
     with open(no_age_file, 'r') as no_age_fh:
       threads = []
       for x in self.val_types:
-        if not x in self.gc_options:
+        if not x in self.sub_metrics:
           continue
         thread = threading.Thread(target=self.parse_val_types, args=(x, no_age_file))
         thread.start()
