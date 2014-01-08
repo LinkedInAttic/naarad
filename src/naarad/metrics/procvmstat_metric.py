@@ -33,7 +33,7 @@ class ProcVmstatMetric(Metric):
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())   
       
-    self.metric_description = {
+    self.sub_metric_description = {
       'nr_free_pages': 'Number of free pages',
       'nr_inactive_anon': 'Number of inactive anonymous pages',
       'nr_active_anon': 'Number of active anonymous pages',
@@ -65,12 +65,13 @@ class ProcVmstatMetric(Metric):
         if self.ts_out_of_range(ts):
           continue
           
-        col = words[2]        
+        col = words[2]       
+         
         # if sub_metrics is specified, only process those specified in config.         
         if self.sub_metrics and col not in self.sub_metrics:
           continue         
         
-        self.metric_unit[col] = 'pages'  # The unit of the metric. For /proc/vmstat, they are all in pages
+        self.sub_metric_unit[col] = 'pages'  # The unit of the metric. For /proc/vmstat, they are all in pages
           
         if col in self.column_csv_map: 
           out_csv = self.column_csv_map[col] 

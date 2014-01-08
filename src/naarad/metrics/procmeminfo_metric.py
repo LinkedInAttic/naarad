@@ -33,7 +33,7 @@ class ProcMeminfoMetric(Metric):
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())   
       
-    self.metric_description = {
+    self.sub_metric_description = {
       'MemTotal': 'Total memory in KB',
       'MemFree': 'Total free memory in KB',
       'Buffers': 'Size of buffers in KB',
@@ -75,7 +75,7 @@ class ProcMeminfoMetric(Metric):
           unit = words[4]
         else:
           unit = 'pages'
-        self.metric_unit[col] = unit
+        self.sub_metric_unit[col] = unit
 
         # stores the values in data[] before finally writing out
         if col in self.column_csv_map: 

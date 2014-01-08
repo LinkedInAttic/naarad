@@ -40,7 +40,7 @@ class ProcZoneinfoMetric(Metric):
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())   
       
-    self.metric_description = {
+    self.sub_metric_description = {
       'nr_free_pages': 'Number of free pages',
       'nr_inactive_anon': 'Number of inactive anonymous pages',
       'nr_active_anon': 'Number of active anonymous pages',
@@ -98,7 +98,7 @@ class ProcZoneinfoMetric(Metric):
         if cur_zone and self.zones and cur_zone not in self.zones:
           continue
         
-        self.metric_unit[col] = 'pages'  # The unit of the metric. For /proc/zoneinfo, they are all in pages
+        self.sub_metric_unit[col] = 'pages'  # The unit of the sub metric. For /proc/zoneinfo, they are all in pages
           
         # only process sub_metrics specified in config. 
         if self.sub_metrics and cur_submetric and cur_submetric not in self.sub_metrics:

@@ -52,8 +52,8 @@ class Metric(object):
     self.percentiles_files = []
     self.column_csv_map = {}
     self.csv_column_map = {}
-    self.metric_description = defaultdict(lambda: 'None')  # the description of the submetrics. 
-    self.metric_unit = defaultdict(lambda: 'None')      # the unit of the submetrics.  The plot will have the Y-axis being: Metric name (Unit), 
+    self.sub_metric_description = defaultdict(lambda: 'None')  # the description of the submetrics. 
+    self.sub_metric_unit = defaultdict(lambda: 'None')      # the unit of the submetrics.  The plot will have the Y-axis being: Metric name (Unit), 
     self.important_sub_metrics = ()
     if other_options:
       for (key, val) in other_options.iteritems():
@@ -253,11 +253,15 @@ class Metric(object):
     for out_csv in self.csv_files:
       csv_filename = os.path.basename(out_csv)
       # The last element is .csv, don't need that in the name of the chart
-      graph_title = '.'.join(csv_filename.split('.')[0:-1])
       column = self.csv_column_map[out_csv]
       column = naarad.utils.sanitize_string(column)
-      if self.metric_unit and column in self.metric_unit.keys():
-        plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column +' ('+ self.metric_unit[column]+')', precision=None, graph_height=600, graph_width=1200, graph_type='line')]
+      
+      graph_title = '.'.join(csv_filename.split('.')[0:-1])
+      if self.sub_metric_description and column in self.sub_metric_description.keys():
+        graph_title += ' ('+self.sub_metric_description[column]+')'
+        
+      if self.sub_metric_unit and column in self.sub_metric_unit.keys():
+        plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column +' ('+ self.sub_metric_unit[column]+')', precision=None, graph_height=600, graph_width=1200, graph_type='line')]
       else:
         plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
       graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.resource_directory, self.resource_path, graph_title)
