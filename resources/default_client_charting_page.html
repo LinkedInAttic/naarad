@@ -25,7 +25,7 @@
             },
           xValueParser: function(x) {
              var date_components = x.split(/[^0-9]/);
-             return new Date(date_components[0], date_components[1]-1, date_components[2], date_components[3], date_components[4], date_components[5], date_components[6] || 0);
+             return new Date(date_components[0], date_components[1]-1, date_components[2], date_components[3], date_components[4], date_components[5], date_components[6] || 0).getTime();
           },
           ylabel: chart_data_title,
           xlabel: "Time",
