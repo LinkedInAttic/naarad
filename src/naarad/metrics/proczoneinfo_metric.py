@@ -31,8 +31,10 @@ class ProcZoneinfoMetric(Metric):
     
   zones = None   # Users can specify which zones to process/plot, e.g. zones= Node.0.zone.DMA
   
-  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end)
+  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                rule_strings, **other_options):
+    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                    rule_strings)
     
     self.sub_metrics = None
     # in particular, Section can specify a subset of all metrics: sub_metrics=pages.min nr_free_pages

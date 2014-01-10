@@ -28,8 +28,9 @@ class GCMetric(Metric):
   rate_types = ()
   val_types = ('alloc', 'promo', 'used0', 'used1', 'used', 'commit0', 'commit1', 'commit', 'gen0', 'gen0t', 'gen0usr', 'gen0sys', 'gen0real',
       'cmsIM', 'cmsRM', 'cmsRS', 'GC', 'cmsCM', 'cmsCP', 'cmsCS', 'cmsCR', 'safept', 'apptime')
-  def __init__ (self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end)
+  def __init__ (self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+                **other_options):
+    Metric.__init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings)
     # TODO: Make this list configurable
     self.important_sub_metrics = important_sub_metrics_import['GC']
     self.sub_metrics = self.val_types

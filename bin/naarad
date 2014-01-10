@@ -249,6 +249,8 @@ def main():
     # Parse the config file
     # TODO: Refactor the config parsing code
     config_obj = ConfigParser.ConfigParser(variables_dict)
+    # Preserve case http://stackoverflow.com/questions/1611799/preserve-case-in-configparser
+    config_obj.optionxform = str
     config_obj.read(optfile)
     for section in config_obj.sections():
       if section == 'GRAPH':
@@ -274,7 +276,8 @@ def main():
         ts_start = None
         ts_end = None
         precision = None
-        hostname = "localhost"        
+        hostname = "localhost"
+        rule_strings = {}
         
         # section name is used to create sub-directories, so enforce it. 
         if not is_valid_metric_name(section):
@@ -301,6 +304,10 @@ def main():
             precision = config_obj.get(section, 'precision')
             config_obj.remove_option(section, 'precision')
           kwargs = dict(config_obj.items(section))
+          for key in kwargs.keys():
+            if key.endswith('.sla'):
+              rule_strings[key.strip('.sla')] = kwargs[key]
+              del kwargs[key]
         except ConfigParser.NoOptionError:
           logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
           sys.exit()
@@ -314,9 +321,9 @@ def main():
           #TODO: Make user specify metric_type in config and not infer from section
           metric_type = section.split('-')[0]
           if not metric_type in metric_classes:
-            new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, **kwargs)
+            new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
           else:
-            new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, **kwargs)
+            new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
             new_metric.ignore = True
           if config_obj.has_option(section, 'calc_metrics'):

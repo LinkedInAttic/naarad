@@ -17,6 +17,7 @@ import urllib
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
 import naarad.httpdownload
+from naarad.sla import SLA
 
 logger = logging.getLogger('naarad.metrics.Metric')
 
@@ -29,9 +30,14 @@ class Metric(object):
   
   sub_metrics = None   #users can specify what sub_metrics to process/plot;  
   unit = ''  # the unit of the metric
-  
 
-  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end, **other_options):
+  sla_list = []
+
+  rules_lt = defaultdict(lambda : defaultdict(float))
+  rules_gt = defaultdict(lambda : defaultdict(float))
+
+  def __init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                rule_strings, **other_options):
     self.metric_type = metric_type
     self.infile = infile
     self.hostname = hostname
@@ -55,6 +61,10 @@ class Metric(object):
     self.csv_column_map = {}
     self.metric_description = defaultdict(lambda: 'None')
     self.important_sub_metrics = ()
+    for (key, val) in rule_strings.iteritems():
+      self.set_sla(key, val)
+    for sla in self.sla_list:
+      print sla.sub_metric, sla.stat_name, sla.threshold, sla.sla_type
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -71,6 +81,20 @@ class Metric(object):
     elif self.ts_end and timestamp > self.ts_end:
       return True
     return False
+
+  def set_sla(self, sub_metric, rules):
+    rules_list = rules.split()
+    for rule in rules_list:
+      if '<' in rule:
+        stat, threshold = rule.split('<')
+        self.rules_lt[sub_metric][stat] = float(threshold)
+        sla = SLA(sub_metric, stat, threshold, 'lt')
+        self.sla_list.append(sla)
+      elif '>' in rule:
+        stat, threshold  = rule.split('>')
+        self.rules_gt[sub_metric][stat] = float(threshold)
+        sla = SLA(sub_metric, stat, threshold, 'gt')
+        self.sla_list.append(sla)
 
   def collect_local(self):
     return os.path.exists(self.infile)
@@ -159,7 +183,7 @@ class Metric(object):
     stats_to_calculate = ['mean', 'std']  # TODO: get input from user
     percentiles_to_calculate = range(5, 101, 5)  # TODO: get input from user
     percentiles_to_calculate.append(99)
-    headers = 'sub-metric,mean,std,p50,p75,p90,p95,p99\n'
+    headers = 'sub-metric,mean,std,p50,p75,p90,p95,p99\n'  # TODO: This will be built from user input later on
     metric_stats_csv_file = self.get_stats_csv()
     imp_metric_stats_csv_file = self.get_important_sub_metrics_csv()
     imp_metric_stats_present = False  

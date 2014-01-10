@@ -26,8 +26,10 @@ class ProcVmstatMetric(Metric):
   
   unit = 'pages'  # The unit of the metric. For /proc/vmstat, they are all in pages
   
-  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end)
+  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                rule_strings, **other_options):
+    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                    rule_strings)
     
     self.sub_metrics = None
     # in particular, Section can specify a subset of all rows (default has 86 rows):  "sub_metrics=nr_free_pages nr_inactive_anon"

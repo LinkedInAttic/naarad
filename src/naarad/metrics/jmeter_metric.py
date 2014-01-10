@@ -21,8 +21,10 @@ import naarad.naarad_imports
 logger = logging.getLogger('naarad.metrics.JmeterMetric')
 
 class JmeterMetric(Metric):
-  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end)
+  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                rule_strings, **other_options):
+    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                    rule_strings)
     self.metric_description = {
       'lb': 'Transaction Name',
       'lt': 'Time to First byte',
