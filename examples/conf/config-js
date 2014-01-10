@@ -11,24 +11,24 @@ infile=sar.cpuusage.out
 infile=sar.memory.out
 
 [INNOTOP-R]
-#ignore=1
+ignore=1
 infile=records.out
 options=num_inserts queries_in_queue num_reads
 
 [INNOTOP-M]
-#ignore=1
+ignore=1
 infile=replication.out
 
 [INNOTOP-I]
-#ignore=1
+ignore=1
 infile=iostat.out
 
 [INNOTOP-C]
-#ignore=1
+ignore=1
 infile=command.out
 
 [INNOTOP-B]
-#ignore=1
+ignore=1
 infile=buffer.out
 
 [JMETER]

@@ -12,6 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 import datetime
 import logging
 import os
+import re
 import sys
 import threading
 
@@ -31,10 +32,10 @@ class GCMetric(Metric):
     Metric.__init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end)
     # TODO: Make this list configurable
     self.important_sub_metrics = important_sub_metrics_import['GC']
-    self.gc_options = self.val_types
+    self.sub_metrics = self.val_types
     for (key, val) in other_options.iteritems():
       if key == 'gc-options':
-        self.gc_options = val.split()
+        self.sub_metrics = val.split()
       else:
         setattr(self, key, val)
     self.sub_metric_description = {
@@ -72,6 +73,7 @@ class GCMetric(Metric):
 
   def get_clock_from_jvmts(self, beginning_date, beginning_ts, ts):
     if beginning_date is None:
+      logger.warning('Returning ts 0 since beginning date is not set')
       return 0
     else:
       diffms = 1000*( float(ts) - beginning_ts )
@@ -113,25 +115,23 @@ class GCMetric(Metric):
     stop = {}
     ts = None
 
-    # gc log is assumed to be either this year's or last year's (in case you are looking at a gc log from Dec in Jan next year)
-    year = datetime.datetime.now().year
-    last_year = str(year - 1)
-    year = str(year)
+    gc_date_regex = re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+[+-][0-9]{4}:')
 
     no_age_fh = open(no_age_file, 'w')
     with open(self.infile, 'r') as inf:
       for line in inf:
-        if (line.startswith(year) or line.startswith(last_year)) and self.beginning_date is None:
+        if re.match(gc_date_regex, line) and self.beginning_date is None:
           #2012-02-23T21:29:35.894-0800: 17.070: [GC 17.086: [ParNew
-          # TODO(rmaheshw) : Use regex and groups to do this parsing instead of splits
-          date = line.split()
-          jvmts = float(date[1].split('.')[0])
-          tstamp = date[0].split('T')
+          # TODO : Use regex and groups to do this parsing instead of splits
+          words = line.split()
+          jvmts = float(words[1].split('.')[0])
+          tstamp = words[0].split('T')
           time = tstamp[1].split('.')
           clock = tstamp[0] + ' ' + time[0]
 
           self.beginning_date = datetime.datetime.strptime(clock, self.clock_format)
           self.beginning_ts = float(jvmts)
+          logger.info('Setting beginning date and ts')
 
         if 'Desired' not in line and 'age' not in line:
           if 'ParNew' in line:
@@ -140,7 +140,7 @@ class GCMetric(Metric):
           else:
             no_age_fh.write(line)
         # capture stop time stats
-        if (line.startswith(year) or line.startswith(last_year)) or 'stopped' in line:
+        if re.match(gc_date_regex, line) or 'stopped' in line:
           words = line.split()
           if 'stopped' in line:
             if ts:
@@ -172,43 +172,9 @@ class GCMetric(Metric):
     self.csv_files.append(app_stop_file)
 
     with open(no_age_file, 'r') as no_age_fh:
-      for x in self.rate_types:
-        if not x in self.gc_options:
-          continue
-        outfile = os.path.join(self.resource_directory, self.metric_type + '-' + x + '-out.txt')
-        awk_cmd = os.path.join(self.bin_path, 'PrintGCStats')
-        cmd = awk_cmd + ' -v plot=' + x + ' -v interval=1 ' + no_age_file + ' > ' +  outfile
-        logger.info("Parsing a GC metric: " + cmd)
-        os.system(cmd)
-        count = 0
-        outcsv = self.get_csv(x)
-        outcsvrate = self.get_csv( x + '-rate')
-        with open(outcsv, 'w') as csvf:
-          with open(outcsvrate, 'w') as csvratef:
-            # Could write headers for csv files here if wanted to
-            with open(outfile, 'r') as txt_fh:
-              for line in txt_fh:
-                count += 1
-                words = line.split()
-                if count == 1:
-                  rate = 0
-                  oldts = words[0]
-                  oldval = words[1]
-                else:
-                  rate = (float(words[1]) - float(oldval)) /( float(words[0]) - float(oldts) )
-                # Implementing timestamp support
-                begin_ts = str( self.get_clock_from_jvmts(self.beginning_date, self.beginning_ts, words[0]) )
-                if self.ts_out_of_range(begin_ts):
-                  continue
-                csvf.write( begin_ts + ',' + words[1])
-                csvf.write('\n')
-                csvratef.write( begin_ts + ',' + str(rate) )
-                csvratef.write('\n')
-        self.csv_files.append(outcsv)
-        self.csv_files.append(outcsvrate)
       threads = []
       for x in self.val_types:
-        if not x in self.gc_options:
+        if not x in self.sub_metrics:
           continue
         thread = threading.Thread(target=self.parse_val_types, args=(x, no_age_file))
         thread.start()

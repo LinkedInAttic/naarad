@@ -19,7 +19,6 @@ class SARMetric(Metric):
   """ Class for SAR cpuusage logs, deriving from class Metric """
   supported_sar_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-memory', 'SAR-memutil', 'SAR-paging', 
       'SAR-etcp', 'SAR-tcp', 'SAR-dev', 'SAR-edev', 'SAR-sock', 'SAR-swapping')
-  device_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-dev', 'SAR-edev')
   def __init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, **other_options):
     metric_type = self.extract_metric_name(metric_type)
     Metric.__init__(self, metric_type, infile,  hostname, outdir, resource_path, label, ts_start, ts_end)
@@ -41,7 +40,8 @@ class SARMetric(Metric):
     for metric_type in self.supported_sar_types:
       if metric_type in metric_name:
         return metric_type
-    logger.error('Section name does not contain a valid metric type, using type: "SAR-generic". Naarad works better if it knows the metric type. Valid SAR metric names are: %s', self.supported_sar_types)
+    logger.error('Section [%s] does not contain a valid metric type, using type: "SAR-generic". Naarad works better '
+                 'if it knows the metric type. Valid SAR metric names are: %s', metric_name, self.supported_sar_types)
     return 'SAR-generic'
 
   def get_csv(self, col, device=None):

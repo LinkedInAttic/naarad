@@ -30,7 +30,7 @@ from naarad.graphing import dygraphs
 from naarad.reporting.report import Report
 
 try:
-  from naarad.naarad_imports import metric_classes, graphing_modules
+  from naarad.naarad_imports import metric_classes, graphing_modules, device_type_metrics
 except ImportError:
   metric_classes = {}
   graphing_modules = {}
@@ -283,10 +283,10 @@ def main():
           
         try:
           if config_obj.has_option(section, 'hostname'):
-            hostname = config_obj.get(section,'hostname')   
+            hostname = config_obj.get(section, 'hostname')
             config_obj.remove_option(section, 'hostname')     
           else:
-            logger.warning('No hostname is found in section %s ' % section)  
+            logger.info('No hostname is found in section %s ' % section)
           
           infile = config_obj.get(section, 'infile')
           config_obj.remove_option(section, 'infile')
@@ -301,8 +301,9 @@ def main():
             precision = config_obj.get(section, 'precision')
             config_obj.remove_option(section, 'precision')
           kwargs = dict(config_obj.items(section))
-        except:
-          sys.exit("Exception: " , sys.exc_info()[0], "; Something wrong with the format of the config file in section:", section)
+        except ConfigParser.NoOptionError:
+          logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
+          sys.exit()
         if section == 'SAR-*':
           sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, hostname, outdir_default, label, ts_start, ts_end, None)
           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
@@ -315,7 +316,7 @@ def main():
           if not metric_type in metric_classes:
             new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, **kwargs)
           else:
-            new_metric = metric_classes[metric_type](section, infile, hostname,  outdir_default, resource_path, label, ts_start, ts_end, **kwargs)
+            new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, **kwargs)
           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
             new_metric.ignore = True
           if config_obj.has_option(section, 'calc_metrics'):
@@ -340,6 +341,7 @@ def main():
     else:
       sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
     Metric.graphing_modules = graphing_modules
+    Metric.device_types = device_type_metrics
     metric_string_list = []
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)

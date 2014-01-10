@@ -39,7 +39,7 @@ Naarad needs a config file that lists all the metrics and the graphing options. 
 <pre>
 [GC]
 infile=/home/ritesh/logs/gc.log
-gc-options=GC appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM
+sub_metrics=GC appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM
 
 [SAR-cpuusage]
 infile=/home/ritesh/logs/sar.cpuusage.out
@@ -61,7 +61,7 @@ outdir=/home/ritesh/naarad-out
 <pre>
 [GC]
 infile=gc.log
-gc-options=GC appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM
+sub_metrics=GC appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM
 
 [SAR-cpuusage]
 infile=sar.cpuusage.out
@@ -100,7 +100,7 @@ These metrics can be defined by adding a calc_metrics option in metric definitio
 
 <pre>[GC]
 infile=/home/ritesh/logs/loggc-small
-gc-options=alloc promo
+sub_metrics=alloc promo
 calc_metrics=alloc-rate=rate(alloc) promo-rate=rate(promo) alloc-diff=diff(alloc)
 </pre>
 
@@ -194,7 +194,7 @@ So, e.g., you can specify all GC options using this section:
 
 <pre><code>[GC]
 infile=/home/ritesh/logs/gc.log
-gc-options=GC alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS cmsCM cmsCS csmCR apptime safept gen1t gen1i
+sub_metrics=GC alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS cmsCM cmsCS csmCR apptime safept gen1t gen1i
 </code></pre>
 
 ## System metrics using sar ##
