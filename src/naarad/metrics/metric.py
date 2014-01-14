@@ -148,11 +148,11 @@ class Metric(object):
             data[out_csv].append( ts + ',' + words[i+1] )
     # Post processing, putting data in csv files
 
-    data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]),qps.items())
+    data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]),sorted(qps.items())) 
     for csv in data.keys():
-      self.csv_files.append(csv)
+      self.csv_files.append(csv)   
       with open(csv, 'w') as fh:
-        fh.write('\n'.join(data[csv]))
+        fh.write('\n'.join(data[csv]) )
     return True
 
   def calculate_stats(self):
