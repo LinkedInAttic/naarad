@@ -306,7 +306,7 @@ def main():
           kwargs = dict(config_obj.items(section))
           for key in kwargs.keys():
             if key.endswith('.sla'):
-              rule_strings[key.strip('.sla')] = kwargs[key]
+              rule_strings[key.replace('.sla','')] = kwargs[key]
               del kwargs[key]
         except ConfigParser.NoOptionError:
           logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)

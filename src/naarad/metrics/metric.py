@@ -33,9 +33,6 @@ class Metric(object):
 
   sla_list = []
 
-  rules_lt = defaultdict(lambda : defaultdict(float))
-  rules_gt = defaultdict(lambda : defaultdict(float))
-
   def __init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, **other_options):
     self.metric_type = metric_type
@@ -64,8 +61,6 @@ class Metric(object):
     self.important_sub_metrics = ()
     for (key, val) in rule_strings.iteritems():
       self.set_sla(key, val)
-    for sla in self.sla_list:
-      print sla.sub_metric, sla.stat_name, sla.threshold, sla.sla_type
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -88,13 +83,11 @@ class Metric(object):
     for rule in rules_list:
       if '<' in rule:
         stat, threshold = rule.split('<')
-        self.rules_lt[sub_metric][stat] = float(threshold)
-        sla = SLA(sub_metric, stat, threshold, 'lt')
+        sla = SLA(sub_metric, stat, float(threshold), 'lt')
         self.sla_list.append(sla)
       elif '>' in rule:
         stat, threshold  = rule.split('>')
-        self.rules_gt[sub_metric][stat] = float(threshold)
-        sla = SLA(sub_metric, stat, threshold, 'gt')
+        sla = SLA(sub_metric, stat, float(threshold), 'gt')
         self.sla_list.append(sla)
 
   def collect_local(self):
@@ -136,6 +129,10 @@ class Metric(object):
   def get_percentiles_csv_from_data_csv(self, data_csv):
     percentile_csv_file = '.'.join(data_csv.split('.')[0:-1]) + '.percentiles.csv'
     return percentile_csv_file
+
+  def get_sla_csv(self):
+    csv = os.path.join(self.resource_directory, self.metric_type + '.sla.csv')
+    return csv
 
   def parse(self):
     logger.info("Working on" + self.infile)
@@ -210,6 +207,18 @@ class Metric(object):
                   value_error = True
                 continue
           calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
+          # SLA processing
+          for sla in self.sla_list:
+            if sla.is_processed or sla.sub_metric != column:
+              continue
+            for stat in calculated_stats.keys():
+              if stat == sla.stat_name:
+                sla.check_sla_passed(calculated_stats[stat])
+            for percentile_num in calculated_percentiles.keys():
+              percentile_name = 'p' + str(percentile_num)
+              if percentile_name == sla.stat_name:
+                sla.check_sla_passed(calculated_percentiles[percentile_num])
+
           with open(percentile_csv_file, 'w') as FH_P:
             for percentile in sorted(calculated_percentiles.iterkeys()):
               FH_P.write("%d, %f\n" % (percentile, calculated_percentiles[percentile]))
@@ -232,7 +241,11 @@ class Metric(object):
         if imp_metric_stats_present:
           self.important_stats_files.append(imp_metric_stats_csv_file)
       self.stats_files.append(metric_stats_csv_file)
-
+    # Save SLA results in a file
+    sla_csv_file = self.get_sla_csv()
+    with open(sla_csv_file, 'w') as FH:
+      for sla in self.sla_list:
+        FH.write('{0},{1},{2},{3},{4}\n'.format(sla.sub_metric, sla.stat_name, sla.threshold, sla.sla_type, sla.sla_passed))
 
   def calc(self):
     if not self.calc_metrics:
