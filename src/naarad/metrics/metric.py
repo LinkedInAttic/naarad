@@ -29,7 +29,6 @@ class Metric(object):
   options = None
   
   sub_metrics = None   #users can specify what sub_metrics to process/plot;  
-  unit = ''  # the unit of the metric
 
   sla_list = []
 
@@ -89,6 +88,8 @@ class Metric(object):
         stat, threshold  = rule.split('>')
         sla = SLA(sub_metric, stat, float(threshold), 'gt')
         self.sla_list.append(sla)
+      else:
+        logger.error('Unsupported SLA type defined : ' + rule)
 
   def collect_local(self):
     return os.path.exists(self.infile)
