@@ -25,7 +25,7 @@ class JmeterMetric(Metric):
                 rule_strings, **other_options):
     Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings)
-    self.metric_description = {
+    self.sub_metric_description = {
       'lb': 'Transaction Name',
       'lt': 'Time to First byte',
       'ts': 'Timestamp',
@@ -40,7 +40,7 @@ class JmeterMetric(Metric):
       'ErrorsPerSecond': 'Errors per second',
       'DataThroughput': 'Data Throughput'
     }
-    self.metric_units = {
+    self.sub_metric_units = {
       'lt': 'ms',
       'ResponseTime': 'ms',
       'ResponseSize': 'bytes',
@@ -266,7 +266,7 @@ class JmeterMetric(Metric):
         # The last element is .csv, don't need that in the name of the chart
         column = csv_filename.split('.')[-2]
         transaction_name = ' '.join(csv_filename.split('.')[1:-2])
-        plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name, y_label=self.metric_description[column] + ' (' + self.metric_units[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line')
+        plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name, y_label=self.sub_metric_description[column] + ' (' + self.sub_metric_units[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line')
         if transaction_name in plot_data:
           plot_data[transaction_name].append(plot)
         else:
