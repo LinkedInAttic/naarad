@@ -6,7 +6,7 @@ logger = logging.getLogger('naarad.sla')
 
 class SLA(object):
 
-  supported_sla_types = ('lt', '<', 'gt', '>')
+  supported_sla_types = ('lt', '<', 'gt', '>', 'eq', '=')
 
   def __init__(self, sub_metric, stat_name, threshold, sla_type):
     if sla_type not in self.supported_sla_types:
@@ -27,6 +27,8 @@ class SLA(object):
       self.grade_lt(stat_value)
     elif self.sla_type in ('gt', '>'):
       self.grade_gt(stat_value)
+    elif self.sla_type in ('eq', '='):
+      self.grade_eq(stat_value)
     else:
       logger.error('sla type is unsupported')
     return self.sla_passed
@@ -44,3 +46,10 @@ class SLA(object):
       self.sla_passed = False
     else:
       self.sla_passed = True
+  
+  def grade_eq(self, stat_value):
+    self.is_processed = True
+    if stat_value == self.threshold:
+      self.sla_passed = True
+    else:
+      self.sla_passed = False
