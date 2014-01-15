@@ -243,10 +243,11 @@ class Metric(object):
           self.important_stats_files.append(imp_metric_stats_csv_file)
       self.stats_files.append(metric_stats_csv_file)
     # Save SLA results in a file
-    sla_csv_file = self.get_sla_csv()
-    with open(sla_csv_file, 'w') as FH:
-      for sla in self.sla_list:
-        FH.write('{0},{1},{2},{3},{4}\n'.format(sla.sub_metric, sla.stat_name, sla.threshold, sla.sla_type, sla.sla_passed))
+    if len(self.sla_list) > 0:
+      sla_csv_file = self.get_sla_csv()
+      with open(sla_csv_file, 'w') as FH:
+        for sla in self.sla_list:
+          FH.write('{0},{1},{2},{3},{4}\n'.format(sla.sub_metric, sla.stat_name, sla.threshold, sla.sla_type, sla.sla_passed))
 
   def calc(self):
     if not self.calc_metrics:
