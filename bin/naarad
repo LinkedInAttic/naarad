@@ -112,6 +112,7 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
     if metric.collect():
       if metric.parse():
         metric.calculate_stats()
+        metric.check_slas()
         metric.calc()
         graph_lock.acquire()
         metric_html_string = metric.graph(graphing_library)

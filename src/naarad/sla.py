@@ -28,6 +28,9 @@ class SLA(object):
   def __str__(self):
     return "{0} of {1}, threshold: {2}, sla_type: {3}, sla_passed: {4}".format(self.stat_name, self.sub_metric, self.threshold, self.sla_type, self.sla_passed)
 
+  def get_csv_repr(self):
+    return "{0},{1},{2},{3},{4},{5}".format(self.sub_metric, self.stat_name, self.threshold, self.sla_type, self.stat_value, self.sla_passed)
+
   def check_sla_passed(self, stat_value):
     if self.sla_type in ('lt', '<'):
       self.grade_lt(stat_value)
@@ -37,6 +40,7 @@ class SLA(object):
       self.grade_eq(stat_value)
     else:
       logger.error('sla type is unsupported')
+    self.stat_value = stat_value
     return self.sla_passed
 
   def grade_lt(self, stat_value):

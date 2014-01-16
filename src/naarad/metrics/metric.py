@@ -31,6 +31,8 @@ class Metric(object):
   sub_metrics = None   #users can specify what sub_metrics to process/plot;  
 
   sla_list = []
+  calculated_stats = {}
+  calculated_percentiles = {}
 
   def __init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, **other_options):
@@ -207,24 +209,13 @@ class Metric(object):
                   logger.error("Cannot convert to float. Some data is ignored in file " + csv_file)
                   value_error = True
                 continue
-          calculated_stats, calculated_percentiles = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
-          # SLA processing
-          for sla in self.sla_list:
-            if sla.is_processed or sla.sub_metric != column:
-              continue
-            for stat in calculated_stats.keys():
-              if stat == sla.stat_name:
-                sla.check_sla_passed(calculated_stats[stat])
-            for percentile_num in calculated_percentiles.keys():
-              percentile_name = 'p' + str(percentile_num)
-              if percentile_name == sla.stat_name:
-                sla.check_sla_passed(calculated_percentiles[percentile_num])
-
+          self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
+          
           with open(percentile_csv_file, 'w') as FH_P:
-            for percentile in sorted(calculated_percentiles.iterkeys()):
-              FH_P.write("%d, %f\n" % (percentile, calculated_percentiles[percentile]))
+            for percentile in sorted(self.calculated_percentiles[column].iterkeys()):
+              FH_P.write("%d, %f\n" % (percentile, self.calculated_percentiles[column][percentile]))
           self.percentiles_files.append(percentile_csv_file)
-          to_write = [column, calculated_stats['mean'], calculated_stats['std'], calculated_percentiles[50], calculated_percentiles[75], calculated_percentiles[90], calculated_percentiles[95], calculated_percentiles[99], calculated_stats['min'], calculated_stats['max']]
+          to_write = [column, self.calculated_stats[column]['mean'], self.calculated_stats[column]['std'], self.calculated_percentiles[column][50], self.calculated_percentiles[column][75], self.calculated_percentiles[column][90], self.calculated_percentiles[column][95], self.calculated_percentiles[column][99], self.calculated_stats[column]['min'], self.calculated_stats[column]['max']]
           to_write = map(lambda x: naarad.utils.normalize_float_for_display(x), to_write)
           if not metric_stats_present:
             metric_stats_present = True
@@ -242,12 +233,25 @@ class Metric(object):
         if imp_metric_stats_present:
           self.important_stats_files.append(imp_metric_stats_csv_file)
       self.stats_files.append(metric_stats_csv_file)
+
+  def check_slas(self):
+    for sla in self.sla_list:
+      if sla.is_processed:
+        continue
+      if sla.sub_metric in self.calculated_stats.keys():
+        if sla.stat_name in self.calculated_stats[sla.sub_metric].keys():
+          sla.check_sla_passed(self.calculated_stats[sla.sub_metric][sla.stat_name])
+      if sla.sub_metric in self.calculated_percentiles.keys():
+        if sla.stat_name[0] == 'p':
+          percentile_num = int(sla.stat_name[1:])
+          if (isinstance(percentile_num, float) or isinstance(percentile_num, int)) and percentile_num in self.calculated_percentiles[sla.sub_metric].keys():
+            sla.check_sla_passed(self.calculated_percentiles[sla.sub_metric][percentile_num])
     # Save SLA results in a file
     if len(self.sla_list) > 0:
       sla_csv_file = self.get_sla_csv()
       with open(sla_csv_file, 'w') as FH:
         for sla in self.sla_list:
-          FH.write('{0},{1},{2},{3},{4}\n'.format(sla.sub_metric, sla.stat_name, sla.threshold, sla.sla_type, sla.sla_passed))
+          FH.write('%s\n' % (sla.get_csv_repr()))
 
   def calc(self):
     if not self.calc_metrics:
