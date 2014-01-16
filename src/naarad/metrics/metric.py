@@ -179,10 +179,10 @@ class Metric(object):
     return True
 
   def calculate_stats(self):
-    stats_to_calculate = ['mean', 'std']  # TODO: get input from user
+    stats_to_calculate = ['mean', 'std', 'min', 'max']  # TODO: get input from user
     percentiles_to_calculate = range(5, 101, 5)  # TODO: get input from user
     percentiles_to_calculate.append(99)
-    headers = 'sub-metric,mean,std,p50,p75,p90,p95,p99\n'  # TODO: This will be built from user input later on
+    headers = 'sub-metric,mean,std,p50,p75,p90,p95,p99,min,max\n'  # TODO: This will be built from user input later on
     metric_stats_csv_file = self.get_stats_csv()
     imp_metric_stats_csv_file = self.get_important_sub_metrics_csv()
     imp_metric_stats_present = False  
@@ -224,7 +224,7 @@ class Metric(object):
             for percentile in sorted(calculated_percentiles.iterkeys()):
               FH_P.write("%d, %f\n" % (percentile, calculated_percentiles[percentile]))
           self.percentiles_files.append(percentile_csv_file)
-          to_write = [column, calculated_stats['mean'], calculated_stats['std'], calculated_percentiles[50], calculated_percentiles[75], calculated_percentiles[90], calculated_percentiles[95], calculated_percentiles[99]]
+          to_write = [column, calculated_stats['mean'], calculated_stats['std'], calculated_percentiles[50], calculated_percentiles[75], calculated_percentiles[90], calculated_percentiles[95], calculated_percentiles[99], calculated_stats['min'], calculated_stats['max']]
           to_write = map(lambda x: naarad.utils.normalize_float_for_display(x), to_write)
           if not metric_stats_present:
             metric_stats_present = True
