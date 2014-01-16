@@ -4,21 +4,15 @@
     <a href="#menu" id="menuLink" class="naarad-menu-link">
         <span></span>
     </a>
-    {%- if metric_list %}
     <div id="menu">
         <div class="naarad-menu naarad-menu-open">
             <a class="naarad-menu-heading" href="report.html">naarad</a>
             <ul>
-                {% if summary_enabled %}
-                <li><a href="{{ resource_path}}/summary_report.html" title="Summary">Summary</a></li>
-                {% endif %}
-                {%- for metric_name in metric_list %}
-                <li><a href="{{ resource_path }}/{{ metric_name.label }}_report.html" title="{{ metric_name.label }}">{{ metric_name.label }}</a></li>
-                {%- endfor %}
+                <li><a href="diff.html" title="Diff">Diff</a></li>
             </ul>
         </div>
     </div>
-    {%- endif %}
+
 <div id="main" style="margin-top:0px; margin-left:0px;">
     <div id="advanced-options-div" hidden="true">
         <!--
@@ -31,16 +25,16 @@
     <div id="selection-div">
       <label>
         <select id="select-chart-1">
-          {%- for data_series in metric_data %}
-          <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
+          {%- for data_series_source in data_series %}
+          <option value="0/{{ data_series_source }}.csv">{{ data_series_source }}</option>
           {% endfor %}
         </select>
       </label>
       <button type="button" onclick="plot('select-chart-1','charting-div-1',0,false)">plot</button>
       <label>
         <select id="select-chart-2">
-          {%- for data_series in metric_data %}
-          <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
+          {%- for data_series_source in data_series %}
+          <option value="1/{{ data_series_source }}.csv">{{ data_series_source }}</option>
           {% endfor %}
         </select>
         <select id="diff-select-chart-2" hidden="true">

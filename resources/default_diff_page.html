@@ -1,0 +1,80 @@
+<body>
+<div id="layout">
+    <!-- Menu toggle -->
+    <a href="#menu" id="menuLink" class="naarad-menu-link">
+        <span></span>
+    </a>
+    {%- if diff_data %}
+    <div id="menu">
+        <div class="naarad-menu naarad-menu-open">
+            <a class="naarad-menu-heading" href="report.html">naarad</a>
+            <ul>
+                <li>
+                    <a href="diff.html#diff-summary" title="Summary">Summary</a>
+                </li>
+            {%- for metric in diff_data|sort %}
+                <li><a href="diff.html#div-diff-{{ metric }}" title="{{ metric }}">{{ metric }}</a></li>
+            {%- endfor %}
+            </ul>
+        </div>
+    </div>
+    {%- endif %}
+    <div id="main">
+    <div id="diff-summary" class="naarad">
+        <h3>Summary</h3>
+        <table>
+            <tr><td>Report 1: {{ reports[0].location }}</td></tr>
+            <tr><td>Report 2: {{ reports[1].location }}</td></tr>
+            </table>
+    </div>
+{%- if diff_data %}
+{%- for metric in diff_data|sort %}
+    <div id="div-diff-{{ metric }}" class="naarad">
+    <h3>{{ metric }}</h3
+    <form>
+      <input type="radio" name="radio-diff-{{ metric }}" id="radio-diff-{{ metric }}" value="%" checked onclick="switch_diff_table('{{ metric }}')">%
+      <input type="radio" name="radio-diff-{{ metric }}" value="#" onclick="switch_diff_table('{{ metric }}')">#
+    </form>
+    <table id="table-diff-percent-{{ metric }}" class="naarad-table sortable">
+      <caption>{{ metric }} : % diff</caption>
+      <thead>
+        <th>sub-metric</th>
+        {%- for header in diff_data[metric][diff_data[metric].keys()[0]].keys()|sort %}
+        <th>{{ header }}</th>
+        {%- endfor %}
+      </thead>
+      <tbody>
+        {%- for sub_metric in diff_data[metric]|sort %}
+       <tr>
+        <td>{{ sub_metric }}</td>
+        {%- for stats in diff_data[metric][sub_metric]|sort %}
+        <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">{{ diff_data[metric][sub_metric][stats]['percent_diff'] }}%</td>
+        {%- endfor %}
+       </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    <table id="table-diff-absolute-{{ metric }}" class="naarad-table sortable" hidden="true">
+    <caption>{{ metric }} : absolute diff</caption>
+    <thead>
+      <th>sub-metric</th>
+      {%- for header in diff_data[metric][diff_data[metric].keys()[0]].keys()|sort %}
+      <th>{{ header }}</th>
+      {%- endfor %}
+    </thead>
+    <tbody>
+      {%- for sub_metric in diff_data[metric]|sort %}
+      <tr>
+        <td>{{ sub_metric }}</td>
+        {%- for stats in diff_data[metric][sub_metric]|sort %}
+          <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">{{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}</td>
+        {%- endfor %}
+      </tr>
+      {%- endfor %}
+    </tbody>
+    </table>
+    </div>
+{%- endfor %}
+{%- endif %}
+  </div>
+</div>
