@@ -150,5 +150,5 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   fig.savefig(plot_file_name)
   plt.close()
   with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
-    div_file.write('<img src="' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '"/>')
+    div_file.write('<img src="' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/>')
   return True, os.path.join(output_directory, output_filename + '.div')
