@@ -232,34 +232,3 @@ class NaaradReport:
     self.datasource = []
     self.label = ''
 
-# def test_diff():
-#   diff_report = Diff([NaaradReport('http://localhost/nta-member/20140105/ela4-app0221/results/', 'Report 1'), NaaradReport('http://localhost/nta-member/20140105/ela4-app0015/results/', 'Report 2')], 'diff_report_test', '/tmp/jmeter/diff', '/tmp/jmeter/diff/resources', 'resources');
-#   diff_report.generate()
-#   return True
-#
-# logger = logging.getLogger('naarad')
-#
-# def init_logging(log_level):
-#   log_file = 'naarad.log'
-#   # clear the log file
-#   with open(log_file, 'w'):
-#     pass
-#
-#   numeric_level = getattr(logging, log_level.upper(), None) if log_level else logging.INFO
-#   if not isinstance(numeric_level, int):
-#     raise ValueError('Invalid log level: %s' % log_level)
-#
-#   logger.setLevel(logging.DEBUG)
-#   fh = logging.FileHandler(log_file)
-#   fh.setLevel(logging.DEBUG)
-#   ch = logging.StreamHandler()
-#   ch.setLevel(numeric_level)
-#   formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-#   fh.setFormatter(formatter)
-#   ch.setFormatter(formatter)
-#   logger.addHandler(fh)
-#   logger.addHandler(ch)
-#
-# init_logging('debug')
-# test_diff()
-
