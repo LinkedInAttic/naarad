@@ -1,0 +1,6 @@
+This package installs some scripts in /export/content/data/perf that
+do performance monitoring against sar at 2 second intervals, also captures /proc/meminfo, /proc/vmstat and /proc/zoneinfo.
+It will then schedule cron.d jobs to periodically dumps performance logs to that directory. 
+Every day's logs are put in a separate subdirectory, whose name is the date. 
+Logs older than 8 days will be removed. 
+It will first tries to install with 'app' user account; if 'app' does not exist, it will use 'root' instead. 
