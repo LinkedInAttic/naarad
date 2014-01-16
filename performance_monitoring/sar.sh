@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # used to generate system logs (sar logs and /proc logs) for Naarad to process
 # by default it logs 15-minute of data; and the sampling frequency is 2 seconds
 # it can accept a directory name, so that the logs will be dumped there. 
