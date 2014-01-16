@@ -28,6 +28,7 @@ from naarad.metrics.innotop_metric import INNOMetric
 from naarad.metrics.sar_metric import SARMetric
 from naarad.graphing import dygraphs
 from naarad.reporting.report import Report
+from naarad.reporting.diff import Diff, NaaradReport
 
 try:
   from naarad.naarad_imports import metric_classes, graphing_modules, device_type_metrics
@@ -168,7 +169,10 @@ def sanitize_string_section_name(string):
   string = string.replace('%', '_')
   return string
 
-
+def print_usage():
+  print ("Usage: "
+               "\n To generate a diff report      : naarad -d report1 report2 -o <output_location>"
+               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file>")
 def is_valid_metric_name(metric_name):
   """
   check the validity of metric_name in config; the metric_name will be used for creation of sub-dir, so only contains: alphabet, digits , '.', '-' and '_'
@@ -192,21 +196,31 @@ def main():
 
   arg_parser = argparse.ArgumentParser()
 
-  arg_parser.add_argument('config', help="file with specifications for each metric and graphs")
+  arg_parser.add_argument('-c', '--config', help="file with specifications for each metric and graphs")
   arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
   arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
   arg_parser.add_argument('-r', '--resource_path', help="output sub-directory where resources such as images/svg/csv etc will be stored", default='resources')
   arg_parser.add_argument('-V', '--variables', action="append", help="User defined variables (in form key=value) for substitution in the config file. Config should have the variable names in format %%(key)s")
   arg_parser.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
   arg_parser.add_argument('-l', '--log', help="log level")
+  arg_parser.add_argument('-d', '--diff', nargs=2, help="diff 2 naarad reports", metavar=("report-1", "report-2"))
   #TODO(Ritesh) : Print a list of all templates supported with descriptions
   #arg_parser.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
 
   args = arg_parser.parse_args()
-
   init_logging(args.log)
-
   if args:
+    if args.diff:
+      if not args.output_dir:
+        logger.error('No Output location specified')
+        print_usage()
+      else:
+        diff_report = Diff([NaaradReport(args.diff[0], None), NaaradReport(args.diff[1], None)], 'diff', args.output_dir, os.path.join(args.output_dir, args.resource_path), args.resource_path)
+        diff_report.generate()
+      sys.exit(0)
+    elif not args.config:
+      print_usage()
+      sys.exit(0)
     read_naarad_templates()
     # Print template config
     if args.show_config:
@@ -274,20 +288,20 @@ def main():
         ts_start = None
         ts_end = None
         precision = None
-        hostname = "localhost"        
-        
-        # section name is used to create sub-directories, so enforce it. 
+        hostname = "localhost"
+
+        # section name is used to create sub-directories, so enforce it.
         if not is_valid_metric_name(section):
           logger.critical('The section name of %s is invalid! Only letters, digits, dot(.), dash(-), underscore(_) are allowed' % section)
           sys.exit(0)
-          
+
         try:
           if config_obj.has_option(section, 'hostname'):
             hostname = config_obj.get(section, 'hostname')
-            config_obj.remove_option(section, 'hostname')     
+            config_obj.remove_option(section, 'hostname')
           else:
             logger.info('No hostname is found in section %s ' % section)
-          
+
           infile = config_obj.get(section, 'infile')
           config_obj.remove_option(section, 'infile')
           label = sanitize_string_section_name(section)
@@ -359,5 +373,7 @@ def main():
       correlated_plots = []
     rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
     rpt.generate()
+
+
 if __name__ == '__main__':
   main()

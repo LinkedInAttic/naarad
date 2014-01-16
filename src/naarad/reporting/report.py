@@ -8,15 +8,14 @@ Unless required by applicable law or agreed to in writing, software distribute
 import logging
 import os
 import shutil
-import glob
 import naarad.utils
-from jinja2 import Template, Environment, PackageLoader, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 
 logger = logging.getLogger('naarad.reporting.Report')
 
 class Report(object):
 
-  def __init__(self, report_name, output_directory, resource_directory, resource_path, metric_list, correlated_plots,  **other_options):
+  def __init__(self, report_name, output_directory, resource_directory, resource_path, metric_list, correlated_plots, **other_options):
     self.report_templates = {
       'header': 'default_report_header.html',
       'summary': 'default_summary_page.html',
@@ -34,8 +33,8 @@ class Report(object):
     self.resource_path = resource_path
     self.metric_list = metric_list
     self.correlated_plots = correlated_plots
-    self.stylesheet_includes = []
-    self.javascript_includes = ['sorttable.js', 'dygraph-combined.js']
+    self.stylesheet_includes = ['naarad.css']
+    self.javascript_includes = ['sorttable.js', 'dygraph-combined.js', 'naarad.js']
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -95,7 +94,7 @@ class Report(object):
         return False
 
   def generate_summary_page(self, template_environment, summary_html_content, coplot_html_content):
-    summary_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes, resource_path=self.resource_path) + '\n'
+    summary_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes, resource_path='.') + '\n'
     summary_html += template_environment.get_template(self.report_templates['summary']).render(metric_list=sorted(self.metric_list), summary_html_content=summary_html_content, correlated_plot_content=coplot_html_content) + '\n'
     summary_html += template_environment.get_template(self.report_templates['footer']).render()
     return summary_html
@@ -107,7 +106,8 @@ class Report(object):
   def generate_client_charting_page(self, template_environment, data_csv_list, summary_enabled):
     client_charting_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes, resource_path=self.resource_path) + '\n'
     client_charting_html += template_environment.get_template(self.report_templates['client_charting']).render(metric_list=sorted(self.metric_list),metric_data=sorted(data_csv_list),summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
-#    client_charting_html += template_environment.get_template(self.report_templates['footer']).render()
+    with open(os.path.join(self.resource_directory,'list.txt'),'w') as FH:
+      FH.write(','.join(sorted(data_csv_list)))
     return client_charting_html
 
   def get_resources_location(self):
@@ -122,6 +122,7 @@ class Report(object):
     metric_html = ''
     summary_enabled = self.enable_summary_tab()
     client_charting_data = []
+    stats_files = []
     metric_html = ''
 
     for metric in self.metric_list:
@@ -138,12 +139,13 @@ class Report(object):
 
       for metric_stats_file in metric.stats_files:
         if naarad.utils.is_valid_file(metric_stats_file) or len(metric.plot_files) > 0:
+          stats_files.append(os.path.basename(metric_stats_file))
           metric_stats = self.get_summary_table(metric_stats_file)
-          metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes, resource_path=self.resource_path)
+          metric_html = template_environment.get_template(self.report_templates['header']).render(custom_stylesheet_includes=self.stylesheet_includes, custom_javascript_includes=self.javascript_includes, resource_path='.')
           metric_html += template_environment.get_template(self.report_templates['metric']).render(metric_stats=metric_stats, plot_div_content=div_html, metric=metric.label, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
           metric_html += template_environment.get_template(self.report_templates['footer']).render()
       if metric_html != '':
-        with open(os.path.join(self.output_directory, metric.label + '_report.html'), 'w') as metric_report:
+        with open(os.path.join(self.resource_directory, metric.label + '_report.html'), 'w') as metric_report:
           metric_report.write(metric_html)
 
     for coplot in self.correlated_plots:
@@ -151,10 +153,13 @@ class Report(object):
         coplot_html_content += coplot_file.read()
 
     if summary_enabled:
-      with open(os.path.join(self.output_directory, 'summary_report.html'),'w') as summary_report:
+      with open(os.path.join(self.resource_directory, 'summary_report.html'),'w') as summary_report:
         summary_report.write(self.generate_summary_page(template_environment, summary_html_content, coplot_html_content))
 
     with open(os.path.join(self.output_directory, 'report.html'),'w') as client_charting_report:
       client_charting_report.write(self.generate_client_charting_page(template_environment, client_charting_data, summary_enabled))
+
+    with open(os.path.join(self.resource_directory,'stats.txt'),'w') as stats_file:
+      stats_file.write(','.join(stats_files))
 
     return True

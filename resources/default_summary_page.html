@@ -7,7 +7,7 @@
     {%- if metric_list %}
     <div id="menu">
         <div class="naarad-menu naarad-menu-open">
-            <a class="naarad-menu-heading" href="report.html">naarad</a>
+            <a class="naarad-menu-heading" href="../report.html">naarad</a>
             <ul>
                 <li class="naarad-menu-selected menu-item-divided">
                     <a href="summary_report.html" title="Summary">Summary</a>
@@ -27,6 +27,7 @@
         <div id="correlated-plots" class="naarad">
         <h3>Correlated Metric Plots</h3>
             {{ correlated_plot_content }}
+        <!--__insert_correlation_plots__-->
         </div>
         {%- endif %}
     </div>
