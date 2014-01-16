@@ -1,4 +1,0 @@
-# Package for collecting granular performance stats 
-*/15 * * * * app /export/content/data/perf/scripts/sar.sh
-# Clean up performance data older than 8 days
-20 08 * * * app find /export/content/data/perf -type d -regex '.*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].*' -ctime 8 | xargs rm -rf
