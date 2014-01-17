@@ -1,6 +1,8 @@
 [GC]
 infile=gc.log
 sub_metrics=appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM cmsCP cmsCS cmsCR safept apptime
+GC.sla=mean<0.05 p50<0.05 p99<0.05
+appstop.sla=mean<0.05 p50<0.05 p99<0.05
 
 [SAR-device]
 infile=sar.device.out
@@ -13,27 +15,6 @@ infile=sar.cpuusage.out
 
 [SAR-memory]
 infile=sar.memory.out
-
-[INNOTOP-R]
-#ignore=1
-infile=records.out
-options=num_inserts queries_in_queue num_reads
-
-[INNOTOP-M]
-#ignore=1
-infile=replication.out
-
-[INNOTOP-I]
-#ignore=1
-infile=iostat.out
-
-[INNOTOP-C]
-#ignore=1
-infile=command.out
-
-[INNOTOP-B]
-#ignore=1
-infile=buffer.out
 
 [JMETER]
 infile=perf-result.xml
