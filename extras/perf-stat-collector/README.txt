@@ -3,6 +3,8 @@
 
 - To run it:  python start.py  stat-collect.conf
 
-- Internally, it reads the configure file, and creates a thread for each module (e.g., SAR -DEV)
+- Internally, it reads a configure file, and creates a thread for each module (e.g., SAR-DEV)
+
 - Every day's data are dumpled into a sub-directory named with the date (e.g., 2014-01-01)
+
 - It deletes old data to save space

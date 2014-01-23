@@ -36,8 +36,6 @@ def create_modules(config_file):
         Global.PERIOD = config_obj.get(section,'period')      
       if config_obj.has_option(section,'interval'):
         Global.INTERVAL = config_obj.get(section,'interval')    
-      if config_obj.has_option(section,'http_port'):
-        Global.HTTP_PORT = config_obj.get(section,'http_port')  
       continue      
      
     # regular sections    
@@ -88,8 +86,7 @@ def runThis(module):
   cur_command = cur_command.replace('$FILE',cur_file)
   
   #print module.name, ' is running: ', cur_command
-  os.system(cur_command)
-  
+  os.system(cur_command)  
     
 def invoke_modules():  
   """

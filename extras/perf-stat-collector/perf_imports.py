@@ -6,9 +6,14 @@
 
 class Global(object):  
   DIRECTORY = '/tmp'   
-  PERIOD = 450
+  
+  # loop time of sampling, default is 15 minutes; 
+  PERIOD = 900
+  
+  # sampling frequency, in seconds; 
   INTERVAL = 2
  
+  # days to keep the stat
   KEEP_DAYS = 8  
   
   # the sub directory will be 'perf-results-2014-01-02'
