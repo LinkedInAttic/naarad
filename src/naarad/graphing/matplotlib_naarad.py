@@ -28,7 +28,7 @@ def convert_to_mdate(date_str):
 # MPL-WA-07
 # matplotlib does not rotate colors correctly when using multiple y axes. This method fills in that gap.
 def get_current_color(index):
-  colors = ['black', 'orange', 'steelblue', 'm', 'red', 'cyan', 'g', 'gray']
+  colors = ['black', 'steelblue', 'm', 'red', 'cyan', 'g', 'orange', 'gray']
   return colors[index % len(colors)]
 
 
@@ -62,93 +62,65 @@ def curate_plot_list(plots):
     plots.remove(node)
   return plots
 
+
 def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   plots = curate_plot_list(list_of_plots)
   plot_count = len(plots)
-
   if plot_count == 0:
     return False, None
-
   graph_height, graph_width, graph_title = get_graph_metadata(list_of_plots)
-
-# MPL-WA-01
-# When working with host_subplot to create multiple y axis, matplotlib does not always honor calls to format axis. \
-# Setting matplotlib default preferences which are always (or appear to be for the most part) honored as a workaround.
-  mpl.rcParams['lines.linewidth'] = 1.5
-  mpl.rcParams['xtick.labelsize'] = 8
-  mpl.rcParams['ytick.labelsize'] = 8
-  mpl.rcParams['axes.labelsize'] = 8
-  mpl.rcParams['axes.grid'] = True
-
   current_plot_count = 0
-  plots_in_error = 0
-# MPL-WA-02
-# Use subplot when dealing with plots with 1 or 2 y axis. This gives better control over formatting of axis/labels etc.
-# subplot does not support more than 2 y-axis
-  if plot_count <= 2:
-    fig, axis = plt.subplots()
-    fig.set_size_inches(graph_width, graph_height)
-    fig.subplots_adjust(left=0.05, bottom=0.1)
-    current_axis = axis
-    for plot in plots:
-      current_plot_count += 1
-      logger.info('Processing: ' + plot.input_csv + ' [ ' + output_filename + ' ]')
-      timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})
-      if current_plot_count > 1:
-        current_axis = axis.twinx()
-        current_axis.yaxis.grid(False)
-      current_axis.set_ylabel(plot.y_label, color=get_current_color(current_plot_count))
-      if plot.graph_type == 'line':
-        current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
-      else:
-        current_axis.plot_date(x=timestamp, y=yval, marker='.', color=get_current_color(current_plot_count))
-      y_ticks = current_axis.get_yticklabels()
-      for y_tick in y_ticks:
-        y_tick.set_color(get_current_color(current_plot_count))
+  fig, axis = plt.subplots()
+  fig.set_size_inches(graph_width, graph_height)
+  if plot_count < 2:
+    fig.subplots_adjust(left=0.05, bottom=0.1, right=0.95)
   else:
-# MPL-WA-03
-# Use host_subplot when dealing with more than 2 y axis. Formatting of these additional axis is done via MPL-WA-01
-    fig = plt.figure()
-    host = host_subplot(111, axes_class=AA.Axes)
-    axis_offset = 50
-    fig.subplots_adjust(left=0.05, right=1-0.05*plot_count, bottom=0.1)
-    fig.set_size_inches(graph_width, graph_height)
-    for plot in plots:
-      current_plot_count += 1
-      logger.info('Processing: ' + plot.input_csv  + ' [ ' + output_filename + ' ]')
-      timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0:convert_to_mdate})
-# MPL-WA-04
-# Fix matplotlib buggy auto-scale behavior when working with multiple y axis and series with low variance
-# MPL-WA-05
-# Improved visibility for tightly correlated series
-      maximum_yvalue = numpy.amax(yval) * (1.0 + 0.005 * current_plot_count)
-      minimum_yvalue = numpy.amin(yval) * (1.0 - 0.005 * current_plot_count)
-      if current_plot_count == 1:
-        current_axis = host
-      else:
-        current_axis = host.twinx()
-        new_y_axis = current_axis.get_grid_helper().new_fixed_axis
-        current_axis.axis['right'] = new_y_axis(loc='right', axes=current_axis, offset=((current_plot_count-2) * axis_offset, 0))
-        current_axis.axis['right'].toggle(all=True)
-      current_axis.set_ylabel(plot.y_label, color=get_current_color(current_plot_count))
-      current_axis.set_ylim([minimum_yvalue, maximum_yvalue])
-      if plot.graph_type == 'line':
-        current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
-      else:
-        current_axis.plot_date(x=timestamp, y=yval, linestyle=None, marker='.', color=get_current_color(current_plot_count))
-  if plots_in_error == plot_count:
-    return False, None
-  plt.title(graph_title)
-  plt.xlabel('Time')
-# MPL-WA-06
-# matplotlib does not support rotation of tick labels when using host_subplot (MPL-WA-03). So reducing the time format \
-# to %H:%M:%S. For the MPL-WA-02 scenario we have formatting options available that could be leveraged to display more \
-# time information such as day/month/year
+    fig.subplots_adjust(left=0.05, bottom=0.1, right=0.95 - 0.04 * (plot_count - 2))
+  current_axis = axis
+  for plot in plots:
+    current_plot_count += 1
+    logger.info('Processing: ' + plot.input_csv + ' [ ' + output_filename + ' ]')
+    timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})
+    # maximum_yvalue = numpy.amax(yval) * (1.0 + 0.005 * current_plot_count)
+    maximum_yvalue = numpy.amax(yval)
+    # minimum_yvalue = numpy.amin(yval) * (1.0 - 0.005 * current_plot_count)
+    minimum_yvalue = numpy.amin(yval)
+
+    if current_plot_count == 0:
+      current_axis.yaxis.set_ticks_position('left')
+    if current_plot_count > 1:
+      current_axis = axis.twinx()
+      current_axis.yaxis.grid(False)
+      #Set right y-axis for additional plots
+      current_axis.yaxis.set_ticks_position('right')
+      #Offset the right y axis to avoid overlap
+      current_axis.spines['right'].set_position(('axes', 1 + 0.06 * (current_plot_count-2)))
+      current_axis.spines['right'].set_smart_bounds(False)
+      current_axis.spines['right'].set_color(get_current_color(current_plot_count))
+      current_axis.set_frame_on(True)
+      current_axis.patch.set_visible(False)
+    current_axis.set_ylabel(plot.y_label, color=get_current_color(current_plot_count), fontsize=10)
+    current_axis.set_ylim([minimum_yvalue, maximum_yvalue])
+    if plot.graph_type == 'line':
+      current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
+    else:
+      current_axis.plot_date(x=timestamp, y=yval, marker='.', color=get_current_color(current_plot_count))
+    y_ticks = current_axis.get_yticklabels()
+    for y_tick in y_ticks:
+      y_tick.set_color(get_current_color(current_plot_count))
+      y_tick.set_fontsize(8)
+    for x_tick in current_axis.get_xticklabels():
+      x_tick.set_fontsize(8)
+  axis.yaxis.grid(True)
+  axis.xaxis.grid(True)
+  axis.set_title(graph_title)
+  axis.set_xlabel('Time')
   x_date_format = mdates.DateFormatter('%H:%M:%S')
-  current_axis.xaxis.set_major_formatter(x_date_format)
+  axis.xaxis.set_major_formatter(x_date_format)
   plot_file_name = os.path.join(output_directory, output_filename + ".png")
   fig.savefig(plot_file_name)
   plt.close()
+  #Create html fragment to be used for creation of the report
   with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
-    div_file.write('<img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '"/>')
+    div_file.write('<img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/>')
   return True, os.path.join(output_directory, output_filename + '.div')
