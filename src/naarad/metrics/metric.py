@@ -30,12 +30,12 @@ class Metric(object):
   
   sub_metrics = None   #users can specify what sub_metrics to process/plot;  
 
-  sla_list = []
   calculated_stats = {}
   calculated_percentiles = {}
 
   def __init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, **other_options):
+    self.sla_list = []
     self.metric_type = metric_type
     self.infile = infile
     self.hostname = hostname
