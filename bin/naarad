@@ -30,10 +30,11 @@ from naarad.graphing import dygraphs
 from naarad.reporting.report import Report
 
 try:
-  from naarad.naarad_imports import metric_classes, graphing_modules, device_type_metrics
+  from naarad.naarad_imports import metric_classes, aggregate_metric_classes, graphing_modules, device_type_metrics
 except ImportError:
   metric_classes = {}
   graphing_modules = {}
+  aggregate_metric_classes = {}
 
 #Naarad pre-defined
 metric_classes['GC'] = GCMetric
@@ -103,7 +104,8 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
   if metric.outdir is None:
     metric.outdir = os.path.normpath(outdir_default)
     
-  # handling both cases of local file or http download. 
+  # get the abs path of infile;   
+  # if it is http, the infile will be changed inside metric.collect() to point to downloaded location in Metric.py
   if not metric.infile.startswith('http://')  \
     and not metric.infile.startswith('https://'): 
     metric.infile = os.path.join(indir_default, metric.infile)
@@ -183,7 +185,8 @@ def is_valid_metric_name(metric_name):
     return False
   
 def main():
-  metrics = []
+  metrics = []   #regular metrics
+  aggregate_metrics = []  # aggregate metrics 
   crossplots = []
   filler = '' 
   graph_timezone = None
@@ -291,10 +294,13 @@ def main():
             config_obj.remove_option(section, 'hostname')     
           else:
             logger.info('No hostname is found in section %s ' % section)
-          
-          infile = config_obj.get(section, 'infile')
-          config_obj.remove_option(section, 'infile')
+
           label = sanitize_string_section_name(section)
+          
+          #'infile' is not mandatory now for aggregate metrics
+          if config_obj.has_option(section,'infile'):
+            infile = config_obj.get(section, 'infile')
+            config_obj.remove_option(section, 'infile')
           if config_obj.has_option(section, 'ts_start'):
             ts_start = config_obj.get(section, 'ts_start')
             config_obj.remove_option(section, 'ts_start')
@@ -304,6 +310,15 @@ def main():
           if config_obj.has_option(section, 'precision'):
             precision = config_obj.get(section, 'precision')
             config_obj.remove_option(section, 'precision')
+            
+          #support aggregate metrics, which take aggr_hosts and aggr_metrics
+          if config_obj.has_option(section, 'aggr_hosts'):
+            aggr_hosts = config_obj.get(section, 'aggr_hosts')
+            config_obj.remove_option(section, 'aggr_hosts')
+          if config_obj.has_option(section, 'aggr_metrics'):
+            aggr_metrics = config_obj.get(section, 'aggr_metrics')
+            config_obj.remove_option(section, 'aggr_metrics')
+                                    
           kwargs = dict(config_obj.items(section))
           for key in kwargs.keys():
             if key.endswith('.sla'):
@@ -321,17 +336,24 @@ def main():
         else:
           #TODO: Make user specify metric_type in config and not infer from section
           metric_type = section.split('-')[0]
-          if not metric_type in metric_classes:
-            new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
-          else:
+          if metric_type in metric_classes:  #regular metrics
             new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+          elif metric_type in aggregate_metric_classes:       #aggregate metrics     
+            new_metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+          else:            # new metrics. 
+            new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
             new_metric.ignore = True
           if config_obj.has_option(section, 'calc_metrics'):
             new_metric.calc_metrics = config_obj.get(section, 'calc_metrics')
           new_metric.bin_path = bin_path
           new_metric.precision = precision
-          metrics.append(new_metric)
+          
+          # put metrics in different thread groups 
+          if metric_type in aggregate_metric_classes:
+            aggregate_metrics.append(new_metric)
+          else:
+            metrics.append(new_metric)
 
     if outdir_default:
       try:
@@ -361,6 +383,16 @@ def main():
       threads.append(thread)
     for t in threads:
       t.join()
+      
+    #handling CLUSTER metric and other aggregate metrics, which has to wait for all regular metric threads to complete.   
+    for metric in aggregate_metrics:
+      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
+      thread.start()
+      threads.append(thread)
+    for t in threads:
+      t.join()
+    
+    # all threads are done
     if len(crossplots) > 0:
       correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path, filler)
     else:
