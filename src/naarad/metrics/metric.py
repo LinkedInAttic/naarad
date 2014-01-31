@@ -30,7 +30,6 @@ class Metric(object):
   
   sub_metrics = None   #users can specify what sub_metrics to process/plot;  
 
-  sla_list = []
   calculated_stats = {}
   calculated_percentiles = {}
 
@@ -60,6 +59,7 @@ class Metric(object):
     self.sub_metric_description = defaultdict(lambda: 'None')  # the description of the submetrics. 
     self.sub_metric_unit = defaultdict(lambda: 'None')      # the unit of the submetrics.  The plot will have the Y-axis being: Metric name (Unit), 
     self.important_sub_metrics = ()
+    self.sla_list = []
     for (key, val) in rule_strings.iteritems():
       self.set_sla(key, val)
     if other_options:
