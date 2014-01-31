@@ -14,6 +14,7 @@ import matplotlib.dates as mdates
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
 import logging
+import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.graphing.matplotlib')
 
@@ -28,8 +29,7 @@ def convert_to_mdate(date_str):
 # MPL-WA-07
 # matplotlib does not rotate colors correctly when using multiple y axes. This method fills in that gap.
 def get_current_color(index):
-  colors = ['black', 'steelblue', 'm', 'red', 'cyan', 'g', 'orange', 'gray']
-  return colors[index % len(colors)]
+  return CONSTANTS.COLOR_PALETTE[index % len(CONSTANTS.COLOR_PALETTE)]
 
 
 def get_graph_metadata(plots):
@@ -73,18 +73,16 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   fig, axis = plt.subplots()
   fig.set_size_inches(graph_width, graph_height)
   if plot_count < 2:
-    fig.subplots_adjust(left=0.05, bottom=0.1, right=0.95)
+    fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET)
   else:
-    fig.subplots_adjust(left=0.05, bottom=0.1, right=0.95 - 0.04 * (plot_count - 2))
+    fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET - CONSTANTS.Y_AXIS_OFFSET * (plot_count - 2))
   current_axis = axis
   for plot in plots:
     current_plot_count += 1
     logger.info('Processing: ' + plot.input_csv + ' [ ' + output_filename + ' ]')
     timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})
-    # maximum_yvalue = numpy.amax(yval) * (1.0 + 0.005 * current_plot_count)
-    maximum_yvalue = numpy.amax(yval)
-    # minimum_yvalue = numpy.amin(yval) * (1.0 - 0.005 * current_plot_count)
-    minimum_yvalue = numpy.amin(yval)
+    maximum_yvalue = numpy.amax(yval) * (1.0 + CONSTANTS.ZOOM_FACTOR * current_plot_count)
+    minimum_yvalue = numpy.amin(yval) * (1.0 - CONSTANTS.ZOOM_FACTOR * current_plot_count)
 
     if current_plot_count == 0:
       current_axis.yaxis.set_ticks_position('left')
@@ -94,12 +92,12 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
       #Set right y-axis for additional plots
       current_axis.yaxis.set_ticks_position('right')
       #Offset the right y axis to avoid overlap
-      current_axis.spines['right'].set_position(('axes', 1 + 0.06 * (current_plot_count-2)))
+      current_axis.spines['right'].set_position(('axes', 1 + CONSTANTS.Y_AXIS_OFFSET * (current_plot_count-2)))
       current_axis.spines['right'].set_smart_bounds(False)
       current_axis.spines['right'].set_color(get_current_color(current_plot_count))
       current_axis.set_frame_on(True)
       current_axis.patch.set_visible(False)
-    current_axis.set_ylabel(plot.y_label, color=get_current_color(current_plot_count), fontsize=10)
+    current_axis.set_ylabel(plot.y_label, color=get_current_color(current_plot_count), fontsize=CONSTANTS.Y_LABEL_FONTSIZE)
     current_axis.set_ylim([minimum_yvalue, maximum_yvalue])
     if plot.graph_type == 'line':
       current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
@@ -108,14 +106,14 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
     y_ticks = current_axis.get_yticklabels()
     for y_tick in y_ticks:
       y_tick.set_color(get_current_color(current_plot_count))
-      y_tick.set_fontsize(8)
+      y_tick.set_fontsize(CONSTANTS.Y_TICKS_FONTSIZE)
     for x_tick in current_axis.get_xticklabels():
-      x_tick.set_fontsize(8)
+      x_tick.set_fontsize(CONSTANTS.X_TICKS_FONTSIZE)
   axis.yaxis.grid(True)
   axis.xaxis.grid(True)
   axis.set_title(graph_title)
   axis.set_xlabel('Time')
-  x_date_format = mdates.DateFormatter('%H:%M:%S')
+  x_date_format = mdates.DateFormatter(CONSTANTS.X_TICKS_DATEFORMAT)
   axis.xaxis.set_major_formatter(x_date_format)
   plot_file_name = os.path.join(output_directory, output_filename + ".png")
   fig.savefig(plot_file_name)
