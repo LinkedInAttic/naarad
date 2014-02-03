@@ -35,7 +35,6 @@ class Metric(object):
 
   def __init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, **other_options):
-    self.sla_list = []
     self.metric_type = metric_type
     self.infile = infile
     self.hostname = hostname
