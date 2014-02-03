@@ -111,8 +111,7 @@ class Metric(object):
         logger.error("The given url of {0} is invalid.\n".format(self.infile))
         return False
     else:   
-      self.collect_local()
-      return True
+      return self.collect_local()
 
   def get_csv(self, column):
     col = naarad.utils.sanitize_string(column)
