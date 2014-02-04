@@ -117,7 +117,7 @@
 # cmsIM(s)    - CMS initial mark pause
 # cmsRM(s)    - CMS remark pause
 # cmsRS(s)    - CMS resize pause
-# GC(s)       - all stop-the-world GC pauses
+# GCPause(s)       - all stop-the-world GC pauses
 # cmsCM(s)    - CMS concurrent mark phase
 # cmsCP(s)    - CMS concurrent preclean phase
 # cmsCS(s)    - CMS concurrent sweep phase
@@ -127,6 +127,9 @@
 # used0(MB)   - young gen used memory size (before gc)
 # used1(MB)   - old gen used memory size (before gc)
 # used(MB)    - heap space used memory size (before gc) (excludes perm gen)
+# used0AfterGC(MB)   - young gen used memory size (after gc)
+# used1AfterGC(MB)   - old gen used memory size (after gc)
+# usedAfterGC(MB)    - heap space used memory size (after gc) (excludes perm gen)
 # commit0(MB) - young gen committed memory size (after gc)
 # commit1(MB) - old gen committed memory size (after gc)
 # commit(MB)  - heap committed memory size (after gc) (excludes perm gen)
@@ -219,6 +222,9 @@ BEGIN {
   MB_c0_idx = ++i;	# MB committed for gen0
   MB_c1_idx = ++i;	# MB committed for gen1
   MB_ch_idx = ++i;	# MB committed for entire heap
+  MB_used0AfterGC_idx = ++i;	# MB used in young gen
+  MB_used1AfterGC_idx = ++i;	# MB used in old gen
+  MB_usedhAfterGC_idx = ++i;	# MB used in heap (occupancy)
 
   safept_idx = ++i;	# Time application threads were stopped at a safepoint,
   			# from -XX:+TraceGCApplicationStoppedTime
@@ -260,7 +266,7 @@ BEGIN {
   name_v[cmsIM_idx]	= "cmsIM";
   name_v[cmsRM_idx]	= "cmsRM";
   name_v[cmsRS_idx]	= "cmsRS";
-  name_v[totgc_idx]	= "GC";
+  name_v[totgc_idx]	= "GCPause";
   name_v[cmsCM_idx]	= "cmsCM";
   name_v[cmsCP_idx]	= "cmsCP";
   name_v[cmsCS_idx]	= "cmsCS";
@@ -270,6 +276,9 @@ BEGIN {
   name_v[MB_used0_idx]	= "used0";
   name_v[MB_used1_idx]	= "used1";
   name_v[MB_usedh_idx]	= "used";
+  name_v[MB_used0AfterGC_idx]	= "used0AfterGC";
+  name_v[MB_used1AfterGC_idx]	= "used1AfterGC";
+  name_v[MB_usedhAfterGC_idx]	= "usedAfterGC";
   name_v[MB_c0_idx]	= "commit0";
   name_v[MB_c1_idx]	= "commit1";
   name_v[MB_ch_idx]	= "commit";
@@ -541,6 +550,7 @@ function recordGen0Kb(str, allow_3_sizes) {
 #  print $0;
 #  print tmp_mb[0],tmp_mb[1],gen0_sizes[0],gen0_sizes[1];
   recordStats(MB_used0_idx, tmp_mb[0]);
+  recordStats(MB_used0AfterGC_idx, tmp_mb[1]);
   recordStats(MB_a_idx, tmp_mb[0] - gen0_sizes[1]);
   # Gen0 committed size.
   recordStats(MB_c0_idx, tmp_mb[2]);
@@ -577,6 +587,7 @@ function recordGen0Kb(str, allow_3_sizes) {
   recordStats(MB_p_idx, mb_promo);
   # Occupancy (the before gc value is used).
   recordStats(MB_usedh_idx, tmp_mb[0]);
+  recordStats(MB_usedhAfterGC_idx, tmp_mb[1]);
   # Total heap committed size.
   recordStats(MB_ch_idx, tmp_mb[2]);
   # Gen1 committed size.
@@ -757,11 +768,13 @@ $0 ~ "\\[GC.*\\[" fw_yng_gen_re ": " heap_report_re "\\].*\\[" fw_old_gen_re ": 
   tInt = sub(".*\\[" fw_old_gen_re ": ", "", tString);
   parseHeapSizes(tmp_mb, tString);
   recordStats(MB_used1_idx, tmp_mb[0]);
+  recordStats(MB_used1AfterGC_idx, tmp_mb[1]);
 
   # Heap occupancy before GC.
   tInt = sub(heap_report_re "\\] ", "", tString);
   parseHeapSizes(tmp_mb, tString);
   recordStats(MB_usedh_idx, tmp_mb[0]);
+  recordStats(MB_usedhAfterGC_idx, tmp_mb[1]);
 
   printInterval();
   next;
@@ -784,11 +797,13 @@ $0 ~ full_gc_re timestamp_re ".*\\[" fw_old_gen_re ": " heap_report_re "\\] " he
   tInt = sub(".*\\[" fw_old_gen_re ": ", "", tString);
   parseHeapSizes(tmp_mb, tString);
   recordStats(MB_used1_idx, tmp_mb[0]);
+  recordStats(MB_used1AfterGC_idx, tmp_mb[1]);
 
   # Heap occupancy before GC.
   tInt = sub(heap_report_re "\\] ", "", tString);
   parseHeapSizes(tmp_mb, tString);
   recordStats(MB_usedh_idx, tmp_mb[0]);
+  recordStats(MB_usedhAfterGC_idx, tmp_mb[1]);
 
   printInterval();
   next;
@@ -919,11 +934,13 @@ $0 ~ full_gc_re "\\[PSYoungGen: +" heap_size_status_re "\\] \\[(PS|Par)OldGen: +
   tInt = sub(".*\\[(PS|Par)OldGen: +", "", tString);
   parseHeapSizes(tmp_mb, tString);
   recordStats(MB_used1_idx, tmp_mb[0]);
+  recordStats(MB_used1AfterGC_idx, tmp_mb[1]);
 
   # Heap occupancy before GC.
   tInt = sub(heap_size_status_re "\\] ", "", tString);
   parseHeapSizes(tmp_mb, tString);
   recordStats(MB_usedh_idx, tmp_mb[0]);
+  recordStats(MB_usedhAfterGC_idx, tmp_mb[1]);
 
   printInterval();
   next;
