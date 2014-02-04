@@ -24,8 +24,8 @@ Naarad is a framework for performance analysis & rating of sharded & stateful se
 * Web application and command line interface
 * Diff Support ( Baseline comparison ) 
 * Searchable test results
-* Auto correlation + analysis of performance bottleneck
-* Data aggregation + persistence for C2S
+* Auto correlation
+* Data aggregation & persistence 
 
 
 
