@@ -24,6 +24,7 @@ class SLA(object):
     self.sla_type = sla_type
     self.is_processed = False
     self.sla_passed = None
+    self.stat_value = None
 
   def __str__(self):
     return "{0} of {1}, threshold: {2}, sla_type: {3}, sla_passed: {4}".format(self.stat_name, self.sub_metric, self.threshold, self.sla_type, self.sla_passed)
