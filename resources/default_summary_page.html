@@ -1,34 +1,52 @@
-<body>
-<div id="layout">
-    <!-- Menu toggle -->
-    <a href="#menu" id="menuLink" class="naarad-menu-link">
-        <span></span>
-    </a>
-    {%- if metric_list %}
-    <div id="menu">
-        <div class="naarad-menu naarad-menu-open">
-            <a class="naarad-menu-heading" href="report.html">naarad</a>
-            <ul>
-                <li class="naarad-menu-selected menu-item-divided">
-                    <a href="summary_report.html" title="Summary">Summary</a>
-                </li>
+<body data-spy="scroll" data-target=".topbar" data-offset="90">
+<div class="topbar navbar navbar-fixed-top navbar-inverse">
+  <div class="navbar-inner">
+   <div class="container">
+    <div class="topbar-content">
+
+    <a class="brand" href="https://github.com/linkedin/naarad">naarad</a>
+
+    <ul class="nav">
+        <li class="active">
+            <a href="summary_report.html" title="Summary">
+                <span>Summary</span>
+            </a>
+        </li>
+
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <span>Metrics</span>
+                <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
                 {%- for metric_name in metric_list %}
-                <li><a href="{{ metric_name.label }}_report.html" title="{{ metric_name.label }}">{{ metric_name.label }}</a></li>
+                <li>
+                    <a href="{{ metric_name.label }}_report.html">
+                        <span>{{ metric_name.label }}</span>
+                    </a>
+                </li>
                 {%- endfor %}
             </ul>
-        </div>
-    </div>
-    {%- endif %}
-    <div id="main">
-        {%- if summary_html_content %}
+        </li>
+        <li><a href="report.html"><span>Chart</span></a></li>
+    </ul>
+    </div><!-- /topbar-content -->
+   </div><!-- /container -->
+ </div><!-- /topbar-inner -->
+</div><!-- /topbar -->
+<div class="container">
+  <div class="content">
+      {%- if summary_html_content %}
           {{ summary_html_content }}
-        {%- endif %}
-        {%- if correlated_plot_content %}
-        <div id="correlated-plots" class="naarad">
-        <h3>Correlated Metric Plots</h3>
+      {%- endif %}
+      {%- if correlated_plot_content %}
+          <div id="correlated-plots" class="row">
+          <div id="correlated-plots-span" class="span12">
+            <h3>Correlated Metric Plots</h3>
             {{ correlated_plot_content }}
-        </div>
-        {%- endif %}
+          </div>
+          </div>
+      {%- endif %}
     </div>
 </div>
-</body>
+

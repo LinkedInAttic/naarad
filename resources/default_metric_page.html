@@ -1,64 +1,88 @@
-<body>
-<div id="layout">
+<body data-spy="scroll" data-target=".topbar" data-offset="90">
+<div class="topbar navbar navbar-fixed-top navbar-inverse">
+  <div class="navbar-inner">
+   <div class="container">
+    <div class="topbar-content">
 
-    <a href="#menu" id="menuLink" class="naarad-menu-link">
-        <span></span>
-    </a>
-    {%- if metric_list %}
-    <div id="menu">
-        <div class="naarad-menu naarad-menu-open">
-            <a class="naarad-menu-heading" href="report.html">naarad</a>
-            <ul>
-                {% if summary_enabled %}
-                <li><a href="summary_report.html" title="Summary">Summary</a></li>
-                {% endif %}
+    <a class="brand" href="https://github.com/linkedin/naarad">naarad</a>
+
+    <ul class="nav">
+        {% if summary_enabled %}
+        <li>
+            <a href="summary_report.html" title="Summary">
+                <span>Summary</span>
+            </a>
+        </li>
+        {% endif %}
+        <li class="active dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <span>Metrics</span>
+                <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
                 {%- for metric_name in metric_list %}
-                {%- if metric_name.label == metric %}
-                <li class="naarad-menu-selected menu-item-divided">
-                <a href="{{ metric_name.label }}_report.html" title="{{ metric_name.label }}">{{ metric_name.label }}</a>
+                <li>
+                    <a href="{{ metric_name.label }}_report.html">
+                        <span>{{ metric_name.label }}</span>
+                    </a>
                 </li>
-                {%- else %}
-                <li><a href="{{ metric_name.label }}_report.html" title="{{ metric_name.label }}">{{ metric_name.label }}</a></li>
-                {%- endif %}
                 {%- endfor %}
             </ul>
+        </li>
+        <li><a href="report.html"><span>Chart</span></a></li>
+    </ul>
+    </div><!-- /topbar-content -->
+   </div><!-- /container -->
+ </div><!-- /topbar-inner -->
+</div><!-- /topbar -->
+<div class="container">
+  <div class="content">
+    <div id="{{ metric }}-header" class="row">
+        <div id="{{ metric }}-header-span" class="span12">
+            <h2 class="content-title">
+                <span class="text">{{ metric }}</span>
+            </h2>
         </div>
     </div>
+    {%- if metric_stats %}
+    <div id="{{ metric }}-summary-table" class="row">
+        <div id="{{ metric }}-summary-table-span" class="span12">
+        <h3>Metrics Summary</h3>
+        <div style="overflow-x:auto;">
+        <table class="table table-hover table-striped table-bordered sortable">
+            <thead>
+                <tr>
+                {%- for header in metric_stats[0] %}
+                    <th>{{ header }}</th>
+                {%- endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in range(1,metric_stats|length) %}
+                    <tr>
+                    {%- for row_data in metric_stats[row] %}
+                        <td>{{ row_data }}</td>
+                    {%- endfor %}
+                    </tr>
+                {%- endfor %}
+            </tbody>
+            <tfoot></tfoot>
+        </table>
+        </div>
+      </div>
+    </div>
     {%- endif %}
-    <div id="main">
-{%- if metric_stats %}
-<div id="{{ metric }}-summary-table" class="naarad">
-<h3>Metrics Summary</h3>
-<table class="naarad-table sortable">
-<thead><tr>
-{%- for header in metric_stats[0] %}
-<th>{{ header }}</th>
-{%- endfor %}
-</tr>
-</thead>
-<tbody>
-{% for row in range(1,metric_stats|length) %}
-<tr>
-{%- for row_data in metric_stats[row] %}
 
-<td>{{ row_data }}</td>
-{%- endfor %}
-</tr>
-{%- endfor %}
-</tbody>
-<tfoot></tfoot>
-</table>
-</div>
-{%- endif %}
+    {%- if plot_div_content %}
+    <div id="{{ metric }}-metric-plots" class="row">
+      <div id="{{ metric }}-metric-plots-span" class="span12">
+    <h3>Metric Plots</h3>
+    <p>
+        {{ plot_div_content }}
+    </p>
+    </div>
+    </div>
+    {%- endif %}
 
-{%- if plot_div_content %}
-<div id="{{ metric }}-metric-plots" class="naarad">
-<h3>Metric Plots</h3>
-<p>
-{{ plot_div_content }}
-</p>
-</div>
-{%- endif %}
-
-</div>
+    </div>
 </div>
