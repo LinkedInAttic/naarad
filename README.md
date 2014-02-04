@@ -1,4 +1,35 @@
 # Naarad #
+
+## What is Naarad ? ##
+
+Naarad is a framework for performance analysis & rating of sharded & stateful services
+
+## Why Naarad ? ##
+
+* Scalability / Headroom Rating 
+
+* Continuous Integration ( Performance )
+
+* Performance Investigation 
+
+
+## Key Features ##
+
+* Standard (Jmeter) & Custom Workload support
+* Mixed workload including multi-tenants
+* Hooks for Failure & fail-over injection
+* Replay production workload
+* Performance metric collection & aggregation
+* Rule based performance rating 
+* Web application and command line interface
+* Diff Support ( Baseline comparison ) 
+* Searchable test results
+* Auto correlation + analysis of performance bottleneck
+* Data aggregation + persistence for C2S
+
+
+
+
 Naarad is a highly configurable system analysis tool that parses and plots timeseries data for better visual correlation. 
 It can be used for performance analysis of your service/application.
 You collect data for the metrics you want to monitor and:
