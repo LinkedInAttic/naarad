@@ -1,82 +1,109 @@
-<body>
-    <script>
+<body data-spy="scroll" data-target=".topbar" data-offset="90">
+<div class="topbar navbar navbar-fixed-top navbar-inverse">
+  <div class="navbar-inner">
+   <div class="container">
+    <div class="topbar-content">
+
+    <a class="brand" href="https://github.com/linkedin/naarad">naarad</a>
+
+    <ul class="nav">
+        {% if summary_enabled %}
+        <li>
+            <a href="summary_report.html" title="Summary">
+                <span>Summary</span>
+            </a>
+        </li>
+        {% endif %}
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <span>Metrics</span>
+                <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
+                {%- for metric_name in metric_list %}
+                <li>
+                    <a href="{{ metric_name.label }}_report.html">
+                        <span>{{ metric_name.label }}</span>
+                    </a>
+                </li>
+                {%- endfor %}
+            </ul>
+        </li>
+        <li class="active"><a href="report.html"><span>Chart</span></a></li>
+    </ul>
+    </div><!-- /topbar-content -->
+   </div><!-- /container -->
+ </div><!-- /topbar-inner -->
+</div><!-- /topbar -->
+<div class="container">
+  <div class="content">
+    <div id="selection-div" class="row">
+      <div class="span3">
+        <label>
+            <select id="select-chart-1" onchange="plot('select-chart-1','charting-div-1',0,false)">
+                <option selected disabled hidden value=''>Select...</option>
+                {%- for data_series in metric_data %}
+                <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+      </div>
+      <div class="span3">
+        <label>
+            <select id="select-chart-2" onchange="plot('select-chart-2','charting-div-2',1,false)">
+                <option selected disabled hidden value=''>Select...</option>
+                {%- for data_series in metric_data %}
+                <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
+                {% endfor %}
+            </select>
+        </label>
+     </div>
+   </div>
+    <div id="labels-charting-div-1"></div>
+    <div id="charting-div-1" style="height:50%; width:100%;" class="row"></div>
+     <div id="labels-charting-div-2"></div>
+   <div id="charting-div-2" style="height:50%; width:100%;" class="row"></div>
+  </div>
+</div>
+<script>
       var colorSets = [
       ["#1F78B4", "#B2DF8A", "#A6CEE3"],
       ["#993399", "#B3CDE3", "#CCEBC5"],
       null
       ]
-      function plot(selector_id, div_id, colorset_id)
+      function plot(selector_id, div_id, colorset_id, advanced_source)
       {
         var chart_data_selector = document.getElementById(selector_id);
-        var chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
-        var chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
+        var chart_data_source = "";
+        var chart_data_title = "" ;
+        chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
+        chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
+
         var div_width = document.getElementById(div_id).clientWidth;
         var div_height = document.getElementById(div_id).clientHeight;
         chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,
         {
           axes : {
             x : {
-                  valueFormatter: Dygraph.dateString__,
                   ticker: Dygraph.dateTicker
                 },
             y : {
                   drawGrid: true
-            }
-            },
+                }
+          },
+          legend: 'always',
           xValueParser: function(x) {
              var date_components = x.split(/[^0-9]/);
              return new Date(date_components[0], date_components[1]-1, date_components[2], date_components[3], date_components[4], date_components[5], date_components[6] || 0).getTime();
           },
-          ylabel: chart_data_title,
           xlabel: "Time",
           colors: colorSets[colorset_id],
-          labels: [ "Time", chart_data_title]
+          labels: [ "Time", chart_data_title],
+          labelsDiv: "labels-" + div_id
         }
         );
         chart_1.resize(div_width, window.screen.height*0.75/2)
       }
     </script>
-<div id="layout">
-    <!-- Menu toggle -->
-    <a href="#menu" id="menuLink" class="naarad-menu-link">
-        <span></span>
-    </a>
-    {%- if metric_list %}
-    <div id="menu">
-        <div class="naarad-menu naarad-menu-open">
-            <a class="naarad-menu-heading" href="report.html">naarad</a>
-            <ul>
-                {% if summary_enabled %}
-                <li><a href="summary_report.html" title="Summary">Summary</a></li>
-                {% endif %}
-                {%- for metric_name in metric_list %}
-                <li><a href="{{ metric_name.label }}_report.html" title="{{ metric_name.label }}">{{ metric_name.label }}</a></li>
-                {%- endfor %}
-            </ul>
-        </div>
-    </div>
-    {%- endif %}
-<div id="main" style="margin-top:0px; margin-left:0px;">
-    <div id="selection-div">
-      <label>
-        <select id="select-chart-1">
-          {%- for data_series in metric_data %}
-          <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <button type="button" onclick="plot('select-chart-1','charting-div-1',0)">plot</button>
-      <label>
-        <select id="select-chart-2">
-          {%- for data_series in metric_data %}
-          <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <button type="button" onclick="plot('select-chart-2','charting-div-2',1)">plot</button>
-    </div>
-    <div id="charting-div-1" style="height:50%; width:100%;"></div>
-    <div id="charting-div-2" style="height:50%; width:100%;"></div>
-  </div>
-</div>
 </body>
