@@ -7,14 +7,29 @@ Unless required by applicable law or agreed to in writing, software distribute
 """
 
 import logging
-from naarad.run_types.run_type import Run_Step
+import shlex
+import subprocess
+from naarad.run_steps.run_step import Run_Step
 
-logger = logging.getLogger('naarad.run_steps.run_step')
+logger = logging.getLogger('naarad.run_steps.local_cmd')
 
 class Local_Cmd(Run_Step):
 
   def __init__(self, run_type, run_cmd, should_wait=True):
-    Run_Sla.__init__(self, run_type, run_cmd, should_wait)
+    Run_Step.__init__(self, run_type, run_cmd, should_wait)
 
   def run(self):
-    if self.should_wait
+    cmd_args = shlex.split(self.run_cmd)
+    logger.info('Running subprocess command with following args: ' + str(cmd_args))
+
+    #TODO: Add try catch blocks. Kill process on CTRL-C
+    #TODO: Add inferring time periodß
+    #TODO: Add docstrings
+
+    process = subprocess.Popen(cmd_args, stdout=subprocess.PIPE)
+    (stdoutdata, stderrdata) = process.communicate()
+    logger.info('subprocess finished')
+    if stdoutdata: logger.info('stdout: ' + stdoutdata)
+    if stderrdata: logger.info('stderr: ' + stderrdata)
+
+
