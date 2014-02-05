@@ -28,6 +28,8 @@ from naarad.metrics.innotop_metric import INNOMetric
 from naarad.metrics.sar_metric import SARMetric
 from naarad.graphing import dygraphs
 from naarad.reporting.report import Report
+from naarad.run_steps.run_step import Run_Step
+from naarad.run_steps.local_cmd import Local_Cmd
 
 try:
   from naarad.naarad_imports import metric_classes, graphing_modules, device_type_metrics
@@ -54,6 +56,16 @@ template_urls = {
     }
 
 logger = logging.getLogger('naarad')
+
+def parse_run_step_section(config_obj, section):
+  run_type = config_obj.get(section, 'run_type')
+  run_cmd = config_obj.get(section, 'run_cmd')
+  if run_type == 'local':
+    run_step_obj = Local_Cmd(run_type, run_cmd)
+  else:
+    run_step_obj = None
+  return run_step_obj
+
 
 def init_logging(log_level):
   log_file = 'naarad.log'
@@ -185,6 +197,7 @@ def is_valid_metric_name(metric_name):
 def main():
   metrics = []
   crossplots = []
+  run_steps = []
   filler = '' 
   graph_timezone = None
   graphing_library = 'matplotlib'
@@ -272,6 +285,8 @@ def main():
           if graph_timezone not in ("UTC", "PST", "PDT"):
             logger.warn('Unsupported timezone ' + graph_timezone + ' specified in option graph_timezone. Will use UTC instead')
             graph_timezone = "UTC"
+      elif section.startswith('RUN-STEP'):
+        run_steps.append(parse_run_step_section(config_obj, section))
       else:
         # Metric sections
         ts_start = None
@@ -354,6 +369,8 @@ def main():
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
     threads = []
+    for run_step in run_steps:
+      run_step.run()
     graph_lock = threading.Lock()
     for metric in metrics:
       thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
