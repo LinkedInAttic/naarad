@@ -9,27 +9,29 @@ Unless required by applicable law or agreed to in writing, software distribute
 import logging
 import shlex
 import subprocess
+import time
 from naarad.run_steps.run_step import Run_Step
 
 logger = logging.getLogger('naarad.run_steps.local_cmd')
 
 class Local_Cmd(Run_Step):
 
-  def __init__(self, run_type, run_cmd, should_wait=True):
-    Run_Step.__init__(self, run_type, run_cmd, should_wait)
+  def __init__(self, run_type, run_cmd, call_type, should_wait=True):
+    Run_Step.__init__(self, run_type, run_cmd, call_type, should_wait)
 
   def run(self):
     cmd_args = shlex.split(self.run_cmd)
     logger.info('Running subprocess command with following args: ' + str(cmd_args))
 
     #TODO: Add try catch blocks. Kill process on CTRL-C
-    #TODO: Add inferring time periodß
+    #TODO: Add inferring time period
     #TODO: Add docstrings
-
+    # Infer time period for analysis. Assume same timezone between client and servers.
+    self.ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
     process = subprocess.Popen(cmd_args, stdout=subprocess.PIPE)
     (stdoutdata, stderrdata) = process.communicate()
+    self.ts_end = time.strftime("%Y-%m-%d %H:%M:%S")
     logger.info('subprocess finished')
     if stdoutdata: logger.info('stdout: ' + stdoutdata)
     if stderrdata: logger.info('stderr: ' + stderrdata)
-
-
+    logger.info('run_step started at ' + self.ts_start + ' and ended at ' + self.ts_end)

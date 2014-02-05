@@ -12,9 +12,10 @@ logger = logging.getLogger('naarad.run_steps.run_step')
 
 class Run_Step(object):
 
-  def __init__(self, run_type, run_cmd, should_wait=True, should_kill=False, duration=None):
+  def __init__(self, run_type, run_cmd, call_type, should_wait=True, should_kill=False, duration=None):
     self.run_type = run_type
     self.run_cmd = run_cmd
+    self.call_type = call_type
     self.should_wait = should_wait
     self.should_kill = should_kill
     self.duration = duration
