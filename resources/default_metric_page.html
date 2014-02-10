@@ -37,17 +37,52 @@
 </div><!-- /topbar -->
 <div class="container">
   <div class="content">
-    <div id="{{ metric }}-header" class="row">
-        <div id="{{ metric }}-header-span" class="span12">
+    <div id="{{ metric.label }}-header" class="row">
+        <div id="{{ metric.label }}-header-span" class="span12">
             <h2 class="content-title">
-                <span class="text">{{ metric }}</span>
+                <span class="text">{{ metric.label }}</span>
             </h2>
         </div>
     </div>
+    {%- if metric.sla_list|length > 0 %}
+    <div id="{{ metric.label }}-sla-table" class="row">
+        <div id="{{ metric.label }}-sla-table-span" class="span12">
+            <h3>SLA Summary</h3>
+            <div style="overflow-x:auto;">
+                <table class="table table-hover table-striped table-bordered sortable">
+                    <thead>
+                        <tr>
+                            <th>sub_metric</th>
+                            <th>sla rule</th>
+                            <th>value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {%- for sla in metric.sla_list %}
+                        {%- if sla.sla_passed == True %}
+                        <tr class="success">
+                        {%- elif sla.sla_passed == False %}
+                        <tr class="danger">
+                        {%- else %}
+                        <tr>
+                        {%- endif %}
+                            <td>{{ sla.sub_metric }}</td>
+                            <td>{{ sla.stat_name }} {{ sla.sla_type }} {{ sla.threshold}}</td>
+                            <td>{{ sla.stat_value }}</td>
+                        </tr>
+                        {%- endfor %}
+                    </tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    {%- endif %}
+
     {%- if metric_stats %}
-    <div id="{{ metric }}-summary-table" class="row">
-        <div id="{{ metric }}-summary-table-span" class="span12">
-        <h3>Metrics Summary</h3>
+    <div id="{{ metric.label }}-summary-table" class="row">
+        <div id="{{ metric.label }}-summary-table-span" class="span12">
+        <h3>Metric Summary</h3>
         <div style="overflow-x:auto;">
         <table class="table table-hover table-striped table-bordered sortable">
             <thead>
