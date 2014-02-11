@@ -28,6 +28,10 @@ from naarad.metrics.innotop_metric import INNOMetric
 from naarad.metrics.sar_metric import SARMetric
 from naarad.graphing import dygraphs
 from naarad.reporting.report import Report
+from naarad.run_steps.run_step import Run_Step
+from naarad.run_steps.local_cmd import Local_Cmd
+
+import time
 
 try:
   from naarad.naarad_imports import metric_classes, graphing_modules, device_type_metrics
@@ -54,6 +58,49 @@ template_urls = {
     }
 
 logger = logging.getLogger('naarad')
+
+def parse_run_step_section(config_obj, section):
+  """
+  Parse a RUN-STEP section in the config to return a Run_Step object
+  :param config_obj: ConfigParser objection
+  :param section: Section name
+  :return: an initialized Run_Step object
+  """
+  run_type = config_obj.get(section, 'run_type')
+  run_cmd = config_obj.get(section, 'run_cmd')
+  if config_obj.has_option(section, 'call_type'):
+    call_type = config_obj.get(section, 'call_type')
+  else:
+    call_type = 'local'
+  if call_type == 'local':
+    run_step_obj = Local_Cmd(run_type, run_cmd, call_type)
+  else:
+    logger.warning('Unsupported RUN_STEP supplied, call_type should be local')
+    run_step_obj = None
+  return run_step_obj
+
+def get_run_time_period(run_steps):
+  """
+  This method finds the time range which covers all the Run_Steps
+
+  :param run_steps: list of Run_Step objects
+  :return: tuple of start and end timestamps
+  """
+  init_ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
+  ts_start = init_ts_start
+  ts_end = '0'
+  for run_step in run_steps:
+    if run_step.ts_start and run_step.ts_end:
+      if run_step.ts_start < ts_start:
+        ts_start = run_step.ts_start
+      if run_step.ts_end > ts_end:
+        ts_end = run_step.ts_end
+  if ts_end == '0':
+    ts_end = None
+  if ts_start == init_ts_start:
+    ts_start = None
+  logger.info('get_run_time_period range returned ' + str(ts_start) + ' to ' + str(ts_end))
+  return ts_start, ts_end
 
 def init_logging(log_level):
   log_file = 'naarad.log'
@@ -185,6 +232,7 @@ def is_valid_metric_name(metric_name):
 def main():
   metrics = []
   crossplots = []
+  run_steps = []
   filler = '' 
   graph_timezone = None
   graphing_library = 'matplotlib'
@@ -272,6 +320,8 @@ def main():
           if graph_timezone not in ("UTC", "PST", "PDT"):
             logger.warn('Unsupported timezone ' + graph_timezone + ' specified in option graph_timezone. Will use UTC instead')
             graph_timezone = "UTC"
+      elif section.startswith('RUN-STEP'):
+        run_steps.append(parse_run_step_section(config_obj, section))
       else:
         # Metric sections
         ts_start = None
@@ -354,8 +404,16 @@ def main():
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
     threads = []
+    #TODO: Implement ordering of run_steps
+    for run_step in run_steps:
+      run_step.run()
+    ts_start, ts_end = get_run_time_period(run_steps)
     graph_lock = threading.Lock()
     for metric in metrics:
+      if ts_start:
+        metric.ts_start = ts_start
+      if ts_end:
+        metric.ts_end = ts_end
       thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
       thread.start()
       threads.append(thread)
