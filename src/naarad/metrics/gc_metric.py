@@ -27,7 +27,7 @@ class GCMetric(Metric):
   clock_format = '%Y-%m-%d %H:%M:%S'
   rate_types = ()
   val_types = ('alloc', 'promo', 'used0', 'used1', 'used', 'commit0', 'commit1', 'commit', 'gen0', 'gen0t', 'gen0usr', 'gen0sys', 'gen0real',
-      'cmsIM', 'cmsRM', 'cmsRS', 'GC', 'cmsCM', 'cmsCP', 'cmsCS', 'cmsCR', 'safept', 'apptime')
+      'cmsIM', 'cmsRM', 'cmsRS', 'GCPause', 'cmsCM', 'cmsCP', 'cmsCS', 'cmsCR', 'safept', 'apptime', 'used0AfterGC', 'used1AfterGC', 'usedAfterGC')
   def __init__ (self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                 **other_options):
     Metric.__init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings)
@@ -40,32 +40,35 @@ class GCMetric(Metric):
       else:
         setattr(self, key, val)
     self.sub_metric_description = {
-      "appstop" :"approximate application stop times",
-      "gen0" :" young gen collection time, excluding gc_prologue & gc_epilogue",
-      "gen0t" :" young gen collection time, including gc_prologue & gc_epilogue",
-      "gen0usr" :" young gen collection time in cpu user secs",
-      "gen0sys" :" young gen collection time in cpu sys secs",
-      "gen0real" :" young gen collection time in elapsed secs",
-      "gen1i" :" train generation incremental collection",
-      "gen1t" :" old generation collection/full GC",
-      "cmsIM" :" CMS initial mark pause",
-      "cmsRM" :" CMS remark pause",
-      "cmsRS" :" CMS resize pause",
-      "GC" :" all stop-the-world GC pauses",
-      "cmsCM" :" CMS concurrent mark phase",
-      "cmsCP" :" CMS concurrent preclean phase",
-      "cmsCS" :" CMS concurrent sweep phase",
-      "cmsCR" :" CMS concurrent reset phase",
-      "alloc":" object allocation in MB (approximate***)",
-      "promo":" object promotion in MB (approximate***)",
-      "used0":" young gen used memory size (before gc)",
-      "used1":" old gen used memory size (before gc)",
-      "used":" heap space used memory size (before gc) (excludes perm gen)",
-      "commit0":" young gen committed memory size (after gc)",
-      "commit1":" old gen committed memory size (after gc)",
-      "commit":" heap committed memory size (after gc) (excludes perm gen)",
-      "apptime" :" amount of time application threads were running",
-      "safept" :" amount of time the VM spent at safepoints (app threads stopped)"
+      'appstop' : 'approximate application stop times',
+      'gen0' : 'young gen collection time, excluding gc_prologue & gc_epilogue',
+      'gen0t' : 'young gen collection time, including gc_prologue & gc_epilogue',
+      'gen0usr' : 'young gen collection time in cpu user secs',
+      'gen0sys' : 'young gen collection time in cpu sys secs',
+      'gen0real' : 'young gen collection time in elapsed secs',
+      'gen1i' : 'train generation incremental collection',
+      'gen1t' : 'old generation collection/full GC',
+      'cmsIM' : 'CMS initial mark pause',
+      'cmsRM' : 'CMS remark pause',
+      'cmsRS' : 'CMS resize pause',
+      'GCPause' : 'all stop-the-world GC pauses',
+      'cmsCM' : 'CMS concurrent mark phase',
+      'cmsCP' : 'CMS concurrent preclean phase',
+      'cmsCS' : 'CMS concurrent sweep phase',
+      'cmsCR' : 'CMS concurrent reset phase',
+      'alloc' : 'object allocation in MB (approximate***)',
+      'promo' : 'object promotion in MB (approximate***)',
+      'used0' : 'young gen used memory size (before gc)',
+      'used1' : 'old gen used memory size (before gc)',
+      'used' : 'heap space used memory size (before gc) (excludes perm gen)',
+      'commit0' : 'young gen committed memory size (after gc)',
+      'commit1' : 'old gen committed memory size (after gc)',
+      'commit' : 'heap committed memory size (after gc) (excludes perm gen)',
+      'apptime' : 'amount of time application threads were running',
+      'safept' : 'amount of time the VM spent at safepoints (app threads stopped)',
+      'used0AfterGC' : 'young gen used memory size (after gc)',
+      'used1AfterGC' : 'old gen used memory size (after gc)',
+      'usedAfterGC' : 'heap space used memory size (after gc)'
       }
 
 
