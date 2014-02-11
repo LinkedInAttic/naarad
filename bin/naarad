@@ -60,6 +60,12 @@ template_urls = {
 logger = logging.getLogger('naarad')
 
 def parse_run_step_section(config_obj, section):
+  """
+  Parse a RUN-STEP section in the config to return a Run_Step object
+  :param config_obj: ConfigParser objection
+  :param section: Section name
+  :return: an initialized Run_Step object
+  """
   run_type = config_obj.get(section, 'run_type')
   run_cmd = config_obj.get(section, 'run_cmd')
   call_type = config_obj.get(section, 'call_type')
@@ -71,8 +77,14 @@ def parse_run_step_section(config_obj, section):
   return run_step_obj
 
 def get_run_time_period(run_steps):
-  ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
-  init_ts_start = ts_start
+  """
+  This method finds the time range which covers all the Run_Steps
+
+  :param run_steps: list of Run_Step objects
+  :return: tuple of start and end timestamps
+  """
+  init_ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
+  ts_start = init_ts_start
   ts_end = '0'
   for run_step in run_steps:
     if run_step.ts_start and run_step.ts_end:
