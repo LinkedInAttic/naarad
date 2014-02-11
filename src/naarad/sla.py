@@ -16,7 +16,7 @@ class SLA(object):
 
   def __init__(self, sub_metric, stat_name, threshold, sla_type):
     if sla_type not in self.supported_sla_types:
-      log.error('Unsupported sla type passed : ' + sla_type)
+      logger.error('Unsupported sla type passed : ' + sla_type)
       return None
     self.sub_metric = sub_metric
     self.stat_name = stat_name

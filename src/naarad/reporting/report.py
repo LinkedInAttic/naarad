@@ -125,7 +125,7 @@ class Report(object):
         if naarad.utils.is_valid_file(metric_stats_file) or len(metric.plot_files) > 0:
           metric_stats = self.get_summary_table(metric_stats_file)
           metric_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path)
-          metric_html += template_environment.get_template(CONSTANTS.TEMPLATE_METRIC_PAGE).render(metric_stats=metric_stats, plot_div_content=div_html, metric=metric.label, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
+          metric_html += template_environment.get_template(CONSTANTS.TEMPLATE_METRIC_PAGE).render(metric_stats=metric_stats, plot_div_content=div_html, metric=metric, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
           metric_html += template_environment.get_template(CONSTANTS.TEMPLATE_FOOTER).render()
       if metric_html != '':
         with open(os.path.join(self.output_directory, metric.label + CONSTANTS.METRIC_REPORT_SUFFIX), 'w') as metric_report:
