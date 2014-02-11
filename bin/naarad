@@ -68,7 +68,10 @@ def parse_run_step_section(config_obj, section):
   """
   run_type = config_obj.get(section, 'run_type')
   run_cmd = config_obj.get(section, 'run_cmd')
-  call_type = config_obj.get(section, 'call_type')
+  if config_obj.has_option(section, 'call_type'):
+    call_type = config_obj.get(section, 'call_type')
+  else:
+    call_type = 'local'
   if call_type == 'local':
     run_step_obj = Local_Cmd(run_type, run_cmd, call_type)
   else:
