@@ -32,7 +32,6 @@ class Local_Cmd(Run_Step):
     logger.info('Running subprocess command with following args: ' + str(cmd_args))
 
     #TODO: Add try catch blocks. Kill process on CTRL-C
-    #TODO: Add docstrings
     # Infer time period for analysis. Assume same timezone between client and servers.
     self.ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
     process = subprocess.Popen(cmd_args, stdout=subprocess.PIPE)
