@@ -23,7 +23,8 @@ def handle_single_url(url, outdir, outfile=None):
   
   :param str url: a full/absolute url, e.g. http://www.cnn.com/log.zip
   :param str outdir: the absolute local directory. e.g. /home/user1/tmp/
-  :param str outfile: (optional) filename stored in local directory. If outfile is not given, extract the filename from url
+  :param str outfile: (optional) filename stored in local directory. If outfile is not given, extract the filename from
+                      url. Setting a value of __stream__ will return the response content instead of writing to file
   :return: the local full path name of downloaded url
   """
   if not url or type(url) != str \
@@ -38,19 +39,26 @@ def handle_single_url(url, outdir, outfile=None):
   if not outfile:
     segs = url.split('/')
     outfile = segs[-1]
-    
-  output_file = os.path.join(outdir, outfile)
-  if os.path.exists(output_file):
-    logger.warn("the %s already exists!" % outfile)
-  
-  with open(output_file, "w") as fh:
+
+  if outdir == '__stream__':
     try:
       response = urllib2.urlopen(url)
-      fh.write(response.read())
-    except urllib2.HTTPError:
-      logger.error("got HTTPError when retrieving %s" % url)
+      response_content = response.read()
+      return response_content
+    except (urllib2.URLError, urllib2.HTTPError) as e:
+      logger.error('Unable to access requested URL: %s', url)
       return
-  
+  else:
+    output_file = os.path.join(outdir, outfile)
+    if os.path.exists(output_file):
+      logger.warn("the %s already exists!" % outfile)
+    with open(output_file, "w") as fh:
+      try:
+        response = urllib2.urlopen(url)
+        fh.write(response.read())
+      except (urllib2.URLError, urllib2.HTTPError) as e:
+        logger.error("got HTTPError: %s when retrieving %s", url)
+        return
   return output_file
 
 
@@ -156,3 +164,8 @@ def download_url_regex(inputs, outdir, regex = ".*"):
       output_files.append(output_file)
       
   return output_files
+
+
+def download_urls(url_list, outdir):
+  for url in url_list:
+    download_url_single(url, outdir)

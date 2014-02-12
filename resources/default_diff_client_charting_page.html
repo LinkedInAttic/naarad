@@ -7,27 +7,10 @@
     <a class="brand" href="https://github.com/linkedin/naarad">naarad</a>
 
     <ul class="nav">
-        {% if summary_enabled %}
         <li>
-            <a href="summary_report.html" title="Summary">
+            <a href="diff_report.html" title="Summary">
                 <span>Summary</span>
             </a>
-        </li>
-        {% endif %}
-        <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                <span>Metrics</span>
-                <b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu">
-                {%- for metric_name in metric_list %}
-                <li>
-                    <a href="{{ metric_name.label }}_report.html">
-                        <span>{{ metric_name.label }}</span>
-                    </a>
-                </li>
-                {%- endfor %}
-            </ul>
         </li>
         <li class="active"><a href="report.html"><span>Chart</span></a></li>
     </ul>
@@ -41,9 +24,9 @@
       <div class="span3">
         <label>
             <select id="select-chart-1" onchange="plot('select-chart-1','charting-div-1',0,false)">
-                <option selected disabled hidden value=''>Select...</option>
-                {%- for data_series in metric_data %}
-                <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
+                <option selected disabled hidden value=''>Report #1</option>
+                {%- for data_series_source in data_series %}
+                <option value="{{ resource_path }}/0/{{ data_series_source }}.csv">{{ data_series_source }}</option>
                 {% endfor %}
             </select>
         </label>
@@ -52,9 +35,9 @@
       <div class="span3">
         <label>
             <select id="select-chart-2" onchange="plot('select-chart-2','charting-div-2',1,false)">
-                <option selected disabled hidden value=''>Select...</option>
-                {%- for data_series in metric_data %}
-                <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
+                <option selected disabled hidden value=''>Report #2</option>
+                {%- for data_series_source in data_series %}
+                <option value="{{ resource_path }}/1/{{ data_series_source }}.csv">{{ data_series_source }}</option>
                 {% endfor %}
             </select>
         </label>

@@ -18,6 +18,7 @@ from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
 import naarad.httpdownload
 from naarad.sla import SLA
+import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.metrics.Metric')
 
@@ -183,7 +184,7 @@ class Metric(object):
     stats_to_calculate = ['mean', 'std', 'min', 'max']  # TODO: get input from user
     percentiles_to_calculate = range(5, 101, 5)  # TODO: get input from user
     percentiles_to_calculate.append(99)
-    headers = 'sub-metric,mean,std,p50,p75,p90,p95,p99,min,max\n'  # TODO: This will be built from user input later on
+    headers = CONSTANTS.SUBMETRIC_HEADER + ',mean,std,p50,p75,p90,p95,p99,min,max\n'  # TODO: This will be built from user input later on
     metric_stats_csv_file = self.get_stats_csv()
     imp_metric_stats_csv_file = self.get_important_sub_metrics_csv()
     imp_metric_stats_present = False  

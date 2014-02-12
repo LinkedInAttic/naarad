@@ -7,10 +7,12 @@ Unless required by applicable law or agreed to in writing, software distribute
 # Report Constants
 DEFAULT_REPORT_TITLE = 'naarad analysis report'
 STYLESHEET_INCLUDES = ['bootstrap.min.css', 'inversion.css']
-JAVASCRIPT_INCLUDES = ['jquery-1.7.1.min.js', 'dygraph-combined.js', 'bootstrap.js', 'sorttable.js']
+JAVASCRIPT_INCLUDES = ['jquery-1.7.1.min.js', 'dygraph-combined.js', 'bootstrap.js', 'sorttable.js', 'naarad.js']
 PLOTS_CSV_LIST_FILE = 'list.txt'
+STATS_CSV_LIST_FILE = 'stats.txt'
 SUMMARY_REPORT_FILE = 'summary_report.html'
 CLIENT_CHARTING_FILE = 'report.html'
+DIFF_REPORT_FILE = 'diff_report.html'
 METRIC_REPORT_SUFFIX = '_report.html'
 TEMPLATE_HEADER = 'default_report_header.html'
 TEMPLATE_FOOTER = 'default_report_footer.html'
@@ -18,8 +20,9 @@ TEMPLATE_SUMMARY_CONTENT = 'default_summary_content.html'
 TEMPLATE_SUMMARY_PAGE = 'default_summary_page.html'
 TEMPLATE_METRIC_PAGE = 'default_metric_page.html'
 TEMPLATE_CLIENT_CHARTING = 'default_client_charting_page.html'
-TEMPLATE_DIFF_CLIENT_CHARTING = ''
-TEMPLATE_DIFF_PAGE = ''
+TEMPLATE_DIFF_CLIENT_CHARTING = 'default_diff_client_charting_page.html'
+TEMPLATE_DIFF_PAGE = 'default_diff_page.html'
+SUBMETRIC_HEADER = 'sub_metric'
 
 # Matplotlib Constants
 COLOR_PALETTE = ['black', 'steelblue', 'm', 'red', 'cyan', 'g', 'orange', 'gray']
