@@ -105,6 +105,7 @@ class GCMetric(Metric):
           csvf.write(words[1])
           csvf.write('\n')
     self.csv_files.append(outcsv)
+    os.remove(outfile)
 
   def parse(self):
     # check if outdir exists, if not, create it
