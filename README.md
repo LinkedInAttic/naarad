@@ -58,7 +58,7 @@ Many tools and frameworks like Zenoss, rrdtool etc have solved the use-case of m
 
         git clone https://github.com/linkedin/naarad.git
 
-2. Make sure you have python, [pip](http://www.pip-installer.org/en/latest/installing.html) and awk.
+2. Make sure you have python (2.6 or 2.7), [pip](http://www.pip-installer.org/en/latest/installing.html) and awk.
 3. Install the necessary Python libraries using PIP.
 
         cd naarad; pip install -r requirements.txt
