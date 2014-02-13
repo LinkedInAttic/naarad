@@ -285,115 +285,115 @@ def main():
 
   if args:
     read_naarad_templates()
-  if args.show_config:
-    tmp_file = naarad.utils.download_file(template_urls[args.config])
-    with open(tmp_file, 'r') as FH:
-      print "----"
-      print FH.read()
-    sys.exit("----")
+    if args.show_config:
+      tmp_file = naarad.utils.download_file(template_urls[args.config])
+      with open(tmp_file, 'r') as FH:
+        print "----"
+        print FH.read()
+      sys.exit("----")
 
-  # Download config if its a URL
-  if naarad.utils.is_valid_url(args.config):
-    optfile = naarad.utils.download_file(args.config)
-  elif args.config.startswith("template:"):
-    #Its a template
-    if args.config in template_urls.keys():
-      logger.info('Using template ' + args.config + ' used from ' + template_urls[args.config] )
-      optfile = naarad.utils.download_file(template_urls[args.config])
-    else:
-      sys.exit("ERROR: Template " + args.config + " not found. Exiting...")
-    with open(optfile, 'r') as FH:
-      print "Config file used looks like this:"
-      print "-------------"
-      print FH.read()
-      print "-------------"
-  else:
-    optfile = args.config
-
-  indir_default = args.input_dir
-  outdir_default = args.output_dir
-  resource_path = args.resource_path
-  #user defined variables in form "key=value"
-  if args.variables:
-    for var in args.variables:
-      words = var.split('=')
-      variables_dict[words[0]] = words[1]
-
-  if not os.path.exists(optfile):
-    sys.exit("ERROR: Config file " + optfile + " doesn't exist. If this is a URL, please use the fully qualified domain name\nExiting....")
-
-  # Parse the config file
-  # TODO: Refactor the config parsing code
-  config_obj = ConfigParser.ConfigParser(variables_dict)
-  # Preserve case http://stackoverflow.com/questions/1611799/preserve-case-in-configparser
-  config_obj.optionxform = str
-  config_obj.read(optfile)
-  for section in config_obj.sections():
-    if section == 'GRAPH':
-      graphing_library, crossplots, outdir_default, indir_default, graph_timezone = \
-        parse_graph_section(config_obj, section, graphing_library, crossplots, outdir_default, indir_default, graph_timezone)
-    elif section.startswith('RUN-STEP'):
-      run_steps.append(parse_run_step_section(config_obj, section))
-    else:
-      # section name is used to create sub-directories, so enforce it. 
-      if not is_valid_metric_name(section):
-        logger.critical('Section name %s is invalid! Only letters, digits, dot(.), dash(-), underscore(_) are allowed' % section)
-        sys.exit(0)
-      if section == 'SAR-*':
-        hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings = \
-          parse_basic_metric_options(config_obj, section)
-        sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, hostname, outdir_default, label, ts_start,
-                                                       ts_end, None)
-        if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
-          for metric in sar_metrics:
-            metric.ignore = True
-        metrics.extend(sar_metrics)
+    # Download config if its a URL
+    if naarad.utils.is_valid_url(args.config):
+      optfile = naarad.utils.download_file(args.config)
+    elif args.config.startswith("template:"):
+      #Its a template
+      if args.config in template_urls.keys():
+        logger.info('Using template ' + args.config + ' used from ' + template_urls[args.config] )
+        optfile = naarad.utils.download_file(template_urls[args.config])
       else:
-        new_metric = parse_metric_section(config_obj, section, metric_classes, outdir_default, resource_path)
-        new_metric.bin_path = bin_path
-        metrics.append(new_metric)
+        sys.exit("ERROR: Template " + args.config + " not found. Exiting...")
+      with open(optfile, 'r') as FH:
+        print "Config file used looks like this:"
+        print "-------------"
+        print FH.read()
+        print "-------------"
+    else:
+      optfile = args.config
 
-  if outdir_default:
-    try:
-      os.makedirs(outdir_default)
-    except OSError as exeption:
-      if exeption.errno != errno.EEXIST:
-        raise
-    try:
-      resource_directory = os.path.join(outdir_default, resource_path)
-      os.makedirs(resource_directory)
-    except OSError as exeption:
-      if exeption.errno != errno.EEXIST:
-        raise
-    logger.info('Report.html and the plots will be in ' + outdir_default)
-  else:
-    sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
-  Metric.graphing_modules = graphing_modules
-  Metric.device_types = device_type_metrics
-  metric_string_list = []
-  if graph_timezone:
-    logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
-  threads = []
-  #TODO: Implement ordering of run_steps
-  for run_step in run_steps:
-    run_step.run()
-  ts_start, ts_end = get_run_time_period(run_steps)
-  graph_lock = threading.Lock()
-  for metric in metrics:
-    if ts_start:
-      metric.ts_start = ts_start
-    if ts_end:
-      metric.ts_end = ts_end
-    thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
-    thread.start()
-    threads.append(thread)
-  for t in threads:
-    t.join()
-  if len(crossplots) > 0:
-    correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path, filler)
-  else:
-    correlated_plots = []
-  rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
-  rpt.generate()
+    indir_default = args.input_dir
+    outdir_default = args.output_dir
+    resource_path = args.resource_path
+    #user defined variables in form "key=value"
+    if args.variables:
+      for var in args.variables:
+        words = var.split('=')
+        variables_dict[words[0]] = words[1]
+
+    if not os.path.exists(optfile):
+      sys.exit("ERROR: Config file " + optfile + " doesn't exist. If this is a URL, please use the fully qualified domain name\nExiting....")
+
+    # Parse the config file
+    # TODO: Refactor the config parsing code
+    config_obj = ConfigParser.ConfigParser(variables_dict)
+    # Preserve case http://stackoverflow.com/questions/1611799/preserve-case-in-configparser
+    config_obj.optionxform = str
+    config_obj.read(optfile)
+    for section in config_obj.sections():
+      if section == 'GRAPH':
+        graphing_library, crossplots, outdir_default, indir_default, graph_timezone = \
+          parse_graph_section(config_obj, section, graphing_library, crossplots, outdir_default, indir_default, graph_timezone)
+      elif section.startswith('RUN-STEP'):
+        run_steps.append(parse_run_step_section(config_obj, section))
+      else:
+        # section name is used to create sub-directories, so enforce it. 
+        if not is_valid_metric_name(section):
+          logger.critical('Section name %s is invalid! Only letters, digits, dot(.), dash(-), underscore(_) are allowed' % section)
+          sys.exit(0)
+        if section == 'SAR-*':
+          hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings = \
+            parse_basic_metric_options(config_obj, section)
+          sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, hostname, outdir_default, label, ts_start,
+                                                         ts_end, None)
+          if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
+            for metric in sar_metrics:
+              metric.ignore = True
+          metrics.extend(sar_metrics)
+        else:
+          new_metric = parse_metric_section(config_obj, section, metric_classes, outdir_default, resource_path)
+          new_metric.bin_path = bin_path
+          metrics.append(new_metric)
+
+    if outdir_default:
+      try:
+        os.makedirs(outdir_default)
+      except OSError as exeption:
+        if exeption.errno != errno.EEXIST:
+          raise
+      try:
+        resource_directory = os.path.join(outdir_default, resource_path)
+        os.makedirs(resource_directory)
+      except OSError as exeption:
+        if exeption.errno != errno.EEXIST:
+          raise
+      logger.info('Report.html and the plots will be in ' + outdir_default)
+    else:
+      sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
+    Metric.graphing_modules = graphing_modules
+    Metric.device_types = device_type_metrics
+    metric_string_list = []
+    if graph_timezone:
+      logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
+    threads = []
+    #TODO: Implement ordering of run_steps
+    for run_step in run_steps:
+      run_step.run()
+    ts_start, ts_end = get_run_time_period(run_steps)
+    graph_lock = threading.Lock()
+    for metric in metrics:
+      if ts_start:
+        metric.ts_start = ts_start
+      if ts_end:
+        metric.ts_end = ts_end
+      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
+      thread.start()
+      threads.append(thread)
+    for t in threads:
+      t.join()
+    if len(crossplots) > 0:
+      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path, filler)
+    else:
+      correlated_plots = []
+    rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
+    rpt.generate()
 if __name__ == '__main__':
   main()
