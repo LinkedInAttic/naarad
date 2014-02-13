@@ -170,52 +170,10 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
     else:
       logger.error('Fetch/Collect failed for metric: ' + metric.label)
 
-def transform_ts(start, end, timezone="PDT"):
-  """
-    Transform time specification to real datetime string.
-
-    :param string start: start timestamp in format YYYY-mm-DD HH:MM:SS or 'end-X((days|day|hours|hour)'
-    :param string end: end timestamp in format YYYY-mm-DD HH:MM:SS or 'now'
-    :param string timezone: timezone to transform the timestamps into. Should be one of these: (UTC, PST, PDT)
-    :return: A tuple of start timestamp and end timestamps transformed from inGraphs like specification to YYYY-mm-DD HH:MM:SS formats
-  """
-  ts_pattern = "\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
-  #If timestamp is not in YYYY-mm-DD HH:MM:SS format, then it must be in RRDTool format
-  if not re.match(ts_pattern, end):
-    if end == "now":
-      if timezone in ("PDT", "PST"):
-        end_ts = datetime.datetime.now()
-      else:
-        end_ts = datetime.datetime.utcnow()
-      end_ts_str = datetime.datetime.strftime(end_ts, "%Y-%m-%d %H:%M:%S")
-    else:
-      sys.exit("End timestamp supported with only YYYY-mm-DD HH:MM:SS or 'now' formats. Please fix config. Exiting...")
-  else:
-    end_ts_str = end
-    end_ts = datetime.datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
-  if start and not re.match(ts_pattern, start):
-    reg_match = re.match("end-(\d+)(days|day|hours|hour)", start)
-    if reg_match:
-      key = reg_match.group(2)
-      val = int(reg_match.group(1))
-      if "day" in key:
-        delta = datetime.timedelta(days=val)
-      elif "hour" in key:
-        delta = datetime.timedelta(hours=val)
-      start_ts = end_ts - delta
-      start_ts_str = datetime.datetime.strftime(start_ts, "%Y-%m-%d %H:%M:%S")
-    else:
-      #TODO(Ritesh): Add support for minutes and chaining like end-1day2hours5minutes
-      sys.exit("Start timestamp supported with only YYYY-mm-DD HH:MM:SS or 'end-x(days|day|hours|hour)' formats. Please fix config. Exiting...")
-  else:
-    start_ts_str = start
-  return (start_ts_str, end_ts_str)
-
 def sanitize_string_section_name(string):
   string = string.replace('/', '_')
   string = string.replace('%', '_')
   return string
-
 
 def is_valid_metric_name(metric_name):
   """
@@ -228,7 +186,77 @@ def is_valid_metric_name(metric_name):
     return True
   else:
     return False
-  
+
+def parse_basic_metric_options(config_obj, section):
+  ts_start = None
+  ts_end = None
+  precision = None
+  hostname = "localhost"
+  rule_strings = {}
+  try:
+    if config_obj.has_option(section, 'hostname'):
+      hostname = config_obj.get(section, 'hostname')
+      config_obj.remove_option(section, 'hostname')
+    else:
+      logger.info('No hostname is found in section %s ' % section)
+    infile = config_obj.get(section, 'infile')
+    config_obj.remove_option(section, 'infile')
+    label = sanitize_string_section_name(section)
+    if config_obj.has_option(section, 'ts_start'):
+      ts_start = config_obj.get(section, 'ts_start')
+      config_obj.remove_option(section, 'ts_start')
+    if config_obj.has_option(section, 'ts_end'):
+      ts_end = config_obj.get(section, 'ts_end')
+      config_obj.remove_option(section, 'ts_end')
+    if config_obj.has_option(section, 'precision'):
+      precision = config_obj.get(section, 'precision')
+      config_obj.remove_option(section, 'precision')
+    kwargs = dict(config_obj.items(section))
+    for key in kwargs.keys():
+      if key.endswith('.sla'):
+        rule_strings[key.replace('.sla','')] = kwargs[key]
+        del kwargs[key]
+  except ConfigParser.NoOptionError:
+    logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
+    sys.exit()
+  return hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings
+
+def parse_metric_section(config_obj, section, metric_classes, outdir_default, resource_path):
+  hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings = parse_basic_metric_options(config_obj, section)
+  #TODO: Make user specify metric_type in config and not infer from section
+  metric_type = section.split('-')[0]
+  if not metric_type in metric_classes:
+    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+  else:
+    new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+  if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
+    new_metric.ignore = True
+  if config_obj.has_option(section, 'calc_metrics'):
+    new_metric.calc_metrics = config_obj.get(section, 'calc_metrics')
+  new_metric.precision = precision
+  return new_metric
+
+def parse_graph_section(config_obj, section, graphing_library, crossplots, outdir_default, indir_default, graph_timezone):
+  if config_obj.has_option(section, 'graphing_library'):
+    graphing_library = config_obj.get(section, 'graphing_library')
+  if config_obj.has_option(section, 'graphs'):
+    graphs_string = config_obj.get(section, 'graphs')
+    crossplots = graphs_string.split()
+  # Supporting both outdir and output_dir
+  if config_obj.has_option(section, 'outdir'):
+    outdir_default = config_obj.get(section, 'outdir')
+  if config_obj.has_option(section, 'output_dir'):
+    outdir_default = config_obj.get(section, 'output_dir')
+  if config_obj.has_option(section, 'input_dir'):
+    indir_default = config_obj.get(section, 'input_dir')
+  if config_obj.has_option(section, 'graph_timezone'):
+    graph_timezone = config_obj.get(section, 'graph_timezone')
+    if graph_timezone not in ("UTC", "PST", "PDT"):
+      logger.warn('Unsupported timezone ' + graph_timezone + ' specified in option graph_timezone. Will use UTC instead')
+      graph_timezone = "UTC"
+  return graphing_library, crossplots, outdir_default, indir_default, graph_timezone
+
+
 def main():
   metrics = []
   crossplots = []
@@ -257,173 +285,115 @@ def main():
 
   if args:
     read_naarad_templates()
-    # Print template config
-    if args.show_config:
-      tmp_file = naarad.utils.download_file(template_urls[args.config])
-      with open(tmp_file, 'r') as FH:
-        print "----"
-        print FH.read()
-      sys.exit("----")
+  if args.show_config:
+    tmp_file = naarad.utils.download_file(template_urls[args.config])
+    with open(tmp_file, 'r') as FH:
+      print "----"
+      print FH.read()
+    sys.exit("----")
 
-    # Download config if its a URL
-    if naarad.utils.is_valid_url(args.config):
-      optfile = naarad.utils.download_file(args.config)
-    elif args.config.startswith("template:"):
-      #Its a template
-      if args.config in template_urls.keys():
-        logger.info('Using template ' + args.config + ' used from ' + template_urls[args.config] )
-        optfile = naarad.utils.download_file(template_urls[args.config])
+  # Download config if its a URL
+  if naarad.utils.is_valid_url(args.config):
+    optfile = naarad.utils.download_file(args.config)
+  elif args.config.startswith("template:"):
+    #Its a template
+    if args.config in template_urls.keys():
+      logger.info('Using template ' + args.config + ' used from ' + template_urls[args.config] )
+      optfile = naarad.utils.download_file(template_urls[args.config])
+    else:
+      sys.exit("ERROR: Template " + args.config + " not found. Exiting...")
+    with open(optfile, 'r') as FH:
+      print "Config file used looks like this:"
+      print "-------------"
+      print FH.read()
+      print "-------------"
+  else:
+    optfile = args.config
+
+  indir_default = args.input_dir
+  outdir_default = args.output_dir
+  resource_path = args.resource_path
+  #user defined variables in form "key=value"
+  if args.variables:
+    for var in args.variables:
+      words = var.split('=')
+      variables_dict[words[0]] = words[1]
+
+  if not os.path.exists(optfile):
+    sys.exit("ERROR: Config file " + optfile + " doesn't exist. If this is a URL, please use the fully qualified domain name\nExiting....")
+
+  # Parse the config file
+  # TODO: Refactor the config parsing code
+  config_obj = ConfigParser.ConfigParser(variables_dict)
+  # Preserve case http://stackoverflow.com/questions/1611799/preserve-case-in-configparser
+  config_obj.optionxform = str
+  config_obj.read(optfile)
+  for section in config_obj.sections():
+    if section == 'GRAPH':
+      graphing_library, crossplots, outdir_default, indir_default, graph_timezone = \
+        parse_graph_section(config_obj, section, graphing_library, crossplots, outdir_default, indir_default, graph_timezone)
+    elif section.startswith('RUN-STEP'):
+      run_steps.append(parse_run_step_section(config_obj, section))
+    else:
+      # section name is used to create sub-directories, so enforce it. 
+      if not is_valid_metric_name(section):
+        logger.critical('Section name %s is invalid! Only letters, digits, dot(.), dash(-), underscore(_) are allowed' % section)
+        sys.exit(0)
+      if section == 'SAR-*':
+        hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings = \
+          parse_basic_metric_options(config_obj, section)
+        sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, hostname, outdir_default, label, ts_start,
+                                                       ts_end, None)
+        if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
+          for metric in sar_metrics:
+            metric.ignore = True
+        metrics.extend(sar_metrics)
       else:
-        sys.exit("ERROR: Template " + args.config + " not found. Exiting...")
-      with open(optfile, 'r') as FH:
-        print "Config file used looks like this:"
-        print "-------------"
-        print FH.read()
-        print "-------------"
-    else:
-      optfile = args.config
+        new_metric = parse_metric_section(config_obj, section, metric_classes, outdir_default, resource_path)
+        new_metric.bin_path = bin_path
+        metrics.append(new_metric)
 
-    indir_default = args.input_dir
-    outdir_default = args.output_dir
-    resource_path = args.resource_path
-    #user defined variables in form "key=value"
-    if args.variables:
-      for var in args.variables:
-        words = var.split('=')
-        variables_dict[words[0]] = words[1]
-
-    if not os.path.exists(optfile):
-      sys.exit("ERROR: Config file " + optfile + " doesn't exist. If this is a URL, please use the fully qualified domain name\nExiting....")
-
-    # Parse the config file
-    # TODO: Refactor the config parsing code
-    config_obj = ConfigParser.ConfigParser(variables_dict)
-    # Preserve case http://stackoverflow.com/questions/1611799/preserve-case-in-configparser
-    config_obj.optionxform = str
-    config_obj.read(optfile)
-    for section in config_obj.sections():
-      if section == 'GRAPH':
-        if config_obj.has_option(section, 'graphing_library'):
-          graphing_library = config_obj.get(section, 'graphing_library')
-        if config_obj.has_option(section, 'graphs'):
-          graphs_string = config_obj.get(section, 'graphs')
-          crossplots = graphs_string.split()
-        # Supporting both outdir and output_dir
-        if config_obj.has_option(section, 'outdir'):
-          outdir_default = config_obj.get(section, 'outdir')
-        if config_obj.has_option(section, 'output_dir'):
-          outdir_default = config_obj.get(section, 'output_dir')
-        if config_obj.has_option(section, 'input_dir'):
-          indir_default = config_obj.get(section, 'input_dir')
-        if config_obj.has_option(section, 'graph_timezone'):
-          graph_timezone = config_obj.get(section, 'graph_timezone')
-          if graph_timezone not in ("UTC", "PST", "PDT"):
-            logger.warn('Unsupported timezone ' + graph_timezone + ' specified in option graph_timezone. Will use UTC instead')
-            graph_timezone = "UTC"
-      elif section.startswith('RUN-STEP'):
-        run_steps.append(parse_run_step_section(config_obj, section))
-      else:
-        # Metric sections
-        ts_start = None
-        ts_end = None
-        precision = None
-        hostname = "localhost"
-        rule_strings = {}
-        
-        # section name is used to create sub-directories, so enforce it. 
-        if not is_valid_metric_name(section):
-          logger.critical('The section name of %s is invalid! Only letters, digits, dot(.), dash(-), underscore(_) are allowed' % section)
-          sys.exit(0)
-          
-        try:
-          if config_obj.has_option(section, 'hostname'):
-            hostname = config_obj.get(section, 'hostname')
-            config_obj.remove_option(section, 'hostname')     
-          else:
-            logger.info('No hostname is found in section %s ' % section)
-          
-          infile = config_obj.get(section, 'infile')
-          config_obj.remove_option(section, 'infile')
-          label = sanitize_string_section_name(section)
-          if config_obj.has_option(section, 'ts_start'):
-            ts_start = config_obj.get(section, 'ts_start')
-            config_obj.remove_option(section, 'ts_start')
-          if config_obj.has_option(section, 'ts_end'):
-            ts_end = config_obj.get(section, 'ts_end')
-            config_obj.remove_option(section, 'ts_end')
-          if config_obj.has_option(section, 'precision'):
-            precision = config_obj.get(section, 'precision')
-            config_obj.remove_option(section, 'precision')
-          kwargs = dict(config_obj.items(section))
-          for key in kwargs.keys():
-            if key.endswith('.sla'):
-              rule_strings[key.replace('.sla','')] = kwargs[key]
-              del kwargs[key]
-        except ConfigParser.NoOptionError:
-          logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
-          sys.exit()
-        if section == 'SAR-*':
-          sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, hostname, outdir_default, label, ts_start, ts_end, None)
-          if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
-            for metric in sar_metrics:
-              metric.ignore = True
-          metrics.extend(sar_metrics)
-        else:
-          #TODO: Make user specify metric_type in config and not infer from section
-          metric_type = section.split('-')[0]
-          if not metric_type in metric_classes:
-            new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
-          else:
-            new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
-          if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
-            new_metric.ignore = True
-          if config_obj.has_option(section, 'calc_metrics'):
-            new_metric.calc_metrics = config_obj.get(section, 'calc_metrics')
-          new_metric.bin_path = bin_path
-          new_metric.precision = precision
-          metrics.append(new_metric)
-
-    if outdir_default:
-      try:
-        os.makedirs(outdir_default)
-      except OSError as exeption:
-        if exeption.errno != errno.EEXIST:
-          raise
-      try:
-        resource_directory = os.path.join(outdir_default, resource_path)
-        os.makedirs(resource_directory)
-      except OSError as exeption:
-        if exeption.errno != errno.EEXIST:
-          raise
-      logger.info('Report.html and the plots will be in ' + outdir_default)
-    else:
-      sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
-    Metric.graphing_modules = graphing_modules
-    Metric.device_types = device_type_metrics
-    metric_string_list = []
-    if graph_timezone:
-      logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
-    threads = []
-    #TODO: Implement ordering of run_steps
-    for run_step in run_steps:
-      run_step.run()
-    ts_start, ts_end = get_run_time_period(run_steps)
-    graph_lock = threading.Lock()
-    for metric in metrics:
-      if ts_start:
-        metric.ts_start = ts_start
-      if ts_end:
-        metric.ts_end = ts_end
-      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
-      thread.start()
-      threads.append(thread)
-    for t in threads:
-      t.join()
-    if len(crossplots) > 0:
-      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path, filler)
-    else:
-      correlated_plots = []
-    rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
-    rpt.generate()
+  if outdir_default:
+    try:
+      os.makedirs(outdir_default)
+    except OSError as exeption:
+      if exeption.errno != errno.EEXIST:
+        raise
+    try:
+      resource_directory = os.path.join(outdir_default, resource_path)
+      os.makedirs(resource_directory)
+    except OSError as exeption:
+      if exeption.errno != errno.EEXIST:
+        raise
+    logger.info('Report.html and the plots will be in ' + outdir_default)
+  else:
+    sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
+  Metric.graphing_modules = graphing_modules
+  Metric.device_types = device_type_metrics
+  metric_string_list = []
+  if graph_timezone:
+    logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
+  threads = []
+  #TODO: Implement ordering of run_steps
+  for run_step in run_steps:
+    run_step.run()
+  ts_start, ts_end = get_run_time_period(run_steps)
+  graph_lock = threading.Lock()
+  for metric in metrics:
+    if ts_start:
+      metric.ts_start = ts_start
+    if ts_end:
+      metric.ts_end = ts_end
+    thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
+    thread.start()
+    threads.append(thread)
+  for t in threads:
+    t.join()
+  if len(crossplots) > 0:
+    correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path, filler)
+  else:
+    correlated_plots = []
+  rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
+  rpt.generate()
 if __name__ == '__main__':
   main()
