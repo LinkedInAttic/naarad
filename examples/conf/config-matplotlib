@@ -1,8 +1,7 @@
 [GC]
 infile=gc.log
-sub_metrics=appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM cmsCP cmsCS cmsCR safept apptime
-GC.sla=mean<0.05 p50<0.05 p99<0.05
-appstop.sla=mean<0.05 p50<0.05 p99<0.05
+sub_metrics=appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GCPause cmsCM cmsCP cmsCS cmsCR safept apptime
+GCPause.sla=mean<0.05 p50<0.05 p99<0.05
 
 [SAR-device]
 infile=sar.device.out
