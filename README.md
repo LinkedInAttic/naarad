@@ -148,9 +148,9 @@ This generates a results in ~/tmp/naarad. Fire up a browser to view ~/tmp/naarad
 
 SAR example:
 
-<pre>bin/naarad -i test/data/logs/ -o ~/tmp/naarad test/conf/config-sar </pre>
+<pre>bin/naarad -i examples/logs/ -o ~/tmp/naarad examples/conf/config-sar </pre>
 
-View Results.html in firefox (Chrome complains about cross-domain issues). Note that the sar config specifies plotting graphs using dygraphs.
+View report.html in firefox (Chrome complains about cross-domain issues). 
 
 ## Screenshots ##
 
