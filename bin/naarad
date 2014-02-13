@@ -48,6 +48,9 @@ graphing_modules['dygraphs'] = dygraphs
 graphing_modules['js'] = dygraphs
 graphing_modules['javascript'] = dygraphs
 
+Metric.graphing_modules = graphing_modules
+Metric.device_types = device_type_metrics
+
 version = "0.1"
 
 template_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'templates'))
@@ -145,7 +148,7 @@ def read_naarad_templates():
         logger.info('Adding template ' + template) 
         template_urls[template] = url
 
-def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock):
+def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock):
   metric.graph_timezone = graph_timezone
   if metric.outdir is None:
     metric.outdir = os.path.normpath(outdir_default)
@@ -162,9 +165,8 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
         metric.calculate_stats()
         metric.check_slas()
         graph_lock.acquire()
-        metric_html_string = metric.graph(graphing_library)
+        metric.graph(graphing_library)
         graph_lock.release()
-        metric_string_list.append(metric_html_string)
       else:
         logger.error('Parsing failed for metric: '  + metric.label)
     else:
@@ -368,9 +370,7 @@ def main():
       logger.info('Report.html and the plots will be in ' + outdir_default)
     else:
       sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
-    Metric.graphing_modules = graphing_modules
-    Metric.device_types = device_type_metrics
-    metric_string_list = []
+
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
     threads = []
@@ -384,7 +384,7 @@ def main():
         metric.ts_start = ts_start
       if ts_end:
         metric.ts_end = ts_end
-      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
+      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock))
       thread.start()
       threads.append(thread)
     for t in threads:
