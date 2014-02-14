@@ -203,7 +203,7 @@ def tscsv_nway_file_merge(outfile, filelist, filler):
             outwords.append(filler)
       outf.write( ','.join(outwords) + '\n' )
 
-def nway_plotting(crossplots, metrics, output_directory, resource_path, filler):
+def nway_plotting(crossplots, metrics, output_directory, resource_path):
   listlen = len(crossplots)
   if listlen == 0:
     return ''

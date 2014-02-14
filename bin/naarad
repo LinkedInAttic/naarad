@@ -190,6 +190,12 @@ def is_valid_metric_name(metric_name):
     return False
 
 def parse_basic_metric_options(config_obj, section):
+  """
+  Parse basic options from metric sections of the config
+  :param config_obj: ConfigParser object
+  :param section: Section name
+  :return: all the parsed options
+  """
   ts_start = None
   ts_end = None
   precision = None
@@ -224,6 +230,15 @@ def parse_basic_metric_options(config_obj, section):
   return hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings
 
 def parse_metric_section(config_obj, section, metric_classes, outdir_default, resource_path):
+  """
+  Parse a metric section and create a Metric object
+  :param config_obj: ConfigParser object
+  :param section: Section name
+  :param metric_classes: List of valid metric types
+  :param outdir_default: Default output directory
+  :param resource_path: Default resource directory
+  :return: An initialized Metric object
+  """
   hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings = parse_basic_metric_options(config_obj, section)
   #TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
@@ -238,7 +253,19 @@ def parse_metric_section(config_obj, section, metric_classes, outdir_default, re
   new_metric.precision = precision
   return new_metric
 
-def parse_graph_section(config_obj, section, graphing_library, crossplots, outdir_default, indir_default, graph_timezone):
+def parse_graph_section(config_obj, section, outdir_default, indir_default):
+  """
+  Parse the GRAPH section of the config to extract useful values
+  :param config_obj: ConfigParser object
+  :param section: Section name
+  :param outdir_default: Default output directory passed in args
+  :param indir_default: Default input directory passed in args
+  :return: List of options extracted from the GRAPH section
+  """
+  graph_timezone = None
+  graphing_library = 'matplotlib'
+  crossplots = []
+
   if config_obj.has_option(section, 'graphing_library'):
     graphing_library = config_obj.get(section, 'graphing_library')
   if config_obj.has_option(section, 'graphs'):
@@ -263,7 +290,6 @@ def main():
   metrics = []
   crossplots = []
   run_steps = []
-  filler = '' 
   graph_timezone = None
   graphing_library = 'matplotlib'
   variables_dict = {}
@@ -331,9 +357,10 @@ def main():
     config_obj.optionxform = str
     config_obj.read(optfile)
     for section in config_obj.sections():
+      # GRAPH section is optional
       if section == 'GRAPH':
         graphing_library, crossplots, outdir_default, indir_default, graph_timezone = \
-          parse_graph_section(config_obj, section, graphing_library, crossplots, outdir_default, indir_default, graph_timezone)
+          parse_graph_section(config_obj, section, outdir_default, indir_default)
       elif section.startswith('RUN-STEP'):
         run_steps.append(parse_run_step_section(config_obj, section))
       else:
@@ -390,7 +417,7 @@ def main():
     for t in threads:
       t.join()
     if len(crossplots) > 0:
-      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path, filler)
+      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path)
     else:
       correlated_plots = []
     rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
