@@ -1,0 +1,16 @@
+[SAR-device-host1]
+hostname=host1
+infile=host1.sar.device.out
+devices=sda
+
+[SAR-device-host2]
+hostname=host2
+infile=host2.sar.device.out
+devices=sda
+
+[CLUSTER-1]
+aggr_hosts=host1 host2
+aggr_metrics=SAR-device
+
+[GRAPH]
+graphing_library=matplotlib
