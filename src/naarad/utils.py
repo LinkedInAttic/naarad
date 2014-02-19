@@ -6,6 +6,7 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import calendar
+import ConfigParser
 import datetime
 import logging
 import numpy
@@ -14,6 +15,7 @@ import pytz
 from pytz import timezone
 import re
 import sys
+import time
 import urllib
 
 from naarad.metrics.sar_metric import SARMetric
@@ -54,6 +56,162 @@ def download_file(url):
   except:
     sys.exit("ERROR: Problem downloading config file. Please check the URL (" + url + "). Exiting...")
   return local_file
+
+def sanitize_string_section_name(string):
+  string = string.replace('/', '_')
+  string = string.replace('%', '_')
+  return string
+
+def is_valid_metric_name(metric_name):
+  """
+  check the validity of metric_name in config; the metric_name will be used for creation of sub-dir, so only contains: alphabet, digits , '.', '-' and '_'
+  :param str metric_name: metric_name
+  :return: True if valid
+  """
+  reg=re.compile('^[a-zA-Z0-9\.\-\_]+$')
+  if reg.match(metric_name) and not metric_name.startswith('.'):
+    return True
+  else:
+    return False
+
+def get_run_time_period(run_steps):
+  """
+  This method finds the time range which covers all the Run_Steps
+
+  :param run_steps: list of Run_Step objects
+  :return: tuple of start and end timestamps
+  """
+  init_ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
+  ts_start = init_ts_start
+  ts_end = '0'
+  for run_step in run_steps:
+    if run_step.ts_start and run_step.ts_end:
+      if run_step.ts_start < ts_start:
+        ts_start = run_step.ts_start
+      if run_step.ts_end > ts_end:
+        ts_end = run_step.ts_end
+  if ts_end == '0':
+    ts_end = None
+  if ts_start == init_ts_start:
+    ts_start = None
+  logger.info('get_run_time_period range returned ' + str(ts_start) + ' to ' + str(ts_end))
+  return ts_start, ts_end
+
+def parse_basic_metric_options(config_obj, section):
+  """
+  Parse basic options from metric sections of the config
+  :param config_obj: ConfigParser object
+  :param section: Section name
+  :return: all the parsed options
+  """
+  ts_start = None
+  ts_end = None
+  precision = None
+  hostname = "localhost"
+  rule_strings = {}
+  try:
+    if config_obj.has_option(section, 'hostname'):
+      hostname = config_obj.get(section, 'hostname')
+      config_obj.remove_option(section, 'hostname')
+    else:
+      logger.info('No hostname is found in section %s ' % section)
+    infile = config_obj.get(section, 'infile')
+    config_obj.remove_option(section, 'infile')
+    label = sanitize_string_section_name(section)
+    if config_obj.has_option(section, 'ts_start'):
+      ts_start = config_obj.get(section, 'ts_start')
+      config_obj.remove_option(section, 'ts_start')
+    if config_obj.has_option(section, 'ts_end'):
+      ts_end = config_obj.get(section, 'ts_end')
+      config_obj.remove_option(section, 'ts_end')
+    if config_obj.has_option(section, 'precision'):
+      precision = config_obj.get(section, 'precision')
+      config_obj.remove_option(section, 'precision')
+    kwargs = dict(config_obj.items(section))
+    for key in kwargs.keys():
+      if key.endswith('.sla'):
+        rule_strings[key.replace('.sla','')] = kwargs[key]
+        del kwargs[key]
+  except ConfigParser.NoOptionError:
+    logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
+    sys.exit()
+  return hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings
+
+def parse_metric_section(config_obj, section, metric_classes, outdir_default, resource_path):
+  """
+  Parse a metric section and create a Metric object
+  :param config_obj: ConfigParser object
+  :param section: Section name
+  :param metric_classes: List of valid metric types
+  :param outdir_default: Default output directory
+  :param resource_path: Default resource directory
+  :return: An initialized Metric object
+  """
+  hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings = parse_basic_metric_options(config_obj, section)
+  #TODO: Make user specify metric_type in config and not infer from section
+  metric_type = section.split('-')[0]
+  if not metric_type in metric_classes:
+    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+  else:
+    new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+  if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
+    new_metric.ignore = True
+  if config_obj.has_option(section, 'calc_metrics'):
+    new_metric.calc_metrics = config_obj.get(section, 'calc_metrics')
+  new_metric.precision = precision
+  return new_metric
+
+def parse_run_step_section(config_obj, section):
+  """
+  Parse a RUN-STEP section in the config to return a Run_Step object
+  :param config_obj: ConfigParser objection
+  :param section: Section name
+  :return: an initialized Run_Step object
+  """
+  run_type = config_obj.get(section, 'run_type')
+  run_cmd = config_obj.get(section, 'run_cmd')
+  if config_obj.has_option(section, 'call_type'):
+    call_type = config_obj.get(section, 'call_type')
+  else:
+    call_type = 'local'
+  if call_type == 'local':
+    run_step_obj = Local_Cmd(run_type, run_cmd, call_type)
+  else:
+    logger.warning('Unsupported RUN_STEP supplied, call_type should be local')
+    run_step_obj = None
+  return run_step_obj
+
+def parse_graph_section(config_obj, section, outdir_default, indir_default):
+  """
+  Parse the GRAPH section of the config to extract useful values
+  :param config_obj: ConfigParser object
+  :param section: Section name
+  :param outdir_default: Default output directory passed in args
+  :param indir_default: Default input directory passed in args
+  :return: List of options extracted from the GRAPH section
+  """
+  graph_timezone = None
+  graphing_library = 'matplotlib'
+  crossplots = []
+
+  if config_obj.has_option(section, 'graphing_library'):
+    graphing_library = config_obj.get(section, 'graphing_library')
+  if config_obj.has_option(section, 'graphs'):
+    graphs_string = config_obj.get(section, 'graphs')
+    crossplots = graphs_string.split()
+    # Supporting both outdir and output_dir
+  if config_obj.has_option(section, 'outdir'):
+    outdir_default = config_obj.get(section, 'outdir')
+  if config_obj.has_option(section, 'output_dir'):
+    outdir_default = config_obj.get(section, 'output_dir')
+  if config_obj.has_option(section, 'input_dir'):
+    indir_default = config_obj.get(section, 'input_dir')
+  if config_obj.has_option(section, 'graph_timezone'):
+    graph_timezone = config_obj.get(section, 'graph_timezone')
+    if graph_timezone not in ("UTC", "PST", "PDT"):
+      logger.warn('Unsupported timezone ' + graph_timezone + ' specified in option graph_timezone. Will use UTC instead')
+      graph_timezone = "UTC"
+  return graphing_library, crossplots, outdir_default, indir_default, graph_timezone
 
 def reconcile_timezones(begin_ts, ts_timezone, graph_timezone):
   if not graph_timezone:
@@ -203,7 +361,7 @@ def tscsv_nway_file_merge(outfile, filelist, filler):
             outwords.append(filler)
       outf.write( ','.join(outwords) + '\n' )
 
-def nway_plotting(crossplots, metrics, output_directory, resource_path, filler):
+def nway_plotting(crossplots, metrics, output_directory, resource_path):
   listlen = len(crossplots)
   if listlen == 0:
     return ''
