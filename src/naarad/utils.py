@@ -22,6 +22,15 @@ from naarad.metrics.sar_metric import SARMetric
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData
 
+try:
+  from naarad.naarad_imports import metric_classes, aggregate_metric_classes, graphing_modules, device_type_metrics
+
+except ImportError:
+  metric_classes = {}
+  graphing_modules = {}
+  aggregate_metric_classes = {}
+  
+
 logger = logging.getLogger('naarad.utils')
 
 def is_valid_url(url):
@@ -104,6 +113,9 @@ def parse_basic_metric_options(config_obj, section):
   :param section: Section name
   :return: all the parsed options
   """
+  infile = None
+  aggr_hosts = None
+  aggr_metrics = None
   ts_start = None
   ts_end = None
   precision = None
@@ -115,8 +127,12 @@ def parse_basic_metric_options(config_obj, section):
       config_obj.remove_option(section, 'hostname')
     else:
       logger.info('No hostname is found in section %s ' % section)
-    infile = config_obj.get(section, 'infile')
-    config_obj.remove_option(section, 'infile')
+    
+    #'infile' is not mandatory for aggregate metrics
+    if config_obj.has_option(section,'infile'):
+      infile = config_obj.get(section, 'infile')
+      config_obj.remove_option(section, 'infile')
+
     label = sanitize_string_section_name(section)
     if config_obj.has_option(section, 'ts_start'):
       ts_start = config_obj.get(section, 'ts_start')
@@ -127,6 +143,15 @@ def parse_basic_metric_options(config_obj, section):
     if config_obj.has_option(section, 'precision'):
       precision = config_obj.get(section, 'precision')
       config_obj.remove_option(section, 'precision')
+      
+    #support aggregate metrics, which take aggr_hosts and aggr_metrics
+    if config_obj.has_option(section, 'aggr_hosts'):
+      aggr_hosts = config_obj.get(section, 'aggr_hosts')
+      config_obj.remove_option(section, 'aggr_hosts')
+    if config_obj.has_option(section, 'aggr_metrics'):
+      aggr_metrics = config_obj.get(section, 'aggr_metrics')
+      config_obj.remove_option(section, 'aggr_metrics')
+
     kwargs = dict(config_obj.items(section))
     for key in kwargs.keys():
       if key.endswith('.sla'):
@@ -135,25 +160,29 @@ def parse_basic_metric_options(config_obj, section):
   except ConfigParser.NoOptionError:
     logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
     sys.exit()
-  return hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings
+  return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, kwargs, rule_strings
 
-def parse_metric_section(config_obj, section, metric_classes, outdir_default, resource_path):
+def parse_metric_section(config_obj, section, metric_classes, metrics, outdir_default, resource_path):
   """
   Parse a metric section and create a Metric object
   :param config_obj: ConfigParser object
   :param section: Section name
   :param metric_classes: List of valid metric types
+  :param metrics: List of all regular metric objects (used by aggregate metric)
   :param outdir_default: Default output directory
   :param resource_path: Default resource directory
   :return: An initialized Metric object
   """
-  hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings = parse_basic_metric_options(config_obj, section)
+  hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, kwargs, rule_strings = parse_basic_metric_options(config_obj, section)
   #TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
-  if not metric_type in metric_classes:
-    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
-  else:
+  if metric_type in metric_classes: # regular metrics
     new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+  elif metric_type in aggregate_metric_classes:       #aggregate metrics     
+    new_metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+  else:            # new metrics. 
+    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+
   if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
     new_metric.ignore = True
   if config_obj.has_option(section, 'calc_metrics'):
