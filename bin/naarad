@@ -13,14 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
 import argparse
 import ConfigParser
-import datetime
 import errno
 import logging
 import os
-import re
 import sys
 import threading
-import time
 
 # Add src directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')))
@@ -53,6 +50,9 @@ graphing_modules['dygraphs'] = dygraphs
 graphing_modules['js'] = dygraphs
 graphing_modules['javascript'] = dygraphs
 
+Metric.graphing_modules = graphing_modules
+Metric.device_types = device_type_metrics
+
 version = "0.1"
 
 template_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'templates'))
@@ -63,49 +63,6 @@ template_urls = {
     }
 
 logger = logging.getLogger('naarad')
-
-def parse_run_step_section(config_obj, section):
-  """
-  Parse a RUN-STEP section in the config to return a Run_Step object
-  :param config_obj: ConfigParser objection
-  :param section: Section name
-  :return: an initialized Run_Step object
-  """
-  run_type = config_obj.get(section, 'run_type')
-  run_cmd = config_obj.get(section, 'run_cmd')
-  if config_obj.has_option(section, 'call_type'):
-    call_type = config_obj.get(section, 'call_type')
-  else:
-    call_type = 'local'
-  if call_type == 'local':
-    run_step_obj = Local_Cmd(run_type, run_cmd, call_type)
-  else:
-    logger.warning('Unsupported RUN_STEP supplied, call_type should be local')
-    run_step_obj = None
-  return run_step_obj
-
-def get_run_time_period(run_steps):
-  """
-  This method finds the time range which covers all the Run_Steps
-
-  :param run_steps: list of Run_Step objects
-  :return: tuple of start and end timestamps
-  """
-  init_ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
-  ts_start = init_ts_start
-  ts_end = '0'
-  for run_step in run_steps:
-    if run_step.ts_start and run_step.ts_end:
-      if run_step.ts_start < ts_start:
-        ts_start = run_step.ts_start
-      if run_step.ts_end > ts_end:
-        ts_end = run_step.ts_end
-  if ts_end == '0':
-    ts_end = None
-  if ts_start == init_ts_start:
-    ts_start = None
-  logger.info('get_run_time_period range returned ' + str(ts_start) + ' to ' + str(ts_end))
-  return ts_start, ts_end
 
 def init_logging(log_level):
   log_file = 'naarad.log'
@@ -150,7 +107,7 @@ def read_naarad_templates():
         logger.info('Adding template ' + template) 
         template_urls[template] = url
 
-def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock):
+def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock):
   metric.graph_timezone = graph_timezone
   if metric.outdir is None:
     metric.outdir = os.path.normpath(outdir_default)
@@ -167,82 +124,22 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
         metric.calculate_stats()
         metric.check_slas()
         graph_lock.acquire()
-        metric_html_string = metric.graph(graphing_library)
+        metric.graph(graphing_library)
         graph_lock.release()
-        metric_string_list.append(metric_html_string)
       else:
         logger.error('Parsing failed for metric: '  + metric.label)
     else:
       logger.error('Fetch/Collect failed for metric: ' + metric.label)
-
-def transform_ts(start, end, timezone="PDT"):
-  """
-    Transform time specification to real datetime string.
-
-    :param string start: start timestamp in format YYYY-mm-DD HH:MM:SS or 'end-X((days|day|hours|hour)'
-    :param string end: end timestamp in format YYYY-mm-DD HH:MM:SS or 'now'
-    :param string timezone: timezone to transform the timestamps into. Should be one of these: (UTC, PST, PDT)
-    :return: A tuple of start timestamp and end timestamps transformed from inGraphs like specification to YYYY-mm-DD HH:MM:SS formats
-  """
-  ts_pattern = "\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
-  #If timestamp is not in YYYY-mm-DD HH:MM:SS format, then it must be in RRDTool format
-  if not re.match(ts_pattern, end):
-    if end == "now":
-      if timezone in ("PDT", "PST"):
-        end_ts = datetime.datetime.now()
-      else:
-        end_ts = datetime.datetime.utcnow()
-      end_ts_str = datetime.datetime.strftime(end_ts, "%Y-%m-%d %H:%M:%S")
-    else:
-      sys.exit("End timestamp supported with only YYYY-mm-DD HH:MM:SS or 'now' formats. Please fix config. Exiting...")
-  else:
-    end_ts_str = end
-    end_ts = datetime.datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
-  if start and not re.match(ts_pattern, start):
-    reg_match = re.match("end-(\d+)(days|day|hours|hour)", start)
-    if reg_match:
-      key = reg_match.group(2)
-      val = int(reg_match.group(1))
-      if "day" in key:
-        delta = datetime.timedelta(days=val)
-      elif "hour" in key:
-        delta = datetime.timedelta(hours=val)
-      start_ts = end_ts - delta
-      start_ts_str = datetime.datetime.strftime(start_ts, "%Y-%m-%d %H:%M:%S")
-    else:
-      #TODO(Ritesh): Add support for minutes and chaining like end-1day2hours5minutes
-      sys.exit("Start timestamp supported with only YYYY-mm-DD HH:MM:SS or 'end-x(days|day|hours|hour)' formats. Please fix config. Exiting...")
-  else:
-    start_ts_str = start
-  return (start_ts_str, end_ts_str)
-
-def sanitize_string_section_name(string):
-  string = string.replace('/', '_')
-  string = string.replace('%', '_')
-  return string
 
 def print_usage():
   print ("Usage: "
                "\n To generate a diff report      : naarad -d report1 report2 -o <output_location>"
                "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file>")
 
-def is_valid_metric_name(metric_name):
-  """
-  check the validity of metric_name in config; the metric_name will be used for creation of sub-dir, so only contains: alphabet, digits , '.', '-' and '_'
-  :param str metric_name: metric_name
-  :return: True if valid
-  """
-  reg=re.compile('^[a-zA-Z0-9\.\-\_]+$')
-  if reg.match(metric_name) and not metric_name.startswith('.'):
-    return True
-  else:
-    return False
-  
 def main():
   metrics = []
   crossplots = []
   run_steps = []
-  filler = '' 
   graph_timezone = None
   graphing_library = 'matplotlib'
   variables_dict = {}
@@ -278,7 +175,6 @@ def main():
       print_usage()
       sys.exit(0)
     read_naarad_templates()
-    # Print template config
     if args.show_config:
       tmp_file = naarad.utils.download_file(template_urls[args.config])
       with open(tmp_file, 'r') as FH:
@@ -323,125 +219,67 @@ def main():
     config_obj.optionxform = str
     config_obj.read(optfile)
     for section in config_obj.sections():
+      # GRAPH section is optional
       if section == 'GRAPH':
-        if config_obj.has_option(section, 'graphing_library'):
-          graphing_library = config_obj.get(section, 'graphing_library')
-        if config_obj.has_option(section, 'graphs'):
-          graphs_string = config_obj.get(section, 'graphs')
-          crossplots = graphs_string.split()
-        # Supporting both outdir and output_dir
-        if config_obj.has_option(section, 'outdir'):
-          outdir_default = config_obj.get(section, 'outdir')
-        if config_obj.has_option(section, 'output_dir'):
-          outdir_default = config_obj.get(section, 'output_dir')
-        if config_obj.has_option(section, 'input_dir'):
-          indir_default = config_obj.get(section, 'input_dir')
-        if config_obj.has_option(section, 'graph_timezone'):
-          graph_timezone = config_obj.get(section, 'graph_timezone')
-          if graph_timezone not in ("UTC", "PST", "PDT"):
-            logger.warn('Unsupported timezone ' + graph_timezone + ' specified in option graph_timezone. Will use UTC instead')
-            graph_timezone = "UTC"
+        graphing_library, crossplots, outdir_default, indir_default, graph_timezone = \
+          naarad.utils.parse_graph_section(config_obj, section, outdir_default, indir_default)
       elif section.startswith('RUN-STEP'):
-        run_steps.append(parse_run_step_section(config_obj, section))
+        run_steps.append(naarad.utils.parse_run_step_section(config_obj, section))
       else:
-        # Metric sections
-        ts_start = None
-        ts_end = None
-        precision = None
-        hostname = "localhost"
-        rule_strings = {}
-        
         # section name is used to create sub-directories, so enforce it. 
-        if not is_valid_metric_name(section):
-          logger.critical('The section name of %s is invalid! Only letters, digits, dot(.), dash(-), underscore(_) are allowed' % section)
+        if not naarad.utils.is_valid_metric_name(section):
+          logger.critical('Section name %s is invalid! Only letters, digits, dot(.), dash(-), underscore(_) are allowed' % section)
           sys.exit(0)
-          
-        try:
-          if config_obj.has_option(section, 'hostname'):
-            hostname = config_obj.get(section, 'hostname')
-            config_obj.remove_option(section, 'hostname')     
-          else:
-            logger.info('No hostname is found in section %s ' % section)
-          
-          infile = config_obj.get(section, 'infile')
-          config_obj.remove_option(section, 'infile')
-          label = sanitize_string_section_name(section)
-          if config_obj.has_option(section, 'ts_start'):
-            ts_start = config_obj.get(section, 'ts_start')
-            config_obj.remove_option(section, 'ts_start')
-          if config_obj.has_option(section, 'ts_end'):
-            ts_end = config_obj.get(section, 'ts_end')
-            config_obj.remove_option(section, 'ts_end')
-          if config_obj.has_option(section, 'precision'):
-            precision = config_obj.get(section, 'precision')
-            config_obj.remove_option(section, 'precision')
-          kwargs = dict(config_obj.items(section))
-          for key in kwargs.keys():
-            if key.endswith('.sla'):
-              rule_strings[key.replace('.sla','')] = kwargs[key]
-              del kwargs[key]
-        except ConfigParser.NoOptionError:
-          logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
-          sys.exit()
         if section == 'SAR-*':
-          sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, hostname, outdir_default, label, ts_start, ts_end, None)
+          hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings = \
+            naarad.utils.parse_basic_metric_options(config_obj, section)
+          sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, hostname, outdir_default, label, ts_start,
+                                                         ts_end, None)
           if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
             for metric in sar_metrics:
               metric.ignore = True
           metrics.extend(sar_metrics)
         else:
-          #TODO: Make user specify metric_type in config and not infer from section
-          metric_type = section.split('-')[0]
-          if not metric_type in metric_classes:
-            new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
-          else:
-            new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
-          if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
-            new_metric.ignore = True
-          if config_obj.has_option(section, 'calc_metrics'):
-            new_metric.calc_metrics = config_obj.get(section, 'calc_metrics')
+          new_metric = naarad.utils.parse_metric_section(config_obj, section, metric_classes, outdir_default, resource_path)
           new_metric.bin_path = bin_path
-          new_metric.precision = precision
           metrics.append(new_metric)
 
     if outdir_default:
       try:
         os.makedirs(outdir_default)
-      except OSError as exeption:
-        if exeption.errno != errno.EEXIST:
+      except OSError as exception:
+        if exception.errno != errno.EEXIST:
           raise
       try:
         resource_directory = os.path.join(outdir_default, resource_path)
         os.makedirs(resource_directory)
-      except OSError as exeption:
-        if exeption.errno != errno.EEXIST:
+      except OSError as exception:
+        if exception.errno != errno.EEXIST:
           raise
       logger.info('Report.html and the plots will be in ' + outdir_default)
     else:
       sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
-    Metric.graphing_modules = graphing_modules
-    Metric.device_types = device_type_metrics
-    metric_string_list = []
+
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
     threads = []
     #TODO: Implement ordering of run_steps
     for run_step in run_steps:
       run_step.run()
-    ts_start, ts_end = get_run_time_period(run_steps)
+    ts_start, ts_end = naarad.utils.get_run_time_period(run_steps)
     graph_lock = threading.Lock()
     for metric in metrics:
       if ts_start:
         metric.ts_start = ts_start
       if ts_end:
         metric.ts_end = ts_end
-      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, metric_string_list, graphing_library, graph_lock))
+      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock))
       thread.start()
       threads.append(thread)
     for t in threads:
       t.join()
     if len(crossplots) > 0:
-      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path, filler)
+      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path)
     else:
       correlated_plots = []
     rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
