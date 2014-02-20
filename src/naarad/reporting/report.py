@@ -11,6 +11,7 @@ import os
 import shutil
 import naarad.utils
 import naarad.naarad_constants as CONSTANTS
+import naarad.resources
 
 
 logger = logging.getLogger('naarad.reporting.Report')
@@ -96,7 +97,7 @@ class Report(object):
     return client_charting_html
 
   def get_resources_location(self):
-    return os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'resources'))
+    return naarad.resources.get_dir()
 
   def generate(self):
     template_loader = FileSystemLoader(self.get_resources_location())

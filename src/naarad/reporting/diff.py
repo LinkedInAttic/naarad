@@ -15,8 +15,9 @@ from collections import defaultdict
 import naarad.httpdownload
 import naarad.utils
 import naarad.naarad_constants as CONSTANTS
+import naarad.resources
 
-logger = logging.getLogger('naarad.reporting.Diff')
+logger = logging.getLogger('naarad.reporting.diff')
 
 class Diff(object):
 
@@ -38,7 +39,7 @@ class Diff(object):
     self.diff_data = defaultdict(lambda : defaultdict(lambda : defaultdict(dict)))
 
   def get_resources_location(self):
-    return os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'resources'))
+    return naarad.resources.get_dir()
 
   def copy_local_includes(self):
     resource_folder = self.get_resources_location()
@@ -88,24 +89,19 @@ class Diff(object):
             logger.error('Unable to access summary stats file for report :%s', report.label)
             return False
       else:
-        stats_url = report.remote_location +  self.resource_path + '/' + metafile
-        if naarad.utils.is_valid_url(stats_url):
-          meta_file_data = naarad.httpdownload.handle_single_url(stats_url, '__stream__')
-          if meta_file_data:
-            if metafile == CONSTANTS.STATS_CSV_LIST_FILE:
-              report.stats = meta_file_data.split(',')
-            else:
-              report.datasource = meta_file_data.split(',')
+        stats_url = report.remote_location +  '/' + self.resource_path + '/' + metafile
+        meta_file_data = naarad.httpdownload.stream_url(stats_url)
+
+        if meta_file_data:
+          if metafile == CONSTANTS.STATS_CSV_LIST_FILE:
+            report.stats = meta_file_data.split(',')
           else:
-            report.status = 'NO_SUMMARY_STATS'
-            self.status = 'ERROR'
-            logger.error('No summary stats available for report :%s', report.label)
-            return False
+            report.datasource = meta_file_data.split(',')
         else:
-            report.status = 'NO_SUMMARY_STATS'
-            self.status = 'ERROR'
-            logger.error('Unable to access summary stats file for report :%s', report.label)
-            return False
+          report.status = 'NO_SUMMARY_STATS'
+          self.status = 'ERROR'
+          logger.error('No summary stats available for report :%s', report.label)
+          return False
     return True
 
   def collect_datasources(self):
@@ -130,7 +126,7 @@ class Diff(object):
         if exeption.errno != errno.EEXIST:
           raise
       if report.remote_location != 'local':
-        naarad.httpdownload.download_urls(map(lambda x: report.remote_location + self.resource_path + '/' + x + '.csv', report.datasource), report.local_location)
+        naarad.httpdownload.download_url_list(map(lambda x: report.remote_location + '/' + self.resource_path + '/' + x + '.csv', report.datasource), report.local_location)
       else:
           for filename in report.datasource:
             shutil.copy(os.path.join(os.path.join(report.location,self.resource_path),filename + '.csv'), report.local_location)
@@ -158,7 +154,7 @@ class Diff(object):
         if exeption.errno != errno.EEXIST:
           raise
       if report.remote_location != 'local':
-        naarad.httpdownload.download_urls(map(lambda x: report.remote_location + self.resource_path + '/' + x + '.csv', report.stats), report.local_location)
+        naarad.httpdownload.download_url_list(map(lambda x: report.remote_location + '/' + self.resource_path + '/' + x, report.stats), report.local_location)
       else:
           for filename in report.stats:
             shutil.copy(os.path.join(os.path.join(report.location,self.resource_path),filename), report.local_location)
