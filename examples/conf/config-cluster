@@ -1,20 +1,20 @@
 [SAR-device-host1]
 hostname=host1
-infile=host1.sar.device.out
+infile=sar.device.out
 devices=sda sdb
 
 [SAR-cpuusage-host1]
 hostname=host1
-infile=host1.sar.cpuusage.out
+infile=sar.cpuusage.out
 
 [SAR-device-host2]
 hostname=host2
-infile=host2.sar.device.out
+infile=sar.device.out
 devices=sda sdb
 
 [SAR-cpuusage-host2]
 hostname=host2
-infile=host2.sar.cpuusage.out
+infile=sar.cpuusage.out
 
 [CLUSTER-1]
 aggr_hosts=host1 host2

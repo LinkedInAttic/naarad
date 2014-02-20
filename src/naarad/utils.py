@@ -22,15 +22,6 @@ from naarad.metrics.sar_metric import SARMetric
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData
 
-try:
-  from naarad.naarad_imports import metric_classes, aggregate_metric_classes, graphing_modules, device_type_metrics
-
-except ImportError:
-  metric_classes = {}
-  graphing_modules = {}
-  aggregate_metric_classes = {}
-  
-
 logger = logging.getLogger('naarad.utils')
 
 def is_valid_url(url):
@@ -162,13 +153,14 @@ def parse_basic_metric_options(config_obj, section):
     sys.exit()
   return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, kwargs, rule_strings
 
-def parse_metric_section(config_obj, section, metric_classes, metrics, outdir_default, resource_path):
+def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregate_metric_classes, outdir_default, resource_path):
   """
   Parse a metric section and create a Metric object
   :param config_obj: ConfigParser object
   :param section: Section name
   :param metric_classes: List of valid metric types
   :param metrics: List of all regular metric objects (used by aggregate metric)
+  :param aggregate_metric_classes: List of all valid aggregate metric types
   :param outdir_default: Default output directory
   :param resource_path: Default resource directory
   :return: An initialized Metric object
