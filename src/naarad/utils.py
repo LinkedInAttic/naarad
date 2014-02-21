@@ -21,6 +21,8 @@ import urllib
 from naarad.metrics.sar_metric import SARMetric
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData
+from naarad.run_steps.run_step import Run_Step
+from naarad.run_steps.local_cmd import Local_Cmd
 
 logger = logging.getLogger('naarad.utils')
 
