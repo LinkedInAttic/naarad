@@ -33,3 +33,13 @@ Y_AXIS_OFFSET = 0.06
 Y_LABEL_FONTSIZE = 10
 Y_TICKS_FONTSIZE = 8
 ZOOM_FACTOR = 0
+
+# LinkedIn_Android_RUM Constants
+LIA_TIMING_NAME = 'timingName'
+LIA_TIMING_VALUE = 'timingValue'
+LIA_START = 'start'
+LIA_APP_ON_CREATE = 'linkedin_android_app_oncreate_time'
+LIA_NUS_UPDATE = 'linkedin_android_nus_update_time'
+LIA_LONG = 'long'
+LIA_NATIVE_TIMINGS = 'nativeTimings'
+LIA_ARRAY = 'array'

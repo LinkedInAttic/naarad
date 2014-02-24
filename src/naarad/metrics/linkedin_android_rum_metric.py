@@ -20,6 +20,7 @@ import time
 from datetime import date
 from naarad.metrics.metric import Metric
 import naarad.utils
+import naarad.naarad_constants
 
 logger = logging.getLogger('naarad.metrics.linkedin_android_rum_metric')
 
@@ -31,13 +32,6 @@ class LinkedInAndroidRumMetric(Metric):
   clock_format = '%Y-%m-%d %H:%M:%S'
   val_types = ('launch_time', 'nus_update_time')
 
-  # constants for extracting android launch time metrics  
-  timing_name = 'timingName'
-  timing_value = 'timingValue'
-  start = 'start'
-  app_on_create = 'linkedin_android_app_oncreate_time'
-  nus_update = 'linkedin_android_nus_update_time'
-  
 
   def __init__ (self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                 **other_options):
@@ -47,16 +41,6 @@ class LinkedInAndroidRumMetric(Metric):
       "launch_time" :"the time taken to launch the client application",
       "nus_update_time" :"the time taken to update NUS list after launch"
     }
-
-
-  # convert time stamp to date
-  def convert_to_date(self, time_stamp):
-    """
-    convert time stamp in ms to date in format '%Y-%m-%d %H:%M:%S'
-    :param LONG time_stamp
-    :return: STRING date in format '%Y-%m-%d %H:%M:%S'
-    """
-    return time.strftime(self.clock_format, time.localtime(time_stamp/1000));
 
 
   # get start time stamp, launch time duration, and nus update time duration 
@@ -72,13 +56,13 @@ class LinkedInAndroidRumMetric(Metric):
     nus_update_time = 0
 
     for item in native:
-      if item[self.timing_name] == self.app_on_create and item[self.start] is not None:
-        start_time = item[self.start]['long']
-      if item[self.timing_name] == self.nus_update:
-        if item[self.timing_value] is not None:
-          nus_update_time = item[self.timing_value]['long']
-        if item[self.start] is not None:
-          end_time = item[self.start]['long']
+      if item[naarad.naarad_constants.LIA_TIMING_NAME] == naarad.naarad_constants.LIA_APP_ON_CREATE and item[naarad.naarad_constants.LIA_START] is not None:
+        start_time = item[naarad.naarad_constants.LIA_START][naarad.naarad_constants.LIA_LONG]
+      if item[naarad.naarad_constants.LIA_TIMING_NAME] == naarad.naarad_constants.LIA_NUS_UPDATE:
+        if item[naarad.naarad_constants.LIA_TIMING_VALUE] is not None:
+          nus_update_time = item[naarad.naarad_constants.LIA_TIMING_VALUE][naarad.naarad_constants.LIA_LONG]
+        if item[naarad.naarad_constants.LIA_START] is not None:
+          end_time = item[naarad.naarad_constants.LIA_START][naarad.naarad_constants.LIA_LONG]
 
     if start_time == 0 or end_time == 0:
       time_stamp = 0
@@ -111,8 +95,8 @@ class LinkedInAndroidRumMetric(Metric):
           data = json.loads(line)
         except ValueError:
           logger.warn("Invalid JSON Object at line: %s", line)          
-        if data['nativeTimings'] is not None:
-          native = data['nativeTimings']['array']
+        if data[naarad.naarad_constants.LIA_NATIVE_TIMINGS] is not None:
+          native = data[naarad.naarad_constants.LIA_NATIVE_TIMINGS][naarad.naarad_constants.LIA_ARRAY]
           time_stamp, launch_time, nus_update_time = self.get_times(native)
           if launch_time != 0 and nus_update_time != 0: 
             results[time_stamp] = (str(launch_time), str(nus_update_time))
@@ -121,8 +105,8 @@ class LinkedInAndroidRumMetric(Metric):
     with open(launch_time_file, 'w') as launchtimef:
       with open(nus_update_time_file, 'w') as nusupdatetimef:
         for ts in sorted(results.iterkeys()):
-          launchtimef.write( self.convert_to_date(ts) + ',' + results[ts][0] + '\n' )
-          nusupdatetimef.write( self.convert_to_date(ts) + ',' + results[ts][1] + '\n' )
+          launchtimef.write( naarad.utils.get_standardized_timestamp(ts, 'epoch_ms') + ',' + results[ts][0] + '\n' )
+          nusupdatetimef.write( naarad.utils.get_standardized_timestamp(ts, 'epoch_ms') + ',' + results[ts][1] + '\n' )
     self.csv_files.append(launch_time_file)
     self.csv_files.append(nus_update_time_file)
     return True
