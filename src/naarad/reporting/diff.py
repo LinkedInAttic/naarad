@@ -27,7 +27,7 @@ class Diff(object):
   reports. Metrics & Statistics that are not in common between the two reports are ignored.
   """
 
-  def __init__(self, reports_list , report_name, output_directory, resource_directory, resource_path, **other_options):
+  def __init__(self, reports_list, report_name, output_directory, resource_directory, resource_path, **other_options):
     self.reports = reports_list
     if report_name == '':
       self.report_name = 'diff'
