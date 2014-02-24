@@ -20,6 +20,12 @@ import naarad.resources
 logger = logging.getLogger('naarad.reporting.diff')
 
 class Diff(object):
+  """
+  Support for diff between two naarad reports is provided as a diff report implemented by this class. The two reports to
+  be diffed can be local or remote (http(s)) on same or different hosts. Metrics and stats in common between the two
+  reports are diffed both as absolute as well as %. Client charting is supported for time series in common between the 2
+  reports. Metrics & Statistics that are not in common between the two reports are ignored.
+  """
 
   def __init__(self, reports_list , report_name, output_directory, resource_directory, resource_path, **other_options):
     self.reports = reports_list
@@ -239,6 +245,11 @@ class Diff(object):
     return True
 
 class NaaradReport:
+  """
+  NaaradReport object contains details on the the reports being diffed, such as details on available summary stats,
+  timeseries and location in current diff report where the collected data is stored.
+  """
+
   def __init__(self, location, title):
     if location.startswith('http://') or location.startswith('https://'):
       self.remote_location = location
