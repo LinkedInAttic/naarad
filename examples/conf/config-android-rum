@@ -1,7 +1,0 @@
-[ANDROIDRUM]
-infile=android_rum.log
-sub_metrics=launch_time nus_update_time
-access=local
-
-[GRAPH]
-graphs=ANDROIDRUM.launch_time.all ANDROIDRUM.nus_update_time.all

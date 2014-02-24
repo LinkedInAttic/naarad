@@ -21,10 +21,13 @@ from datetime import date
 from naarad.metrics.metric import Metric
 import naarad.utils
 
-logger = logging.getLogger('naarad.metrics.android_rum_metric')
+logger = logging.getLogger('naarad.metrics.linkedin_android_rum_metric')
 
-class AndroidRumMetric(Metric):
-  """ Class for Android RUM logs, deriving from class Metric """
+class LinkedInAndroidRumMetric(Metric):
+  """ 
+  Class for LinkedIn Android RUM logs, deriving from class Metric 
+  Note that this is for LinkedIn only
+  """
   clock_format = '%Y-%m-%d %H:%M:%S'
   val_types = ('launch_time', 'nus_update_time')
 
@@ -84,8 +87,8 @@ class AndroidRumMetric(Metric):
       time_stamp = start_time
       launch_time = end_time - start_time
     return (time_stamp, launch_time, nus_update_time)
-  
-  
+
+    
   # parse Android RUM logs
   def parse(self):
     # check if outdir exists, if not, create it
@@ -107,8 +110,7 @@ class AndroidRumMetric(Metric):
         try:
           data = json.loads(line)
         except ValueError:
-          logger.warn("Invalid JSON Object at line: %s", line)
-          
+          logger.warn("Invalid JSON Object at line: %s", line)          
         if data['nativeTimings'] is not None:
           native = data['nativeTimings']['array']
           time_stamp, launch_time, nus_update_time = self.get_times(native)
@@ -123,6 +125,5 @@ class AndroidRumMetric(Metric):
           nusupdatetimef.write( self.convert_to_date(ts) + ',' + results[ts][1] + '\n' )
     self.csv_files.append(launch_time_file)
     self.csv_files.append(nus_update_time_file)
-
     return True
 
