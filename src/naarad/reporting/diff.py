@@ -216,7 +216,7 @@ class Diff(object):
                 if stat != CONSTANTS.SUBMETRIC_HEADER:
                   diff_metric = reduce(defaultdict.__getitem__,[stats.split('.')[0], submetric, stat], self.diff_data)
                   diff_metric[0] = float(report0_stats[submetric][stat])
-                  diff_metric[1] =float(report1_stats[submetric][stat])
+                  diff_metric[1] = float(report1_stats[submetric][stat])
                   diff_metric['absolute_diff'] = naarad.utils.normalize_float_for_display(diff_metric[1] - diff_metric[0])
                   if diff_metric[0] == 0:
                     if diff_metric['absolute_diff'] == '0.0':
