@@ -501,7 +501,7 @@ def get_standardized_timestamp(timestamp, ts_format):
   elif ts_format == 'epoch':
     ts = datetime.datetime.utcfromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S.%f')
   elif ts_format == 'epoch_ms':
-    ts = datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')
+    ts = datetime.datetime.utcfromtimestamp(float(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')
   elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
     date_today = str(datetime.date.today())
     ts = datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
