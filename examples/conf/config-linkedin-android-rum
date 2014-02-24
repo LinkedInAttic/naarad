@@ -1,0 +1,7 @@
+[LINKEDINANDROIDRUM]
+infile=linkedin_android_rum.log
+sub_metrics=launch_time nus_update_time
+access=local
+
+[GRAPH]
+graphs=LINKEDINANDROIDRUM.launch_time.all LINKEDINANDROIDRUM.nus_update_time.all
