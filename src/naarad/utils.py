@@ -34,12 +34,7 @@ def is_valid_url(url):
   :return: True or False
   """
   regex = re.compile(
-      r'^(?:http|ftp)s?://' # http:// or https://
-      r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-      r'localhost|' #localhost...
-      r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-      r'(?::\d+)?' # optional port
-      r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+      r'^(http|https|ftp)://[A-Za-z0-9]+(-[A-Za-z0-9]+)*([:][A-Za-z0-9]+(-[A-Za-z0-9]+)*){0,1}([@][A-Za-z0-9]+(-[A-Za-z0-9]+)*){0,1}(\.[A-Za-z0-9]+(-[A-Za-z0-9]+)*)*(:[0-9]{1,5}){0,1}(/[A-Za-z0-9]*[A-Za-z0-9-._\(\)]*)*([?#&].*)*$')
   if regex.match(url):
     logger.info( "URL given as config")
     return True
@@ -506,7 +501,7 @@ def get_standardized_timestamp(timestamp, ts_format):
   elif ts_format == 'epoch':
     ts = datetime.datetime.utcfromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S.%f')
   elif ts_format == 'epoch_ms':
-    ts = datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')
+    ts = datetime.datetime.utcfromtimestamp(float(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')
   elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
     date_today = str(datetime.date.today())
     ts = datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
