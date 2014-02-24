@@ -20,7 +20,6 @@ logger = logging.getLogger('naarad.httpdownload')
 def handle_single_url(url, outdir, outfile=None):
   """
   Base function which takes a single url, download it to outdir/outfile
-  
   :param str url: a full/absolute url, e.g. http://www.cnn.com/log.zip
   :param str outdir: the absolute local directory. e.g. /home/user1/tmp/
   :param str outfile: (optional) filename stored in local directory. If outfile is not given, extract the filename from url
@@ -30,19 +29,19 @@ def handle_single_url(url, outdir, outfile=None):
     or not outdir or type(outdir) != str :
       logger.error('passed in parameters %s %s are incorrect.' % (url, outdir))
       return
-  
+
   if not naarad.utils.is_valid_url(url):
     logger.error("passed in url %s is incorrect." % url)
     return
-    
+
   if not outfile:
     segs = url.split('/')
     outfile = segs[-1]
-    
+
   output_file = os.path.join(outdir, outfile)
   if os.path.exists(output_file):
     logger.warn("the %s already exists!" % outfile)
-  
+
   with open(output_file, "w") as fh:
     try:
       response = urllib2.urlopen(url)
@@ -50,8 +49,22 @@ def handle_single_url(url, outdir, outfile=None):
     except urllib2.HTTPError:
       logger.error("got HTTPError when retrieving %s" % url)
       return
-  
+
   return output_file
+
+
+def stream_url(url):
+  """
+  Read response of specified url into memory and return to caller. No persistence to disk.
+  :return: response content if accessing the URL succeeds, False otherwise
+  """
+  try:
+    response = urllib2.urlopen(url)
+    response_content = response.read()
+    return response_content
+  except (urllib2.URLError, urllib2.HTTPError) as e:
+    logger.error('Unable to access requested URL: %s', url)
+    return False
 
 
 class HTMLLinkExtractor(HTMLParser): 
@@ -156,3 +169,15 @@ def download_url_regex(inputs, outdir, regex = ".*"):
       output_files.append(output_file)
       
   return output_files
+
+
+def download_url_list(url_list, outdir):
+  """ 
+  Downloads list of http(s) urls to local files
+  :param list url_list: list of URLs to download
+  :param str outdir: Required. the local directory to put the downloadedfiles.  
+    If this is not given, then the local file will be the original one, as given in url. 
+  :return None 
+  """
+  for url in url_list:
+    download_url_single(url, outdir)

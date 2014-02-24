@@ -11,6 +11,7 @@ import os
 import shutil
 import naarad.utils
 import naarad.naarad_constants as CONSTANTS
+import naarad.resources
 
 
 logger = logging.getLogger('naarad.reporting.Report')
@@ -96,7 +97,7 @@ class Report(object):
     return client_charting_html
 
   def get_resources_location(self):
-    return os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), 'resources'))
+    return naarad.resources.get_dir()
 
   def generate(self):
     template_loader = FileSystemLoader(self.get_resources_location())
@@ -107,6 +108,7 @@ class Report(object):
     metric_html = ''
     summary_enabled = self.enable_summary_tab()
     client_charting_data = []
+    stats_files = []
     metric_html = ''
 
     for metric in self.metric_list:
@@ -123,6 +125,7 @@ class Report(object):
 
       for metric_stats_file in metric.stats_files:
         if naarad.utils.is_valid_file(metric_stats_file) or len(metric.plot_files) > 0:
+          stats_files.append(os.path.basename(metric_stats_file))
           metric_stats = self.get_summary_table(metric_stats_file)
           metric_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path)
           metric_html += template_environment.get_template(CONSTANTS.TEMPLATE_METRIC_PAGE).render(metric_stats=metric_stats, plot_div_content=div_html, metric=metric, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
@@ -141,5 +144,9 @@ class Report(object):
 
     with open(os.path.join(self.output_directory, CONSTANTS.CLIENT_CHARTING_FILE),'w') as client_charting_report:
       client_charting_report.write(self.generate_client_charting_page(template_environment, client_charting_data, summary_enabled))
+
+    if len(stats_files) > 0 :
+      with open(os.path.join(self.resource_directory,CONSTANTS.STATS_CSV_LIST_FILE),'w') as stats_file:
+        stats_file.write(','.join(stats_files))
 
     return True
