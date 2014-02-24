@@ -20,7 +20,7 @@ import time
 from datetime import date
 from naarad.metrics.metric import Metric
 import naarad.utils
-import naarad.naarad_constants
+import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.metrics.linkedin_android_rum_metric')
 
@@ -56,13 +56,13 @@ class LinkedInAndroidRumMetric(Metric):
     nus_update_time = 0
 
     for item in native:
-      if item[naarad.naarad_constants.LIA_TIMING_NAME] == naarad.naarad_constants.LIA_APP_ON_CREATE and item[naarad.naarad_constants.LIA_START] is not None:
-        start_time = item[naarad.naarad_constants.LIA_START][naarad.naarad_constants.LIA_LONG]
-      if item[naarad.naarad_constants.LIA_TIMING_NAME] == naarad.naarad_constants.LIA_NUS_UPDATE:
-        if item[naarad.naarad_constants.LIA_TIMING_VALUE] is not None:
-          nus_update_time = item[naarad.naarad_constants.LIA_TIMING_VALUE][naarad.naarad_constants.LIA_LONG]
-        if item[naarad.naarad_constants.LIA_START] is not None:
-          end_time = item[naarad.naarad_constants.LIA_START][naarad.naarad_constants.LIA_LONG]
+      if item[CONSTANTS.LIA_TIMING_NAME] == CONSTANTS.LIA_APP_ON_CREATE and item[CONSTANTS.LIA_START] is not None:
+        start_time = item[CONSTANTS.LIA_START][CONSTANTS.LIA_LONG]
+      if item[CONSTANTS.LIA_TIMING_NAME] == CONSTANTS.LIA_NUS_UPDATE:
+        if item[CONSTANTS.LIA_TIMING_VALUE] is not None:
+          nus_update_time = item[CONSTANTS.LIA_TIMING_VALUE][CONSTANTS.LIA_LONG]
+        if item[CONSTANTS.LIA_START] is not None:
+          end_time = item[CONSTANTS.LIA_START][CONSTANTS.LIA_LONG]
 
     if start_time == 0 or end_time == 0:
       time_stamp = 0
@@ -95,8 +95,8 @@ class LinkedInAndroidRumMetric(Metric):
           data = json.loads(line)
         except ValueError:
           logger.warn("Invalid JSON Object at line: %s", line)          
-        if data[naarad.naarad_constants.LIA_NATIVE_TIMINGS] is not None:
-          native = data[naarad.naarad_constants.LIA_NATIVE_TIMINGS][naarad.naarad_constants.LIA_ARRAY]
+        if data[CONSTANTS.LIA_NATIVE_TIMINGS] is not None:
+          native = data[CONSTANTS.LIA_NATIVE_TIMINGS][CONSTANTS.LIA_ARRAY]
           time_stamp, launch_time, nus_update_time = self.get_times(native)
           if launch_time != 0 and nus_update_time != 0: 
             results[time_stamp] = (str(launch_time), str(nus_update_time))
