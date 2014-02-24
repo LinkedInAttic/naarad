@@ -17,7 +17,7 @@ import naarad.utils
 import sys
 
 
-logger = logging.getLogger('naarad.metrics.ClusterMetric')
+logger = logging.getLogger('naarad.metrics.cluster_metric')
 
 class ClusterMetric(Metric):
   """
