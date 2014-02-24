@@ -54,6 +54,10 @@ def handle_single_url(url, outdir, outfile=None):
 
 
 def stream_url(url):
+  """
+  Read response of specified url into memory and return to caller. No persistence to disk.
+  :return: response content if accessing the URL succeeds, False otherwise
+  """
   try:
     response = urllib2.urlopen(url)
     response_content = response.read()

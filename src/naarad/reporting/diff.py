@@ -39,9 +39,17 @@ class Diff(object):
     self.diff_data = defaultdict(lambda : defaultdict(lambda : defaultdict(dict)))
 
   def get_resources_location(self):
+    """
+    Return the location of the report templates and local js/css includes.
+    :return: filesystem location for naarad/src/resources directory.
+    """
     return naarad.resources.get_dir()
 
   def copy_local_includes(self):
+    """
+    Copy local js/css includes from naarad resources to the report/resources directory
+    :return: None
+    """
     resource_folder = self.get_resources_location()
     for stylesheet in self.stylesheet_includes:
       if ('http' not in stylesheet) and naarad.utils.is_valid_file(os.path.join(resource_folder,stylesheet)):
@@ -54,6 +62,10 @@ class Diff(object):
     return None
 
   def generate_client_charting_page(self, data_sources):
+    """
+    Create the client charting page for the diff report, with time series data from the two diffed reports.
+    :return: generated html to be written to disk
+    """
     if not os.path.exists(self.resource_directory):
       os.makedirs(self.resource_directory)
     self.copy_local_includes()
@@ -64,6 +76,10 @@ class Diff(object):
     return client_html
 
   def generate_diff_html(self):
+    """
+    Generate the summary diff report html from template
+    :return: generated html to be written to disk
+    """
     if not os.path.exists(self.resource_directory):
       os.makedirs(self.resource_directory)
     self.copy_local_includes()
@@ -75,6 +91,10 @@ class Diff(object):
     return diff_html
 
   def discover(self, metafile):
+    """
+    Determine what summary stats and time series csv exist for the reports that need to be diffed.
+    :return: boolean: return whether the summary stats / time series csv summary was successfully located
+    """
     for report in self.reports:
       if report.remote_location == 'local':
         if naarad.utils.is_valid_file(os.path.join(os.path.join(report.location, self.resource_path), metafile)):
@@ -105,6 +125,10 @@ class Diff(object):
     return True
 
   def collect_datasources(self):
+    """
+    Identify what time series exist in both the diffed reports and download them to the diff report resources directory
+    :return: True/False : return status of whether the download of time series resources succeeded.
+    """
     report_count = 0
     if self.status != 'OK':
       return False
@@ -133,6 +157,10 @@ class Diff(object):
     return True
 
   def collect(self):
+    """
+    Identify what summary stats exist in both the diffed reports and download them to the diff report resources directory
+    :return: True/False : return status of whether the download of summary stats succeeded.
+    """
     report_count = 0
     if self.status != 'OK':
       return False
@@ -161,6 +189,10 @@ class Diff(object):
     return True
 
   def generate(self):
+    """
+    Generate a diff report from the reports specified.
+    :return: True/False : return status of whether the diff report generation succeeded.
+    """
     if self.discover(CONSTANTS.STATS_CSV_LIST_FILE) and self.discover(CONSTANTS.PLOTS_CSV_LIST_FILE) and self.collect() and self.collect_datasources():
       for stats in self.reports[0].stats:
         stats_0 = os.path.join(self.reports[0].local_location, stats)
