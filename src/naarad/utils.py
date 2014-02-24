@@ -139,10 +139,14 @@ def parse_basic_metric_options(config_obj, section):
     if config_obj.has_option(section, 'aggr_hosts'):
       aggr_hosts = config_obj.get(section, 'aggr_hosts')
       config_obj.remove_option(section, 'aggr_hosts')
+    else: 
+      logger.info('No aggr_hosts is found in section %s ' % section)
     if config_obj.has_option(section, 'aggr_metrics'):
       aggr_metrics = config_obj.get(section, 'aggr_metrics')
       config_obj.remove_option(section, 'aggr_metrics')
-
+    else: 
+      logger.info('No aggr_metrics is found in section %s ' % section)
+      
     kwargs = dict(config_obj.items(section))
     for key in kwargs.keys():
       if key.endswith('.sla'):
