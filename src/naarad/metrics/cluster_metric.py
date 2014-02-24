@@ -56,42 +56,21 @@ class ClusterMetric(Metric):
     for each metric, merge the corresponding csv files into one, and output to disk
     update corresponding properties such as csv_column_map. 
     """
-    # -------------
-    #cur_metric = self.metrics[0]  
-    #print "metric_type = ", cur_metric.metric_type     #"SAR-device"
-    #print "lable name = ", cur_metric.label  #SAR-device-host1
-    #print "hostname = ", cur_metric.hostname  #host1
-    #  cur_metric.csv_column_map.items() : t1/resources/SAR-device-host1.sda.await.csv   sda.await   
-   
+
     for aggr_metric in self.aggr_metrics:   # e.g., SAR-device.sda.await
       cur_metric_type =  aggr_metric.split(".")[0]  # e.g. SAR-device
       cur_column = aggr_metric[len(cur_metric_type)+1:]  #e.g. sda.await or all.percent-sys
-      cur_column_raw = cur_column.replace('percent-','%')  # to handle the case when user specify "percent-" rather than '%'
+      cur_column = cur_column.replace('percent-','%')  # to handle the case when user specify "percent-" rather than '%';  what we expect is "%"
       
       #store all the possible values
       merged_data = []
-
     
       for metric in self.metrics:   # loop the list to find from all metrics to merge       
         file_csv = ""
         if metric.hostname in self.aggr_hosts and \
-           cur_column in metric.csv_column_map.values():  #handle regular case (no '%')
-             
-          #get the filename of the (host,column)
-          for k,v in metric.csv_column_map.items():
-            if v == cur_column:
-              file_csv = k
-              break
-              
-        if metric.hostname in self.aggr_hosts and \
-           cur_column_raw in metric.csv_column_map.values(): #handle '%' cases
-             
-          #get the filename of the (host,column)
-          for k,v in metric.csv_column_map.items():
-            if v == cur_column_raw:
-              file_csv = k
-              break
-            
+          cur_column in metric.csv_column_map.values():             
+          file_csv = metric.get_csv(cur_column)            
+          
         # found the file, merge it into merged_csv{}
         if file_csv:
           with open(file_csv) as fh:

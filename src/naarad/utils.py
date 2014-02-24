@@ -293,6 +293,7 @@ def sanitize_string(string):
   if string.startswith('%'):
     string = string.replace('%', 'percent-')
   else:
+    string = string.replace('.%', '.percent-') #handle the cases of "all.%sys"
     string = string.replace('%', '-percent-')
   return string
 
