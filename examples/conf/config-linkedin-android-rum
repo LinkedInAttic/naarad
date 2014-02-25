@@ -1,6 +1,7 @@
 [LINKEDINANDROIDRUM]
 infile=linkedin_android_rum.log
 sub_metrics=launch_time nus_update_time
+launch_time.sla=mean<5000 p50<5000
 access=local
 
 [GRAPH]

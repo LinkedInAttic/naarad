@@ -64,6 +64,9 @@ template_urls = {
 
 logger = logging.getLogger('naarad')
 
+# Return value: the number of failures encountered. By default the main function does not have a return value.  It only returns a value if exit_code is set to True
+ret = 0
+
 def init_logging(log_level):
   log_file = 'naarad.log'
   # clear the log file
@@ -121,8 +124,9 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
     if metric.collect():
       if metric.parse():
         metric.calc()
-        metric.calculate_stats()
-        metric.check_slas()
+        metric.calculate_stats() 
+        global ret
+        ret = ret + metric.check_slas()
         graph_lock.acquire()
         metric.graph(graphing_library)
         graph_lock.release()
@@ -146,7 +150,6 @@ def main():
   bin_path = os.path.dirname( __file__ )
 
   arg_parser = argparse.ArgumentParser()
-
   arg_parser.add_argument('-c', '--config', help="file with specifications for each metric and graphs")
   arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
   arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
@@ -155,6 +158,7 @@ def main():
   arg_parser.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
   arg_parser.add_argument('-l', '--log', help="log level")
   arg_parser.add_argument('-d', '--diff', nargs=2, help="Specify the location of two naarad reports to diff separated by a space. Can be local or http(s) locations. The first report is used as a baseline.", metavar=("report-1", "report-2"))
+  arg_parser.add_argument('-e', '--exit_code', help="enable exit_code for naarad (-e True).  By default it is False", default='False')
   #TODO(Ritesh) : Print a list of all templates supported with descriptions
   #arg_parser.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
 
@@ -284,5 +288,11 @@ def main():
       correlated_plots = []
     rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
     rpt.generate()
+  # return value only if exit_code is set to True, by default this is False
+  global ret  
+  if args.exit_code != 'False':
+    if ret > 0: 
+      sys.exit(ret)
+
 if __name__ == '__main__':
   main()
