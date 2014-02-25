@@ -47,6 +47,8 @@ The power of Naarad is in its configurablity. You can use it to glance at variou
 * Also supports generic metric logs in csv format. 
 * Pick 'n Choose which metrics to plot together for visual correlation.
 * Html report with all the plots for a visual inspection of your application's performance profile.
+* Grading support
+* Diff support. Ability to diff two naarad reports. Reports generated with naarad version < 1.0.5 are not supported for diff functionality.
 
 ## How is it different? ##
 
@@ -70,7 +72,7 @@ Naarad needs a config file that lists all the metrics and the graphing options. 
 <pre>
 [GC]
 infile=/home/ritesh/logs/gc.log
-sub_metrics=GC appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM
+sub_metrics=GCPause appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM
 
 [SAR-cpuusage]
 infile=/home/ritesh/logs/sar.cpuusage.out
@@ -83,7 +85,7 @@ outdir=/home/ritesh/naarad-out
 
  Once you have a config describing all your metrics, parsing and plotting needs, just call naarad with the config file as its argument and it should produce all the plots in a basic html report in the outdir specified in config
 
-<pre> naarad config</pre>
+<pre> naarad -c config</pre>
  
  Naarad can also take command line arguments: -i or --input_dir and -o or --output_dir. If input_dir is specified, all the infile options in the config are assumed to be relative to input_dir. User can also specify output_dir on command line and skip specifying the outdir option in the config. But if outdir is specified in the config, that takes precedence.
 
@@ -92,25 +94,25 @@ outdir=/home/ritesh/naarad-out
 <pre>
 [GC]
 infile=gc.log
-sub_metrics=GC appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM
+sub_metrics=GCPause appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GC cmsCM
 
 [SAR-cpuusage]
 infile=sar.cpuusage.out
 
 [GRAPH]
-graphs=GC.GC,all GC.cmsRM,GC.cmsIM,GC.gen0t GC.promo,GC.alloc
+graphs=GC.GCPause,all GC.cmsRM,GC.cmsIM,GC.gen0t GC.promo,GC.alloc
 </pre>
 
 And run it as:
 
-<pre> naarad config -i /home/ritesh/logs -o /home/ritesh/naarad-out</pre>
+<pre> naarad -c config -i /home/ritesh/logs -o /home/ritesh/naarad-out</pre>
 
 ## Templates ##
 
 Naarad comes with pre-built configs that you can use directly for simple cases. The templates are for GC and SAR, and can be used as:
 
-<pre>bin/naarad --i test/data/logs/ -o ~/tmp/naarad template:gc</pre>
-<pre>bin/naarad --i test/data/logs/ -o ~/tmp/naarad template:sar</pre>
+<pre>bin/naarad -i test/data/logs/ -o ~/tmp/naarad -c template:gc</pre>
+<pre>bin/naarad -i test/data/logs/ -o ~/tmp/naarad -c template:sar</pre>
 
 ## User-defined Templates ##
 
@@ -142,13 +144,13 @@ Some logs and config files are included in the source code. You can run these co
 
 GC example:
 
-<pre>bin/naarad -i examples/logs/ -o ~/tmp/naarad examples/conf/config-gc</pre>
+<pre>bin/naarad -i examples/logs/ -o ~/tmp/naarad -c examples/conf/config-gc</pre>
 
 This generates a results in ~/tmp/naarad. Fire up a browser to view ~/tmp/naarad/Report.html to see all the plots in one place.
 
 SAR example:
 
-<pre>bin/naarad -i examples/logs/ -o ~/tmp/naarad examples/conf/config-sar </pre>
+<pre>bin/naarad -i examples/logs/ -o ~/tmp/naarad -c examples/conf/config-sar </pre>
 
 View report.html in firefox (Chrome complains about cross-domain issues). 
 
@@ -168,6 +170,10 @@ The following metric types are supported currently:
 * Generic metrics in CSV format
 * All singly printed SAR logs
 * INNOTOP logs
+* JMETER logs
+* /proc/meminfo
+* /proc/vmstat
+* /proc/zoneinfo
 
 ## Section naming convention ##
 Metric type is currently inferred from the name of the section. So the section name should follow this convention:
@@ -204,7 +210,7 @@ The following sub-metrics can be specified for GC:
 * cmsIM(s)    - CMS initial mark pause
 * cmsRM(s)    - CMS remark pause
 * cmsRS(s)    - CMS resize pause
-* GC(s)       - all stop-the-world GC pauses
+* GCPause(s)  - all stop-the-world GC pauses
 * cmsCM(s)    - CMS concurrent mark phase
 * cmsCP(s)    - CMS concurrent preclean phase
 * cmsCS(s)    - CMS concurrent sweep phase
@@ -214,6 +220,9 @@ The following sub-metrics can be specified for GC:
 * used0(MB)   - young gen used memory size (before gc)
 * used1(MB)   - old gen used memory size (before gc)
 * used(MB)    - heap space used memory size (before gc) (excludes perm gen)
+* used0AfterGC(MB)   - young gen used memory size (after gc)
+* used1AfterGC(MB)   - old gen used memory size (after gc)
+* usedAfterGC(MB)    - heap space used memory size (after gc) (excludes perm gen)
 * commit0(MB) - young gen committed memory size (after gc)
 * commit1(MB) - old gen committed memory size (after gc)
 * commit(MB)  - heap committed memory size (after gc) (excludes perm gen)
@@ -225,7 +234,7 @@ So, e.g., you can specify all GC options using this section:
 
 <pre><code>[GC]
 infile=/home/ritesh/logs/gc.log
-sub_metrics=GC alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS cmsCM cmsCS csmCR apptime safept gen1t gen1i
+sub_metrics=GCPause alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS cmsCM cmsCS csmCR apptime safept gen1t gen1i
 </code></pre>
 
 ## System metrics using sar ##
@@ -242,3 +251,4 @@ Naarad supports various <a href="http://en.wikipedia.org/wiki/Sar_(Unix)">`sar`<
 * SAR-tcp using command: `sar -n TCP 1`
 * SAR-etcp using command: `sar -n ETCP 1`
 * SAR-sock using command: `sar -n SOCK 1`
+
