@@ -32,12 +32,10 @@ import time
 
 try:
   from naarad.naarad_imports import metric_classes, aggregate_metric_classes, graphing_modules, device_type_metrics
-
 except ImportError:
   metric_classes = {}
   graphing_modules = {}
-  aggregate_metric_classes = {}
-  
+  aggregate_metric_classes = {} 
 #Naarad pre-defined
 metric_classes['GC'] = GCMetric
 metric_classes['SAR'] = SARMetric
@@ -230,7 +228,6 @@ def main():
           else:
             metrics.append(new_metric)
 
-
     if outdir_default:
       try:
         os.makedirs(outdir_default)
@@ -277,8 +274,7 @@ def main():
     if len(crossplots) > 0:
       correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path)
     else:
-      correlated_plots = []
-      
+      correlated_plots = []      
     rpt = Report(None, outdir_default, resource_directory, resource_path, metrics + aggregate_metrics, correlated_plots=correlated_plots)
     rpt.generate()
 if __name__ == '__main__':

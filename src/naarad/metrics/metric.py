@@ -119,7 +119,6 @@ class Metric(object):
     csv = os.path.join(self.resource_directory, self.metric_type + '.' + col + '.csv')
     self.csv_column_map[csv] = column
     self.column_csv_map[column] = csv
-
     return csv
   
   def get_important_sub_metrics_csv(self):

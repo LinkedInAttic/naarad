@@ -60,34 +60,25 @@ class ClusterMetric(Metric):
     for aggr_metric in self.aggr_metrics:   # e.g., SAR-device.sda.await
       cur_metric_type =  aggr_metric.split(".")[0]  # e.g. SAR-device
       cur_column = aggr_metric[len(cur_metric_type)+1:]  #e.g. sda.await or all.percent-sys
-      cur_column = cur_column.replace('percent-','%')  # to handle the case when user specify "percent-" rather than '%';  what we expect is "%"
-      
-      #store all the possible values
-      merged_data = []
+      cur_column = cur_column.replace('percent-','%')  # to handle the case when user specify "percent-" rather than '%';  what we expect is "%"      
     
+      merged_data = []      #store all the possible values
       for metric in self.metrics:   # loop the list to find from all metrics to merge       
         file_csv = ""
         if metric.hostname in self.aggr_hosts and \
           cur_column in metric.csv_column_map.values():             
-          file_csv = metric.get_csv(cur_column)            
-          
-        # found the file, merge it into merged_csv{}
-        if file_csv:
+          file_csv = metric.get_csv(cur_column)                      
+        
+        if file_csv:   # found the file, merge it into merged_csv{}
           with open(file_csv) as fh:
             for line in fh:
               # handle the last line from each file gracefully by adding "\n"
               if "\n" in line:
                 merged_data.append(line)
               else:
-                merged_data.append(line + "\n")
-          
-      # update the column_csv_map (optional) and csv_column_map(must)
-      if cur_column in self.column_csv_map: 
-          out_csv = self.column_csv_map[cur_column] 
-      else:
-          out_csv = self.get_csv(cur_column)   #  column_csv_map and csv_column_map are assigned in get_csv()
+                merged_data.append(line + "\n")          
       
-      # write out to file             
+      out_csv = self.get_csv(cur_column)   #  column_csv_map and csv_column_map are assigned in get_csv()                 
       with open(out_csv, 'w') as fh:
         self.csv_files.append(out_csv)
         fh.write("".join(sorted(merged_data)) )
