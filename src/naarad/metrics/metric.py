@@ -91,8 +91,6 @@ class Metric(object):
         sla = None
       self.sla_map[sub_metric][stat] = sla
       self.sla_list.append(sla)  # TODO : remove this once report has grading done in the metric tables
-    logger.info('SLA MAP: %s',self.sla_map)
-
 
   def collect_local(self):
     return os.path.exists(self.infile)
