@@ -174,7 +174,6 @@ The following metric types are supported currently:
 * /proc/meminfo
 * /proc/vmstat
 * /proc/zoneinfo
-* Linkedin Android RUM logs
 
 ## Section naming convention ##
 Metric type is currently inferred from the name of the section. So the section name should follow this convention:
