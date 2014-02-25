@@ -23,20 +23,11 @@ class ClusterMetric(Metric):
   """
   supporting the metric of Cluster, which aggregates the performance metrics of multiple hosts
   """
-  # all other non-aggregate metrics; 
-  metrics = [] 
   
-  # metrics to be aggregated
-  aggr_metrics = []
-  
-  # hosts to be aggregated
-  aggr_hosts = []
-    
-  sub_metrics = None
-              
-  #store all the merged files; 
-  infiles = []
-  
+  metrics = []   # all other non-aggregate metrics;   
+  aggr_metrics = []  # metrics to be aggregated   
+  aggr_hosts = [] # hosts to be aggregated    
+
   def __init__ (self, section, aggregate_hosts, aggregate_metrics, metrics, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, **other_options):
     self.metrics = metrics
@@ -68,21 +59,17 @@ class ClusterMetric(Metric):
         if metric.hostname in self.aggr_hosts and \
           cur_column in metric.csv_column_map.values():             
           file_csv = metric.get_csv(cur_column)                      
-        
-        if file_csv:   # found the file, merge it into merged_csv{}
           with open(file_csv) as fh:
             for line in fh:
               # handle the last line from each file gracefully by adding "\n"
               if "\n" in line:
                 merged_data.append(line)
               else:
-                merged_data.append(line + "\n")          
-      
-      out_csv = self.get_csv(cur_column)   #  column_csv_map and csv_column_map are assigned in get_csv()                 
+                merged_data.append(line + "\n")      
+      out_csv = self.get_csv(cur_column)                 
       with open(out_csv, 'w') as fh:
         self.csv_files.append(out_csv)
         fh.write("".join(sorted(merged_data)) )
-
       gc.collect()
     return True
   
@@ -91,5 +78,6 @@ class ClusterMetric(Metric):
     merge multiple hosts' csv into one csv file. This approach has the benefit of reusing calculate_stats(), but with the penalty of reading the single csv later for calculate_stats()
     However, since file cache will cache the newly written csv files, reading the csv file will not likely be a IO bottleneck. 
     """
+    
     return True
     
