@@ -32,7 +32,7 @@ from naarad.reporting.report import Report
 from naarad.reporting.diff import Diff, NaaradReport
 from naarad.run_steps.run_step import Run_Step
 from naarad.run_steps.local_cmd import Local_Cmd
-
+import naarad.naarad_constants as CONSTANTS
 import time
 
 try:
@@ -65,7 +65,7 @@ template_urls = {
 logger = logging.getLogger('naarad')
 
 # Return value: the number of failures encountered. By default the main function does not have a return value.  It only returns a value if exit_code is set to True
-ret = 0
+sla_failures = 0
 
 def init_logging(log_level):
   log_file = 'naarad.log'
@@ -125,8 +125,8 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
       if metric.parse():
         metric.calc()
         metric.calculate_stats() 
-        global ret
-        ret = ret + metric.check_slas()
+        global sla_failures
+        sla_failures = sla_failures + metric.check_slas()
         graph_lock.acquire()
         metric.graph(graphing_library)
         graph_lock.release()
@@ -289,10 +289,10 @@ def main():
     rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
     rpt.generate()
   # return value only if exit_code is set to True, by default this is False
-  global ret  
+  global sla_failures  
   if args.exit_code != 'False':
-    if ret > 0: 
-      sys.exit(ret)
+    if sla_failures > 0: 
+      sys.exit(CONSTANTS.SLA_FAILURE)
 
 if __name__ == '__main__':
   main()

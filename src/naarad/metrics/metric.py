@@ -248,11 +248,11 @@ class Metric(object):
             if isinstance(percentile_num, float) or isinstance(percentile_num, int):
               if percentile_num in self.calculated_percentiles[sub_metric].keys():
                 if not sla.check_sla_passed(self.calculated_percentiles[sub_metric][percentile_num]):
-		  ret = ret + 1
+                  ret = ret + 1
         if sub_metric in self.calculated_stats.keys():
           if stat_name in self.calculated_stats[sub_metric].keys():
             if not sla.check_sla_passed(self.calculated_stats[sub_metric][stat_name]):
-	      ret = ret + 1
+              ret = ret + 1
     # Save SLA results in a file
     if len(self.sla_map.keys()) > 0:
       sla_csv_file = self.get_sla_csv()
