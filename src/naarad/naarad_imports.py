@@ -13,6 +13,7 @@ from naarad.metrics.procvmstat_metric import ProcVmstatMetric
 from naarad.metrics.procmeminfo_metric import ProcMeminfoMetric
 from naarad.metrics.proczoneinfo_metric import ProcZoneinfoMetric
 from naarad.reporting.report import Report
+from naarad.metrics.cluster_metric import ClusterMetric
 
 #Custom metrics
 metric_classes = {
@@ -24,6 +25,11 @@ metric_classes = {
     'PROCZONEINFO' : ProcZoneinfoMetric
     }
 
+#Custom metrics;  aggregate_metric can only processed after regular metrics are done
+aggregate_metric_classes = {    
+    'CLUSTER' : ClusterMetric,
+    }    
+    
 graphing_modules = {
     'matplotlib': matplotlib_naarad,
     'svg': pygal_naarad

@@ -36,11 +36,11 @@ from naarad.run_steps.local_cmd import Local_Cmd
 import time
 
 try:
-  from naarad.naarad_imports import metric_classes, graphing_modules, device_type_metrics
+  from naarad.naarad_imports import metric_classes, aggregate_metric_classes, graphing_modules, device_type_metrics
 except ImportError:
   metric_classes = {}
   graphing_modules = {}
-
+  aggregate_metric_classes = {} 
 #Naarad pre-defined
 metric_classes['GC'] = GCMetric
 metric_classes['SAR'] = SARMetric
@@ -138,6 +138,7 @@ def print_usage():
 
 def main():
   metrics = []
+  aggregate_metrics = [] 
   crossplots = []
   run_steps = []
   graph_timezone = None
@@ -240,9 +241,14 @@ def main():
               metric.ignore = True
           metrics.extend(sar_metrics)
         else:
-          new_metric = naarad.utils.parse_metric_section(config_obj, section, metric_classes, outdir_default, resource_path)
-          new_metric.bin_path = bin_path
-          metrics.append(new_metric)
+          new_metric = naarad.utils.parse_metric_section(config_obj, section, metric_classes, metrics, aggregate_metric_classes, outdir_default, resource_path)
+          new_metric.bin_path = bin_path          
+          # put metrics in different thread groups 
+          metric_type = section.split('-')[0]
+          if metric_type in aggregate_metric_classes:
+            aggregate_metrics.append(new_metric)
+          else:
+            metrics.append(new_metric)
 
     if outdir_default:
       try:
@@ -278,11 +284,20 @@ def main():
       threads.append(thread)
     for t in threads:
       t.join()
+      
+    # handling CLUSTER metric and other aggregate metrics, which has to wait for all regular metric threads to complete.   
+    for metric in aggregate_metrics:
+      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock))
+      thread.start()
+      threads.append(thread)
+    for t in threads:
+      t.join()
+
     if len(crossplots) > 0:
       correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path)
     else:
-      correlated_plots = []
-    rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
+      correlated_plots = []      
+    rpt = Report(None, outdir_default, resource_directory, resource_path, metrics + aggregate_metrics, correlated_plots=correlated_plots)
     rpt.generate()
 if __name__ == '__main__':
   main()
