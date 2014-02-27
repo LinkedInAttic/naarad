@@ -46,3 +46,7 @@ LIA_NUS_UPDATE = 'linkedin_android_nus_update_time'
 LIA_LONG = 'long'
 LIA_NATIVE_TIMINGS = 'nativeTimings'
 LIA_ARRAY = 'array'
+
+
+# Narrad Exit Code
+SLA_FAILURE = 1

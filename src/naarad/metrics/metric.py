@@ -92,7 +92,6 @@ class Metric(object):
       self.sla_map[sub_metric][stat] = sla
       self.sla_list.append(sla)  # TODO : remove this once report has grading done in the metric tables
 
-
   def collect_local(self):
     return os.path.exists(self.infile)
 
@@ -236,6 +235,12 @@ class Metric(object):
       self.stats_files.append(metric_stats_csv_file)
 
   def check_slas(self):
+    """
+    Check if all SLAs pass
+
+    :return: 0 (if all SLAs pass) or the number of SLAs failures
+    """
+    ret = 0
     for sub_metric in self.sla_map.keys():
       for stat_name in self.sla_map[sub_metric].keys():
         sla = self.sla_map[sub_metric][stat_name]
@@ -244,10 +249,12 @@ class Metric(object):
             percentile_num = int(stat_name[1:])
             if isinstance(percentile_num, float) or isinstance(percentile_num, int):
               if percentile_num in self.calculated_percentiles[sub_metric].keys():
-                sla.check_sla_passed(self.calculated_percentiles[sub_metric][percentile_num])
+                if not sla.check_sla_passed(self.calculated_percentiles[sub_metric][percentile_num]):
+                  ret = ret + 1
         if sub_metric in self.calculated_stats.keys():
           if stat_name in self.calculated_stats[sub_metric].keys():
-            sla.check_sla_passed(self.calculated_stats[sub_metric][stat_name])
+            if not sla.check_sla_passed(self.calculated_stats[sub_metric][stat_name]):
+              ret = ret + 1
     # Save SLA results in a file
     if len(self.sla_map.keys()) > 0:
       sla_csv_file = self.get_sla_csv()
@@ -255,6 +262,7 @@ class Metric(object):
         for sub_metric in self.sla_map.keys():
           for stat, sla in self.sla_map[sub_metric].items():
             FH.write('%s\n' % (sla.get_csv_repr()))
+    return ret
 
   def calc(self):
     if not self.calc_metrics:
