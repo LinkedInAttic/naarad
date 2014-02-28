@@ -48,3 +48,30 @@ function plot(selector_id, div_id, colorset_id, advanced_source)
   );
   chart_1.resize(div_width, window.screen.height*0.75/2)
 }
+
+function plot_cdf(selector_id, div_id, colorset_id, advanced_source)
+{
+  var chart_data_selector = document.getElementById(selector_id);
+  var chart_data_source = "";
+  var chart_data_title = "" ;
+  chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
+  chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
+
+  var div_width = document.getElementById(div_id).clientWidth;
+  var div_height = document.getElementById(div_id).clientHeight;
+  chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,
+  {
+    axes : {
+      y : {
+            drawGrid: true
+          }
+    },
+    legend: 'always',
+    xlabel: "Percentiles",
+    colors: colorSets[colorset_id],
+    labels: [ "Percentiles", chart_data_title],
+    labelsDiv: "labels-" + div_id
+  }
+  );
+  chart_1.resize(div_width, window.screen.height*0.75/2)
+}

@@ -44,21 +44,44 @@
                 <option selected disabled hidden value=''>Select...</option>
                 {%- for data_series in metric_data %}
                 <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
-                {% endfor %}
+                {%- endfor %}
             </select>
         </label>
-
       </div>
+<!--
+      <div class="span3">
+        <label>
+            <select id="select-chart-1" onchange="plot('select-chart-1','charting-div-1',0,false)">
+                <option selected disabled hidden value=''>Select...</option>
+                {%- for data_series in percentiles_data %}
+                <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
+                {%- endfor %}
+            </select>
+        </label>
+      </div>
+-->
       <div class="span3">
         <label>
             <select id="select-chart-2" onchange="plot('select-chart-2','charting-div-2',1,false)">
                 <option selected disabled hidden value=''>Select...</option>
                 {%- for data_series in metric_data %}
                 <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
-                {% endfor %}
+                {%- endfor %}
             </select>
         </label>
-     </div>
+      </div>
+<!--
+      <div class="span3">
+        <label>
+            <select id="select-chart-1" onchange="plot('select-chart-1','charting-div-1',0,false)">
+                <option selected disabled hidden value=''>Select...</option>
+                {%- for data_series in percentiles_data %}
+                <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
+                {%- endfor %}
+            </select>
+        </label>
+      </div>
+-->
    </div>
     <div id="labels-charting-div-1"></div>
     <div id="charting-div-1" style="height:50%; width:100%;" class="row"></div>
