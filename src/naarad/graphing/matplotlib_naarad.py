@@ -65,7 +65,7 @@ def curate_plot_list(plots):
 
 def graph_data(list_of_plots, output_directory, resource_path, output_filename, plot_type = 'time'):
   """ 
-  graph_data current supports two plot types
+  graph_data currently supports two plot types
   'time': generate a time-series plot (the x-axis is a time series)
   'cdf': generate a CDF plot (the x-axis shows percentiles)
   """

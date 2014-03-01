@@ -308,6 +308,11 @@ class Metric(object):
             NEW_FH.write('\n')
 
   def graph(self, graphing_library = 'matplotlib'):
+    """ 
+    graph generates two types of graphs
+    'time': generate a time-series plot for all submetrics (the x-axis is a time series)
+    'cdf': generate a CDF plot for important submetrics (the x-axis shows percentiles)
+    """
     html_string = []
     html_string.append('<h1>Metric: {0}</h1>\n'.format(self.metric_type))
     graphed = False
