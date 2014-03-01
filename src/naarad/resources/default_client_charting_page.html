@@ -35,9 +35,9 @@
    </div><!-- /container -->
  </div><!-- /topbar-inner -->
 </div><!-- /topbar -->
-<div class="container">
-  <div class="content">
-    <div id="selection-div" class="row">
+<div id="chart-parent-div" class="container">
+  <div id="chart-div-1" class="content">
+    <div id="selection-div-1" class="row">
       <div class="span3">
         <label>
             <select id="select-chart-1" onchange="plot('select-chart-1','charting-div-1',0,false)">
@@ -48,10 +48,9 @@
             </select>
         </label>
       </div>
-<!--
       <div class="span3">
         <label>
-            <select id="select-chart-1" onchange="plot('select-chart-1','charting-div-1',0,false)">
+            <select id="select-percentiles-1" onchange="plot_cdf('select-percentiles-1','charting-div-1',0,false)">
                 <option selected disabled hidden value=''>Select...</option>
                 {%- for data_series in percentiles_data %}
                 <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
@@ -59,34 +58,12 @@
             </select>
         </label>
       </div>
--->
       <div class="span3">
-        <label>
-            <select id="select-chart-2" onchange="plot('select-chart-2','charting-div-2',1,false)">
-                <option selected disabled hidden value=''>Select...</option>
-                {%- for data_series in metric_data %}
-                <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
-                {%- endfor %}
-            </select>
-        </label>
-      </div>
-<!--
-      <div class="span3">
-        <label>
-            <select id="select-chart-1" onchange="plot('select-chart-1','charting-div-1',0,false)">
-                <option selected disabled hidden value=''>Select...</option>
-                {%- for data_series in percentiles_data %}
-                <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
-                {%- endfor %}
-            </select>
-        </label>
-      </div>
--->
-   </div>
+        <button type="button" class="btn" onclick="add_chart('chart-parent-div')">+</button>
+      </div>  
+    </div>
     <div id="labels-charting-div-1"></div>
     <div id="charting-div-1" style="height:50%; width:100%;" class="row"></div>
-     <div id="labels-charting-div-2"></div>
-   <div id="charting-div-2" style="height:50%; width:100%;" class="row"></div>
-  </div>
+ </div>
 </div>
 </body>
