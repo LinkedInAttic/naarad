@@ -11,6 +11,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.ticker as ticker
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
 import logging
@@ -63,13 +64,16 @@ def curate_plot_list(plots):
   return plots
 
 
-def graph_data(list_of_plots, output_directory, resource_path, output_filename):
+
+#  plot_type: currently supports 'time' for time-series data and 'cdf' for CDF data
+def graph_data(list_of_plots, output_directory, resource_path, output_filename, plot_type = 'time'):
   plots = curate_plot_list(list_of_plots)
   plot_count = len(plots)
   if plot_count == 0:
     return False, None
   graph_height, graph_width, graph_title = get_graph_metadata(list_of_plots)
   current_plot_count = 0
+  
   fig, axis = plt.subplots()
   fig.set_size_inches(graph_width, graph_height)
   if plot_count < 2:
@@ -80,7 +84,10 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   for plot in plots:
     current_plot_count += 1
     logger.info('Processing: ' + plot.input_csv + ' [ ' + output_filename + ' ]')
-    timestamp, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})
+    if plot_type == 'time':
+      xval, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})  #time -- extracts an array of timstamps and an array of yval
+    elif plot_type == 'cdf':   
+      xval, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',')  #cdf -- extracts an array of percentiles and an array of yval
     maximum_yvalue = numpy.amax(yval) * (1.0 + CONSTANTS.ZOOM_FACTOR * current_plot_count)
     minimum_yvalue = numpy.amin(yval) * (1.0 - CONSTANTS.ZOOM_FACTOR * current_plot_count)
 
@@ -99,10 +106,16 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
       current_axis.patch.set_visible(False)
     current_axis.set_ylabel(plot.y_label, color=get_current_color(current_plot_count), fontsize=CONSTANTS.Y_LABEL_FONTSIZE)
     current_axis.set_ylim([minimum_yvalue, maximum_yvalue])
-    if plot.graph_type == 'line':
-      current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
-    else:
-      current_axis.plot_date(x=timestamp, y=yval, marker='.', color=get_current_color(current_plot_count))
+    if plot_type == 'time':  #time -- extracts an array of timstamps and an array of yval
+      if plot.graph_type == 'line':
+        current_axis.plot_date(x=xval, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
+      else:
+        current_axis.plot_date(x=xval, y=yval, marker='.', color=get_current_color(current_plot_count))
+    elif plot_type == 'cdf': #cdf -- extracts an array of percentiles and an array of yval
+      if plot.graph_type == 'line':
+        current_axis.plot(xval, yval, '-')
+      else:
+        current_axis.plot(xval, yval, '.')
     y_ticks = current_axis.get_yticklabels()
     for y_tick in y_ticks:
       y_tick.set_color(get_current_color(current_plot_count))
@@ -112,13 +125,18 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   axis.yaxis.grid(True)
   axis.xaxis.grid(True)
   axis.set_title(graph_title)
-  axis.set_xlabel('Time')
-  x_date_format = mdates.DateFormatter(CONSTANTS.X_TICKS_DATEFORMAT)
-  axis.xaxis.set_major_formatter(x_date_format)
+  if plot_type == 'time':
+    axis.set_xlabel('Time')  #time-- sets the label of the x-axis as 'time'
+    x_date_format = mdates.DateFormatter(CONSTANTS.X_TICKS_DATEFORMAT)
+    axis.xaxis.set_major_formatter(x_date_format)
+  elif plot_type == 'cdf':
+    axis.set_xlabel('Percentile')
+    #x_formatter = ticker.ScalarFormatter(useOffset=False)
+    #axis.xaxis.set_major_formatter(x_formatter)
   plot_file_name = os.path.join(output_directory, output_filename + ".png")
   fig.savefig(plot_file_name)
   plt.close()
   #Create html fragment to be used for creation of the report
-  with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
-    div_file.write('<img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/>')
-  return True, os.path.join(output_directory, output_filename + '.div')
+  with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file: #cdf--
+    div_file.write('<img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/>') #cdf--
+  return True, os.path.join(output_directory, output_filename + '.div') #cdf--
