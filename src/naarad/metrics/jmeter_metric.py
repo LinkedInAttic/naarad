@@ -261,6 +261,7 @@ class JmeterMetric(Metric):
       html_string.append('<h2>Metric: {0}</h2>\n'.format(self.metric_type))
       logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
       plot_data = {}
+      # plot time series data for submetrics
       for out_csv in sorted(self.csv_files, reverse=True):
         csv_filename = os.path.basename(out_csv)
         # The last element is .csv, don't need that in the name of the chart
@@ -275,4 +276,6 @@ class JmeterMetric(Metric):
         graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.resource_directory, self.resource_path, self.metric_type + '.' + transaction )
         if graphed:
           self.plot_files.append(div_file)
+      # plot cdf for important submetrics as well
+      metric.plot_cdf(graphing_library)
       return True
