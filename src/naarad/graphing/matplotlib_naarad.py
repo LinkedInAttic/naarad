@@ -114,9 +114,9 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename, 
         current_axis.plot_date(x=xval, y=yval, marker='.', color=get_current_color(current_plot_count))
     elif plot_type == 'cdf':
       if plot.graph_type == 'line':
-        current_axis.plot(xval, yval, '-')
+        current_axis.plot(xval, yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
       else:
-        current_axis.plot(xval, yval, '.')
+        current_axis.plot(xval, yval, marker='.', color=get_current_color(current_plot_count))
     y_ticks = current_axis.get_yticklabels()
     for y_tick in y_ticks:
       y_tick.set_color(get_current_color(current_plot_count))
