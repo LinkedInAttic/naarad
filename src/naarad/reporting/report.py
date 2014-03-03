@@ -89,11 +89,11 @@ class Report(object):
     filename = file_name.split('.')
     return '.'.join(filename[0:-1])
 
-  def generate_client_charting_page(self, template_environment, ts_csv_list, ps_csv_list, summary_enabled):
+  def generate_client_charting_page(self, template_environment, timeseries_csv_list, percentiles_csv_list, summary_enabled):
     client_charting_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path) + '\n'
-    client_charting_html += template_environment.get_template(CONSTANTS.TEMPLATE_CLIENT_CHARTING).render(metric_list=sorted(self.metric_list), metric_data=sorted(ts_csv_list), percentiles_data=sorted(ps_csv_list), summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
+    client_charting_html += template_environment.get_template(CONSTANTS.TEMPLATE_CLIENT_CHARTING).render(metric_list=sorted(self.metric_list), timeseries_data=sorted(timeseries_csv_list), percentiles_data=sorted(percentiles_csv_list), summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
     with open(os.path.join(self.resource_directory,CONSTANTS.PLOTS_CSV_LIST_FILE),'w') as FH:
-      FH.write(','.join(sorted(ts_csv_list)))
+      FH.write(','.join(sorted(timeseries_csv_list)))
     return client_charting_html
 
   def get_resources_location(self):
