@@ -207,6 +207,9 @@ class Diff(object):
     return True
 
   def plot_diff(self):
+    """
+    Generate CDF diff plots of the submetrics
+    """
     diff_datasource = sorted(set(self.reports[0].datasource) & set(self.reports[1].datasource))
     graphed = False
     for submetric in diff_datasource:
@@ -216,7 +219,7 @@ class Diff(object):
         continue
       baseline_plot = PD(input_csv=baseline_csv, csv_column=1, series_name=submetric, y_label=submetric, precision=None, graph_height=600, graph_width=1200, graph_type='line')
       current_plot = PD(input_csv=current_csv, csv_column=1, series_name=submetric, y_label=submetric, precision=None, graph_height=600, graph_width=1200, graph_type='line')
-      graphed, div_file = matplot.graph_diff_data(baseline_plot, current_plot, os.path.join(self.output_directory, self.resource_path), self.resource_path, submetric+'.diff')
+      graphed, div_file = matplot.graph_diff_data(baseline_plot, current_plot, os.path.join(self.output_directory, self.resource_path), self.resource_path, (submetric+'.diff'))
       if graphed:
         self.plot_files.append(div_file)
     return True
