@@ -46,5 +46,54 @@ function plot(selector_id, div_id, colorset_id, advanced_source)
     labelsDiv: "labels-" + div_id
   }
   );
-  chart_1.resize(div_width, window.screen.height*0.75/2)
+  chart_1.resize(div_width, window.screen.height*0.75/2);
 }
+
+function plot_cdf(selector_id, div_id, colorset_id, advanced_source)
+{
+  var chart_data_selector = document.getElementById(selector_id);
+  var chart_data_source = "";
+  var chart_data_title = "" ;
+  chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
+  chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
+
+  var div_width = document.getElementById(div_id).clientWidth;
+  var div_height = document.getElementById(div_id).clientHeight;
+  chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,
+  {
+    axes : {
+      y : {
+            drawGrid: true
+          }
+    },
+    legend: 'always',
+    xlabel: "Percentiles",
+    colors: colorSets[colorset_id],
+    labels: [ "Percentiles", chart_data_title],
+    labelsDiv: "labels-" + div_id
+  }
+  );
+  chart_1.resize(div_width, window.screen.height*0.75/2);
+}
+
+function add_chart(container_div)
+{
+  var chartDiv = document.createElement("div");
+  var template_div = "chart-div-1";
+  var labelChartingDiv = "labels-charting-div-";
+  var chartingDiv = "charting-div-";
+  var children = document.getElementById(container_div).childNodes;
+  var count = children.length + 1;
+  var innerHTMLContent = document.getElementById(template_div).innerHTML;
+  var newInnerHTMLContent = innerHTMLContent.replace(/-1/g, "-" + count.toString());
+  chartDiv.className = "content";
+  chartDiv.setAttribute("id","chart-div-" + count.toString());
+  chartDiv.innerHTML = newInnerHTMLContent;
+  document.getElementById(container_div).appendChild(chartDiv);
+  document.getElementById(labelChartingDiv + count.toString()).innerHTML="";
+  document.getElementById(chartingDiv + count.toString()).innerHTML="";
+}
+
+
+
+
