@@ -19,6 +19,7 @@ import naarad.naarad_constants as CONSTANTS
 import naarad.resources
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.graphing.matplotlib_naarad as matplot
+from naarad.sla import SLA
 
 logger = logging.getLogger('naarad.reporting.diff')
 

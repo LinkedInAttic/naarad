@@ -147,18 +147,18 @@ def graph_diff_data(baseline_plot, current_plot, output_directory, resource_path
   fig, axis = plt.subplots()
   fig.set_size_inches(graph_width, graph_height)
   fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET)  
-  current_axis = axis
   logger.info('Processing: ' + baseline_plot.input_csv + ' and ' + current_plot.input_csv + ' [ ' + output_filename + ' ]')
   # draw both the baseline and current data on the same graph
   xval1, yval1 = numpy.loadtxt(baseline_plot.input_csv, unpack=True, delimiter=',')
   xval2, yval2 = numpy.loadtxt(current_plot.input_csv, unpack=True, delimiter=',')
   maximum_yvalue = max(numpy.amax(yval1), numpy.amax(yval2)) * 1.2
   minimum_yvalue = min(numpy.amin(yval1), numpy.amin(yval2)) * 0.8
-  current_axis.yaxis.set_ticks_position('left')
-  current_axis.set_ylabel(baseline_plot.y_label, color=get_current_color(1), fontsize=CONSTANTS.Y_LABEL_FONTSIZE)
-  current_axis.set_ylim([minimum_yvalue, maximum_yvalue])
-  current_axis.plot(xval1, yval1, linestyle='-', marker=None, color=get_current_color(1))
-  current_axis.plot(xval2, yval2, linestyle='-', marker=None, color=get_current_color(2))
+  axis.yaxis.set_ticks_position('left')
+  axis.set_ylabel(baseline_plot.y_label, fontsize=CONSTANTS.Y_LABEL_FONTSIZE)
+  axis.set_ylim([minimum_yvalue, maximum_yvalue])
+  axis.plot(xval1, yval1, linestyle='-', marker=None, color=get_current_color(1), label='baseline')
+  axis.plot(xval2, yval2, linestyle='-', marker=None, color=get_current_color(2), label='current')
+  axis.legend()
   axis.yaxis.grid(True)
   axis.xaxis.grid(True)
   axis.set_title(graph_title)
