@@ -86,5 +86,16 @@
       </div>
       {%- endfor %}
     {%- endif %}
+
+    {%- if plot_div_content %}
+    <div id="diff-metric-plots" class="row">
+      <div id="diff-metric-plots-span" class="span12">
+    <h3>Metrics Diff Plots</h3>
+    <p>
+        {{ plot_div_content }}
+    </p>
+    </div>
+    </div>
+    {%- endif %}
   </div>
 </div>

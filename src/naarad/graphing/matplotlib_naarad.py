@@ -77,7 +77,7 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename, 
   current_plot_count = 0 
   fig, axis = plt.subplots()
   fig.set_size_inches(graph_width, graph_height)
-  if plot_count < 2:
+  if plot_count < 2: 
     fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET)
   else:
     fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET - CONSTANTS.Y_AXIS_OFFSET * (plot_count - 2))
@@ -87,12 +87,11 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename, 
     logger.info('Processing: ' + plot.input_csv + ' [ ' + output_filename + ' ]')
     if plot_type == 'time':
       xval, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',', converters={0: convert_to_mdate})
-    elif plot_type == 'cdf':   
+    else:
       xval, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',')
     maximum_yvalue = numpy.amax(yval) * (1.0 + CONSTANTS.ZOOM_FACTOR * current_plot_count)
     minimum_yvalue = numpy.amin(yval) * (1.0 - CONSTANTS.ZOOM_FACTOR * current_plot_count)
-
-    if current_plot_count == 0:
+    if current_plot_count == 1:
       current_axis.yaxis.set_ticks_position('left')
     if current_plot_count > 1:
       current_axis = axis.twinx()
@@ -136,6 +135,38 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename, 
   fig.savefig(plot_file_name)
   plt.close()
   #Create html fragment to be used for creation of the report
+  with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
+    div_file.write('<img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/>')
+  return True, os.path.join(output_directory, output_filename + '.div')
+
+def graph_diff_data(baseline_plot, current_plot, output_directory, resource_path, output_filename):
+  """ 
+  graph_diff_data: put baseline and current on the same graph: currently it supports CDF
+  """
+  graph_height, graph_width, graph_title = get_graph_metadata([baseline_plot, current_plot])
+  fig, axis = plt.subplots()
+  fig.set_size_inches(graph_width, graph_height)
+  fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET)  
+  current_axis = axis
+  logger.info('Processing: ' + baseline_plot.input_csv + ' and ' + current_plot.input_csv + ' [ ' + output_filename + ' ]')
+  # draw both the baseline and current data on the same graph
+  xval1, yval1 = numpy.loadtxt(baseline_plot.input_csv, unpack=True, delimiter=',')
+  xval2, yval2 = numpy.loadtxt(current_plot.input_csv, unpack=True, delimiter=',')
+  maximum_yvalue = max(numpy.amax(yval1), numpy.amax(yval2)) * 1.2
+  minimum_yvalue = min(numpy.amin(yval1), numpy.amin(yval2)) * 0.8
+  current_axis.yaxis.set_ticks_position('left')
+  current_axis.set_ylabel(baseline_plot.y_label, color=get_current_color(1), fontsize=CONSTANTS.Y_LABEL_FONTSIZE)
+  current_axis.set_ylim([minimum_yvalue, maximum_yvalue])
+  current_axis.plot(xval1, yval1, linestyle='-', marker=None, color=get_current_color(1))
+  current_axis.plot(xval2, yval2, linestyle='-', marker=None, color=get_current_color(2))
+  axis.yaxis.grid(True)
+  axis.xaxis.grid(True)
+  axis.set_title(graph_title)
+  axis.set_xlabel('Percentile')
+  plot_file_name = os.path.join(output_directory, output_filename + ".png")
+  fig.savefig(plot_file_name)
+  plt.close()
+  # Create html fragment to be used for creation of the report
   with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
     div_file.write('<img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/>')
   return True, os.path.join(output_directory, output_filename + '.div')

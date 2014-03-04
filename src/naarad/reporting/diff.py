@@ -5,6 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import os.path
 import csv
 import errno
 from jinja2 import Environment, FileSystemLoader
@@ -16,6 +17,8 @@ import naarad.httpdownload
 import naarad.utils
 import naarad.naarad_constants as CONSTANTS
 import naarad.resources
+from naarad.graphing.plot_data import PlotData as PD
+import naarad.graphing.matplotlib_naarad as matplot
 
 logger = logging.getLogger('naarad.reporting.diff')
 
@@ -43,6 +46,7 @@ class Diff(object):
     self.stylesheet_includes = CONSTANTS.STYLESHEET_INCLUDES
     self.javascript_includes = CONSTANTS.JAVASCRIPT_INCLUDES
     self.diff_data = defaultdict(lambda : defaultdict(lambda : defaultdict(dict)))
+    self.plot_files = []
 
   def get_resources_location(self):
     """
@@ -89,10 +93,14 @@ class Diff(object):
     if not os.path.exists(self.resource_directory):
       os.makedirs(self.resource_directory)
     self.copy_local_includes()
+    div_html = ''
+    for plot_div in sorted(self.plot_files):
+      with open(plot_div,'r') as div_file:
+        div_html += '\n' + div_file.read()
     template_loader = FileSystemLoader(self.get_resources_location())
     template_environment = Environment(loader=template_loader)
     diff_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path, report_title='naarad diff report') + '\n'
-    diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_DIFF_PAGE).render(diff_data=self.diff_data,reports=self.reports) + '\n'
+    diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_DIFF_PAGE).render(diff_data=self.diff_data, plot_div_content=div_html, reports=self.reports) + '\n'
     diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_FOOTER).render()
     return diff_html
 
@@ -158,8 +166,12 @@ class Diff(object):
       if report.remote_location != 'local':
         naarad.httpdownload.download_url_list(map(lambda x: report.remote_location + '/' + self.resource_path + '/' + x + '.csv', report.datasource), report.local_location)
       else:
-          for filename in report.datasource:
+        for filename in report.datasource:
+          try:
             shutil.copy(os.path.join(os.path.join(report.location,self.resource_path),filename + '.csv'), report.local_location)
+            shutil.copy(os.path.join(os.path.join(report.location,self.resource_path),filename + '.percentiles.csv'), report.local_location)
+          except IOError as exeption:
+            continue
     return True
 
   def collect(self):
@@ -194,6 +206,21 @@ class Diff(object):
             shutil.copy(os.path.join(os.path.join(report.location,self.resource_path),filename), report.local_location)
     return True
 
+  def plot_diff(self):
+    diff_datasource = sorted(set(self.reports[0].datasource) & set(self.reports[1].datasource))
+    graphed = False
+    for submetric in diff_datasource:
+      baseline_csv = naarad.utils.get_default_csv(self.reports[0].local_location, (submetric+'.percentiles'))
+      current_csv = naarad.utils.get_default_csv(self.reports[1].local_location, (submetric+'.percentiles'))
+      if ((os.path.isfile(baseline_csv) & os.path.isfile(current_csv)) == False):
+        continue
+      baseline_plot = PD(input_csv=baseline_csv, csv_column=1, series_name=submetric, y_label=submetric, precision=None, graph_height=600, graph_width=1200, graph_type='line')
+      current_plot = PD(input_csv=current_csv, csv_column=1, series_name=submetric, y_label=submetric, precision=None, graph_height=600, graph_width=1200, graph_type='line')
+      graphed, div_file = matplot.graph_diff_data(baseline_plot, current_plot, os.path.join(self.output_directory, self.resource_path), self.resource_path, submetric+'.diff')
+      if graphed:
+        self.plot_files.append(div_file)
+    return True
+
   def generate(self):
     """
     Generate a diff report from the reports specified.
@@ -215,7 +242,7 @@ class Diff(object):
             report1_stats[row[CONSTANTS.SUBMETRIC_HEADER]] = row
           report1_stats['__headers__'] = report1._fieldnames
           common_stats = sorted(set(report0_stats['__headers__']) & set(report1_stats['__headers__']))
-          common_submetrics = sorted(set(report0_stats.keys()) & set(report1_stats.keys()))
+          common_submetrics = sorted(set(report0_stats.keys()) & set(report1_stats.keys()))       
           for submetric in common_submetrics:
             if submetric != '__headers__':
               for stat in common_stats:
@@ -233,6 +260,7 @@ class Diff(object):
                     diff_metric['percent_diff'] = naarad.utils.normalize_float_for_display((diff_metric[1] - diff_metric[0]) * 100 / diff_metric[0])
     else:
       return False
+    self.plot_diff()
     diff_html = ''
     if self.diff_data:
       diff_html = self.generate_diff_html()
@@ -249,7 +277,6 @@ class NaaradReport:
   NaaradReport object contains details on the the reports being diffed, such as details on available summary stats,
   timeseries and location in current diff report where the collected data is stored.
   """
-
   def __init__(self, location, title):
     if location.startswith('http://') or location.startswith('https://'):
       self.remote_location = location
