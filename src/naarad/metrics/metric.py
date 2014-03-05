@@ -361,8 +361,6 @@ class Metric(object):
     'time': generate a time-series plot for all submetrics (the x-axis is a time series)
     'cdf': generate a CDF plot for important submetrics (the x-axis shows percentiles)
     """
-    html_string = []
-    html_string.append('<h1>Metric: {0}</h1>\n'.format(self.metric_type))
     logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
     self.plot_cdf(graphing_library)
     self.plot_timeseries(graphing_library)

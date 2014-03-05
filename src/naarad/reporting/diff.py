@@ -254,9 +254,9 @@ class Diff(object):
       current_csv = naarad.utils.get_default_csv(self.reports[1].local_location, (submetric+'.percentiles'))
       if ((os.path.isfile(baseline_csv) & os.path.isfile(current_csv)) == False):
         continue
-      baseline_plot = PD(input_csv=baseline_csv, csv_column=1, series_name=submetric, y_label=submetric, precision=None, graph_height=600, graph_width=1200, graph_type='line')
-      current_plot = PD(input_csv=current_csv, csv_column=1, series_name=submetric, y_label=submetric, precision=None, graph_height=600, graph_width=1200, graph_type='line')
-      graphed, div_file = matplot.graph_diff_data(baseline_plot, current_plot, os.path.join(self.output_directory, self.resource_path), self.resource_path, (submetric+'.diff'))
+      baseline_plot = PD(input_csv=baseline_csv, csv_column=1, series_name=submetric, y_label=submetric, precision=None, graph_height=600, graph_width=1200, graph_type='line', plot_label='baseline')
+      current_plot = PD(input_csv=current_csv, csv_column=1, series_name=submetric, y_label=submetric, precision=None, graph_height=600, graph_width=1200, graph_type='line', plot_label='current')
+      graphed, div_file = matplot.graph_data_on_the_same_graph([baseline_plot, current_plot], os.path.join(self.output_directory, self.resource_path), self.resource_path, (submetric+'.diff'))
       if graphed:
         self.plot_files.append(div_file)
     return True

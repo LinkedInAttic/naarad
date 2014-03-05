@@ -137,8 +137,8 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
 
 def print_usage():
   print ("Usage: "
-               "\n To generate a diff report      : naarad -d report1 report2 -o <output_location>"
-               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file>")
+               "\n To generate a diff report      : naarad -d report1 report2 -o <output_location> -c <optional: config-file> -e <optional: turn on exit code>"
+               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file> -e <optional: turn on exit code>")
 
 def get_config_file(arg):
   """
@@ -146,24 +146,24 @@ def get_config_file(arg):
   """
   # Download config if its a URL
   if naarad.utils.is_valid_url(arg):
-    optf = naarad.utils.download_file(arg)
+    options_file = naarad.utils.download_file(arg)
   elif arg.startswith("template:"):
     #Its a template
     if arg in template_urls.keys():
       logger.info('Using template ' + arg + ' used from ' + template_urls[arg] )
-      optf = naarad.utils.download_file(template_urls[arg])
+      options_file = naarad.utils.download_file(template_urls[arg])
     else:
       sys.exit("ERROR: Template " + arg + " not found. Exiting...")
-    with open(optf, 'r') as FH:
+    with open(options_file, 'r') as FH:
       print "Config file used looks like this:"
       print "-------------"
       print FH.read()
       print "-------------"
   else:
-    optf = arg
-  if not os.path.exists(optf):
-    sys.exit("ERROR: Config file " + optf + " doesn't exist. If this is a URL, please use the fully qualified domain name\nExiting....")
-  return optf  
+    options_file = arg
+  if not os.path.exists(options_file):
+    sys.exit("ERROR: Config file " + options_file + " doesn't exist. If this is a URL, please use the fully qualified domain name\nExiting....")
+  return options_file  
 
 def main():
   metrics = []

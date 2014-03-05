@@ -139,26 +139,37 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename, 
     div_file.write('<img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/>')
   return True, os.path.join(output_directory, output_filename + '.div')
 
-def graph_diff_data(baseline_plot, current_plot, output_directory, resource_path, output_filename):
+def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path, output_filename):
   """ 
-  graph_diff_data: put baseline and current on the same graph: currently it supports CDF
+  graph_data_on_the_same_graph: put a list of plots on the same graph: currently it supports CDF
   """
-  graph_height, graph_width, graph_title = get_graph_metadata([baseline_plot, current_plot])
+  maximum_yvalue = -float('inf')
+  minimum_yvalue = float('inf')
+  plots = curate_plot_list(list_of_plots)
+  plot_count = len(plots)
+  if plot_count == 0:
+    return False, None
+  graph_height, graph_width, graph_title = get_graph_metadata(plots)
+  current_plot_count = 0 
   fig, axis = plt.subplots()
   fig.set_size_inches(graph_width, graph_height)
-  fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET)  
-  logger.info('Processing: ' + baseline_plot.input_csv + ' and ' + current_plot.input_csv + ' [ ' + output_filename + ' ]')
-  # draw both the baseline and current data on the same graph
-  xval1, yval1 = numpy.loadtxt(baseline_plot.input_csv, unpack=True, delimiter=',')
-  xval2, yval2 = numpy.loadtxt(current_plot.input_csv, unpack=True, delimiter=',')
-  maximum_yvalue = max(numpy.amax(yval1), numpy.amax(yval2)) * 1.2
-  minimum_yvalue = min(numpy.amin(yval1), numpy.amin(yval2)) * 0.8
+  if plot_count < 2: 
+    fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET)
+  else:
+    fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET - CONSTANTS.Y_AXIS_OFFSET * (plot_count - 2))
+  # generate each plot on the graph
+  for plot in plots:
+    current_plot_count += 1
+    logger.info('Processing: ' + plot.input_csv + ' [ ' + output_filename + ' ]')
+    xval, yval = numpy.loadtxt(plot.input_csv, unpack=True, delimiter=',')
+    axis.plot(xval, yval, linestyle='-', marker=None, color=get_current_color(current_plot_count), label=plot.plot_label)
+    axis.legend()
+    maximum_yvalue = max(maximum_yvalue, numpy.amax(yval) * (1.0 + CONSTANTS.ZOOM_FACTOR * current_plot_count))
+    minimum_yvalue = min(minimum_yvalue, numpy.amin(yval) * (1.0 - CONSTANTS.ZOOM_FACTOR * current_plot_count))
+  # set properties of the plots
   axis.yaxis.set_ticks_position('left')
-  axis.set_ylabel(baseline_plot.y_label, fontsize=CONSTANTS.Y_LABEL_FONTSIZE)
+  axis.set_ylabel(plots[0].y_label, fontsize=CONSTANTS.Y_LABEL_FONTSIZE)
   axis.set_ylim([minimum_yvalue, maximum_yvalue])
-  axis.plot(xval1, yval1, linestyle='-', marker=None, color=get_current_color(1), label='baseline')
-  axis.plot(xval2, yval2, linestyle='-', marker=None, color=get_current_color(2), label='current')
-  axis.legend()
   axis.yaxis.grid(True)
   axis.xaxis.grid(True)
   axis.set_title(graph_title)

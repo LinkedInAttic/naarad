@@ -32,23 +32,27 @@
             <caption>Summary of SLA Failures</caption>
             <thead>
               <tr>
-                <th>Submetric</th>
-                <th>Stat</th>
+                <th>sub_metric</th>
+                <th>sla_rule</th>
                 <th>Baseline Value</th>
                 <th>Current Value</th>
                 <th>Diff</th>
-                <th>Rule</th>
               </tr>
             </thead>
             <tbody>
               {%- for sla_failure in sla_failure_list %}
+              {%- if sla_failure.sla.sla_passed == True %}
+              <tr class="success">
+              {%- elif sla_failure.sla.sla_passed == False %}
+              <tr class="danger">
+              {%- else %}
               <tr>
+              {%- endif %}
                 <td>{{sla_failure.sla.sub_metric}}</td>
-                <td>{{sla_failure.sla.stat_name}}</td>
+                <td>{{sla_failure.sla.stat_name}} {{sla_failure.sla.sla_type}} {{sla_failure.sla.threshold}}</td>
                 <td>{{sla_failure.diff_metric[0]}}</td>
                 <td>{{sla_failure.diff_metric[1]}}</td>
                 <td>{{sla_failure.diff_metric['absolute_diff']}}</td>
-                <td>{{sla_failure.sla.sla_type}} {{sla_failure.sla.threshold}}</td>
               </tr>
              {%- endfor %}
             </tbody>
