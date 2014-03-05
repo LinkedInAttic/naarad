@@ -107,7 +107,7 @@ def get_rule_strings(config_obj, section):
     if key.endswith('.sla'):
       rule_strings[key.replace('.sla','')] = kwargs[key]
       del kwargs[key]
-  return rule_strings
+  return rule_strings, kwargs
 
 def parse_basic_metric_options(config_obj, section):
   """
@@ -139,7 +139,7 @@ def parse_basic_metric_options(config_obj, section):
     if config_obj.has_option(section, 'precision'):
       precision = config_obj.get(section, 'precision')
       config_obj.remove_option(section, 'precision')
-    rule_strings = get_rule_strings(config_obj, section)
+    rule_strings, kwargs = get_rule_strings(config_obj, section)
   except ConfigParser.NoOptionError:
     logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
     sys.exit()

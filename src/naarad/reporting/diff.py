@@ -80,7 +80,7 @@ class Diff(object):
     config_obj.read(optf)
     for section in config_obj.sections():
       if section == 'DIFF':
-        rule_strings = naarad.utils.get_rule_strings(config_obj, section)
+        rule_strings, kwargs = naarad.utils.get_rule_strings(config_obj, section)
         break
     for (key, val) in rule_strings.iteritems():
       self.set_sla(key, val)
