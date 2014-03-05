@@ -23,6 +23,7 @@ from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData
 from naarad.run_steps.run_step import Run_Step
 from naarad.run_steps.local_cmd import Local_Cmd
+import naarad.naarad_constants
 
 logger = logging.getLogger('naarad.utils')
 
@@ -190,18 +191,33 @@ def parse_run_step_section(config_obj, section):
   :param section: Section name
   :return: an initialized Run_Step object
   """
-  run_type = config_obj.get(section, 'run_type')
+
   run_cmd = config_obj.get(section, 'run_cmd')
+  if config_obj.has_option(section, 'run_type'):
+    run_type = config_obj.get(section, 'run_type')
+  else:
+    run_type = naarad.naarad_constants.RUN_TYPE_WORKLOAD
+  if config_obj.has_option(section, 'run_order'):
+    run_order = config_obj.get(section, 'run_order')
+  else:
+    run_order = naarad.naarad_constants.PRE_ANALYSIS_RUN
+  if config_obj.has_option(section, 'run_rank'):
+    run_rank = int(config_obj.get(section, 'run_rank'))
+    if run_rank > Run_Step.max_run_rank:
+      Run_Step.max_run_rank = run_rank + 1
+  else:
+    run_rank = Run_Step.max_run_rank
+    Run_Step.max_run_rank += 1
   if config_obj.has_option(section, 'call_type'):
     call_type = config_obj.get(section, 'call_type')
   else:
     call_type = 'local'
   if call_type == 'local':
-    run_step_obj = Local_Cmd(run_type, run_cmd, call_type)
+    run_step_obj = Local_Cmd(run_type, run_cmd, call_type, run_order, run_rank)
   else:
     logger.warning('Unsupported RUN_STEP supplied, call_type should be local')
     run_step_obj = None
-  return run_step_obj
+  return run_order, run_step_obj
 
 def parse_graph_section(config_obj, section, outdir_default, indir_default):
   """

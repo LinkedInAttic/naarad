@@ -50,3 +50,9 @@ LIA_ARRAY = 'array'
 
 # Narrad Exit Code
 SLA_FAILURE = 1
+
+# RUN STEPS constants
+PRE_ANALYSIS_RUN = 'pre'
+DURING_ANALYSIS_RUN = 'in'
+POST_ANALYSIS_RUN = 'post'
+RUN_TYPE_WORKLOAD = 'workload'

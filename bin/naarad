@@ -144,7 +144,10 @@ def main():
   metrics = []
   aggregate_metrics = [] 
   crossplots = []
-  run_steps = []
+  pre_run_steps = []
+  in_run_steps = []
+  post_run_steps = []
+  workload_run_steps = []
   graph_timezone = None
   graphing_library = 'matplotlib'
   variables_dict = {}
@@ -229,7 +232,16 @@ def main():
         graphing_library, crossplots, outdir_default, indir_default, graph_timezone = \
           naarad.utils.parse_graph_section(config_obj, section, outdir_default, indir_default)
       elif section.startswith('RUN-STEP'):
-        run_steps.append(naarad.utils.parse_run_step_section(config_obj, section))
+        run_order, run_step = naarad.utils.parse_run_step_section(config_obj, section)
+        if run_order == naarad.naarad_constants.PRE_ANALYSIS_RUN:
+          pre_run_steps.append(run_step)
+        # DURING_ANALYSIS_RUN not supported yet
+        elif run_order == naarad.naarad_constants.DURING_ANALYSIS_RUN:
+          in_run_steps.append(run_step)
+        elif run_order == naarad.naarad_constants.POST_ANALYSIS_RUN:
+          post_run_steps.append(run_step)
+        else:
+          logger.error('Unknown RUN-STEP run_order specified')
       else:
         # section name is used to create sub-directories, so enforce it. 
         if not naarad.utils.is_valid_metric_name(section):
@@ -266,17 +278,21 @@ def main():
       except OSError as exception:
         if exception.errno != errno.EEXIST:
           raise
-      logger.info('Report.html and the plots will be in ' + outdir_default)
+      logger.info('Reports and the plots will be in ' + outdir_default)
     else:
       sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
 
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
-    threads = []
-    #TODO: Implement ordering of run_steps
-    for run_step in run_steps:
+
+    for run_step in sorted(pre_run_steps, key=lambda step: step.run_rank):
       run_step.run()
-    ts_start, ts_end = naarad.utils.get_run_time_period(run_steps)
+      if run_step.run_type == naarad.naarad_constants.RUN_TYPE_WORKLOAD:
+        workload_run_steps.append(run_step)
+    # Get analysis time period from workload run steps
+    ts_start, ts_end = naarad.utils.get_run_time_period(workload_run_steps)
+
+    threads = []
     graph_lock = threading.Lock()
     for metric in metrics:
       if ts_start:
@@ -303,6 +319,9 @@ def main():
       correlated_plots = []      
     rpt = Report(None, outdir_default, resource_directory, resource_path, metrics + aggregate_metrics, correlated_plots=correlated_plots)
     rpt.generate()
+
+    for run_step in sorted(post_run_steps, key=lambda step: step.run_rank):
+      run_step.run()
 
   global sla_failures  
   if args.exit_code:
