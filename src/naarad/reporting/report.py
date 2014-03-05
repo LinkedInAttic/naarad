@@ -38,12 +38,12 @@ class Report(object):
   def copy_local_includes(self):
     resource_folder = self.get_resources_location()
     for stylesheet in self.stylesheet_includes:
-      if ('http' not in stylesheet) and naarad.utils.is_valid_file(os.path.join(resource_folder,stylesheet)):
-        shutil.copy(os.path.join(resource_folder,stylesheet),self.resource_directory)
+      if ('http' not in stylesheet) and naarad.utils.is_valid_file(os.path.join(resource_folder, stylesheet)):
+        shutil.copy(os.path.join(resource_folder, stylesheet), self.resource_directory)
 
     for javascript in self.javascript_includes:
-      if ('http' not in javascript) and naarad.utils.is_valid_file(os.path.join(resource_folder,javascript)):
-        shutil.copy(os.path.join(resource_folder,javascript), self.resource_directory)
+      if ('http' not in javascript) and naarad.utils.is_valid_file(os.path.join(resource_folder, javascript)):
+        shutil.copy(os.path.join(resource_folder, javascript), self.resource_directory)
 
     return None
 
@@ -89,11 +89,11 @@ class Report(object):
     filename = file_name.split('.')
     return '.'.join(filename[0:-1])
 
-  def generate_client_charting_page(self, template_environment, data_csv_list, summary_enabled):
+  def generate_client_charting_page(self, template_environment, timeseries_csv_list, percentiles_csv_list, summary_enabled):
     client_charting_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path) + '\n'
-    client_charting_html += template_environment.get_template(CONSTANTS.TEMPLATE_CLIENT_CHARTING).render(metric_list=sorted(self.metric_list),metric_data=sorted(data_csv_list),summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
-    with open(os.path.join(self.resource_directory,CONSTANTS.PLOTS_CSV_LIST_FILE),'w') as FH:
-      FH.write(','.join(sorted(data_csv_list)))
+    client_charting_html += template_environment.get_template(CONSTANTS.TEMPLATE_CLIENT_CHARTING).render(metric_list=sorted(self.metric_list), timeseries_data=sorted(timeseries_csv_list), percentiles_data=sorted(percentiles_csv_list), summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
+    with open(os.path.join(self.resource_directory, CONSTANTS.PLOTS_CSV_LIST_FILE),'w') as FH:
+      FH.write(','.join(sorted(timeseries_csv_list)))
     return client_charting_html
 
   def get_resources_location(self):
@@ -107,12 +107,14 @@ class Report(object):
     coplot_html_content = ''
     metric_html = ''
     summary_enabled = self.enable_summary_tab()
-    client_charting_data = []
+    timeseries_csv_list = []
+    percentiles_csv_list = []
     stats_files = []
     metric_html = ''
 
     for metric in self.metric_list:
-      client_charting_data.extend(map(self.strip_file_extension,map(os.path.basename,metric.csv_files)))
+      timeseries_csv_list.extend(map(self.strip_file_extension, map(os.path.basename, metric.csv_files)))
+      percentiles_csv_list.extend(map(self.strip_file_extension, map(os.path.basename, metric.percentiles_files)))
       div_html = ''
       for plot_div in sorted(metric.plot_files):
         with open(plot_div,'r') as div_file:
@@ -143,10 +145,10 @@ class Report(object):
         summary_report.write(self.generate_summary_page(template_environment, summary_html_content, coplot_html_content))
 
     with open(os.path.join(self.output_directory, CONSTANTS.CLIENT_CHARTING_FILE),'w') as client_charting_report:
-      client_charting_report.write(self.generate_client_charting_page(template_environment, client_charting_data, summary_enabled))
+      client_charting_report.write(self.generate_client_charting_page(template_environment, timeseries_csv_list, percentiles_csv_list, summary_enabled))
 
     if len(stats_files) > 0 :
-      with open(os.path.join(self.resource_directory,CONSTANTS.STATS_CSV_LIST_FILE),'w') as stats_file:
+      with open(os.path.join(self.resource_directory, CONSTANTS.STATS_CSV_LIST_FILE),'w') as stats_file:
         stats_file.write(','.join(stats_files))
 
     return True
