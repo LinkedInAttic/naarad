@@ -137,7 +137,7 @@ class Diff(object):
     template_loader = FileSystemLoader(self.get_resources_location())
     template_environment = Environment(loader=template_loader)
     diff_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path, report_title='naarad diff report') + '\n'
-    diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_DIFF_PAGE).render(diff_data=self.diff_data, plot_div_content=div_html, reports=self.reports, sla_failure_list=self.sla_failure_list) + '\n'
+    diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_DIFF_PAGE).render(diff_data=self.diff_data, plot_div_content=div_html, reports=self.reports, sla_failure_list=self.sla_failure_list, sla_map=self.sla_map) + '\n'
     diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_FOOTER).render()
     return diff_html
 
