@@ -168,12 +168,12 @@ def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path,
     minimum_yvalue = min(minimum_yvalue, numpy.amin(yval) * (1.0 - CONSTANTS.ZOOM_FACTOR * current_plot_count))
   # set properties of the plots
   axis.yaxis.set_ticks_position('left')
+  axis.set_xlabel(plots[0].x_label)
   axis.set_ylabel(plots[0].y_label, fontsize=CONSTANTS.Y_LABEL_FONTSIZE)
   axis.set_ylim([minimum_yvalue, maximum_yvalue])
   axis.yaxis.grid(True)
   axis.xaxis.grid(True)
   axis.set_title(graph_title)
-  axis.set_xlabel('Percentile')
   plot_file_name = os.path.join(output_directory, output_filename + ".png")
   fig.savefig(plot_file_name)
   plt.close()
