@@ -20,17 +20,6 @@
 </div><!-- /topbar -->
 <div class="container">
   <div class="content">
-    <div class="row">
-      <div class="span12">
-        <table class="table">
-            <h2 class="content-title">
-                <span class="text">Source Files Locations</span>
-            </h2>
-            <tr><td>Report 1: {{ reports[0].location }}</td></tr>
-            <tr><td>Report 2: {{ reports[1].location }}</td></tr>
-        </table>
-      </div>
-    </div>
 
     {%- if sla_failure_list %}
     <div class="row">
@@ -135,5 +124,18 @@
     </div>
     </div>
     {%- endif %}
+
+    <div class="row">
+      <div class="span12">
+        <table class="table">
+            <h2 class="content-title">
+                <span class="text">Source Files Locations</span>
+            </h2>
+            <tr><td>Report 1: {{ reports[0].location }}</td></tr>
+            <tr><td>Report 2: {{ reports[1].location }}</td></tr>
+        </table>
+      </div>
+    </div>
+
   </div>
 </div>

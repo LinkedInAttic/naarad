@@ -202,7 +202,7 @@ def main():
           diffoptfile = get_config_file(args.config)
           diff_report.extract_sla_from_config_file(diffoptfile)
         diff_report.generate()
-      if diff_report.sla_failures > 0:
+      if args.exit_code & (diff_report.sla_failures > 0):
         sys.exit(CONSTANTS.SLA_FAILURE)
       sys.exit(0)   
     elif not args.config:
