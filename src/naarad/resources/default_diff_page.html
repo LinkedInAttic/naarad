@@ -24,13 +24,51 @@
       <div class="span12">
         <table class="table">
             <h2 class="content-title">
-                <span class="text">Summary</span>
+                <span class="text">Source Files Locations</span>
             </h2>
             <tr><td>Report 1: {{ reports[0].location }}</td></tr>
             <tr><td>Report 2: {{ reports[1].location }}</td></tr>
         </table>
       </div>
     </div>
+
+    {%- if sla_failure_list %}
+    <div class="row">
+      <div class="span12">
+        <div id="sla failure summary" style="overflow-x:auto;">
+          <h2 class="content-title">
+            <span class="text">Summary</span>
+          </h2>
+          <table id="table-diff-sla-failure" class="table table-bordered table-striped sortable">
+            <caption>Summary of SLA Failures</caption>
+            <thead>
+              <tr>
+                <th>Submetric</th>
+                <th>Stat</th>
+                <th>Baseline Value</th>
+                <th>Current Value</th>
+                <th>Diff</th>
+                <th>Rule</th>
+              </tr>
+            </thead>
+            <tbody>
+              {%- for sla_failure in sla_failure_list %}
+              <tr>
+                <td>{{sla_failure.sla.sub_metric}}</td>
+                <td>{{sla_failure.sla.stat_name}}</td>
+                <td>{{sla_failure.diff_metric[0]}}</td>
+                <td>{{sla_failure.diff_metric[1]}}</td>
+                <td>{{sla_failure.diff_metric['absolute_diff']}}</td>
+                <td>{{sla_failure.sla.sla_type}} {{sla_failure.sla.threshold}}</td>
+              </tr>
+             {%- endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {%- endif %}
+
     {%- if diff_data %}
       {%- for metric in diff_data|sort %}
       <div class="row">

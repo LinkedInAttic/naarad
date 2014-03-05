@@ -94,6 +94,21 @@ def get_run_time_period(run_steps):
   logger.info('get_run_time_period range returned ' + str(ts_start) + ' to ' + str(ts_end))
   return ts_start, ts_end
 
+def get_rule_strings(config_obj, section):
+  """
+  Extract rule strings from a section
+  :param config_obj: ConfigParser object
+  :param section: Section name
+  :return: the rule strings
+  """
+  rule_strings = {}
+  kwargs = dict(config_obj.items(section))
+  for key in kwargs.keys():
+    if key.endswith('.sla'):
+      rule_strings[key.replace('.sla','')] = kwargs[key]
+      del kwargs[key]
+  return rule_strings
+
 def parse_basic_metric_options(config_obj, section):
   """
   Parse basic options from metric sections of the config
@@ -124,11 +139,7 @@ def parse_basic_metric_options(config_obj, section):
     if config_obj.has_option(section, 'precision'):
       precision = config_obj.get(section, 'precision')
       config_obj.remove_option(section, 'precision')
-    kwargs = dict(config_obj.items(section))
-    for key in kwargs.keys():
-      if key.endswith('.sla'):
-        rule_strings[key.replace('.sla','')] = kwargs[key]
-        del kwargs[key]
+    rule_strings = get_rule_strings(config_obj, section)
   except ConfigParser.NoOptionError:
     logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
     sys.exit()

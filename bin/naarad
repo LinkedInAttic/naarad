@@ -140,6 +140,31 @@ def print_usage():
                "\n To generate a diff report      : naarad -d report1 report2 -o <output_location>"
                "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file>")
 
+def get_config_file(arg):
+  """
+    Helper function to extract the config file from arguments
+  """
+  # Download config if its a URL
+  if naarad.utils.is_valid_url(arg):
+    optf = naarad.utils.download_file(arg)
+  elif arg.startswith("template:"):
+    #Its a template
+    if arg in template_urls.keys():
+      logger.info('Using template ' + arg + ' used from ' + template_urls[arg] )
+      optf = naarad.utils.download_file(template_urls[arg])
+    else:
+      sys.exit("ERROR: Template " + arg + " not found. Exiting...")
+    with open(optf, 'r') as FH:
+      print "Config file used looks like this:"
+      print "-------------"
+      print FH.read()
+      print "-------------"
+  else:
+    optf = arg
+  if not os.path.exists(optf):
+    sys.exit("ERROR: Config file " + optf + " doesn't exist. If this is a URL, please use the fully qualified domain name\nExiting....")
+  return optf  
+
 def main():
   metrics = []
   crossplots = []
@@ -173,8 +198,13 @@ def main():
         print_usage()
       else:
         diff_report = Diff([NaaradReport(args.diff[0], None), NaaradReport(args.diff[1], None)], 'diff', args.output_dir, os.path.join(args.output_dir, args.resource_path), args.resource_path)
+        if args.config:
+          diffoptfile = get_config_file(args.config)
+          diff_report.extract_sla_from_config_file(diffoptfile)
         diff_report.generate()
-      sys.exit(0)
+      if diff_report.sla_failures > 0:
+        sys.exit(CONSTANTS.SLA_FAILURE)
+      sys.exit(0)   
     elif not args.config:
       print_usage()
       sys.exit(0)
@@ -186,24 +216,7 @@ def main():
         print FH.read()
       sys.exit("----")
 
-    # Download config if its a URL
-    if naarad.utils.is_valid_url(args.config):
-      optfile = naarad.utils.download_file(args.config)
-    elif args.config.startswith("template:"):
-      #Its a template
-      if args.config in template_urls.keys():
-        logger.info('Using template ' + args.config + ' used from ' + template_urls[args.config] )
-        optfile = naarad.utils.download_file(template_urls[args.config])
-      else:
-        sys.exit("ERROR: Template " + args.config + " not found. Exiting...")
-      with open(optfile, 'r') as FH:
-        print "Config file used looks like this:"
-        print "-------------"
-        print FH.read()
-        print "-------------"
-    else:
-      optfile = args.config
-
+    optfile = get_config_file(args.config)
     indir_default = args.input_dir
     outdir_default = args.output_dir
     resource_path = args.resource_path
@@ -212,9 +225,6 @@ def main():
       for var in args.variables:
         words = var.split('=')
         variables_dict[words[0]] = words[1]
-
-    if not os.path.exists(optfile):
-      sys.exit("ERROR: Config file " + optfile + " doesn't exist. If this is a URL, please use the fully qualified domain name\nExiting....")
 
     # Parse the config file
     # TODO: Refactor the config parsing code

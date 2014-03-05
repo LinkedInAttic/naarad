@@ -20,6 +20,7 @@ import naarad.resources
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.graphing.matplotlib_naarad as matplot
 from naarad.sla import SLA
+import ConfigParser
 
 logger = logging.getLogger('naarad.reporting.diff')
 
@@ -48,6 +49,41 @@ class Diff(object):
     self.javascript_includes = CONSTANTS.JAVASCRIPT_INCLUDES
     self.diff_data = defaultdict(lambda : defaultdict(lambda : defaultdict(dict)))
     self.plot_files = []
+    self.sla_map = defaultdict(lambda: defaultdict(None))
+    self.sla_failures = 0
+    self.sla_failure_list = []
+
+  def set_sla(self, sub_metric, rules):
+    """
+    Extract SLAs from a set of rules
+    """
+    rules_list = rules.split()
+    for rule in rules_list:
+      if '<' in rule:
+        stat, threshold = rule.split('<')
+        sla = SLA(sub_metric, stat, float(threshold), 'lt')
+      elif '>' in rule:
+        stat, threshold = rule.split('>')
+        sla = SLA(sub_metric, stat, float(threshold), 'gt')
+      else:
+        logger.error('Unsupported SLA type defined : ' + rule)
+        sla = None
+      self.sla_map[sub_metric][stat] = sla
+
+  def extract_sla_from_config_file(self, optf):
+    """
+    Helper function to parse diff config file, which contains SLA rules for diff comparisons
+    """
+    rule_strings = {}
+    config_obj = ConfigParser.ConfigParser()
+    config_obj.optionxform = str
+    config_obj.read(optf)
+    for section in config_obj.sections():
+      if section == 'DIFF':
+        rule_strings = naarad.utils.get_rule_strings(config_obj, section)
+        break
+    for (key, val) in rule_strings.iteritems():
+      self.set_sla(key, val)
 
   def get_resources_location(self):
     """
@@ -101,7 +137,7 @@ class Diff(object):
     template_loader = FileSystemLoader(self.get_resources_location())
     template_environment = Environment(loader=template_loader)
     diff_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path, report_title='naarad diff report') + '\n'
-    diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_DIFF_PAGE).render(diff_data=self.diff_data, plot_div_content=div_html, reports=self.reports) + '\n'
+    diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_DIFF_PAGE).render(diff_data=self.diff_data, plot_div_content=div_html, reports=self.reports, sla_failure_list=self.sla_failure_list) + '\n'
     diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_FOOTER).render()
     return diff_html
 
@@ -224,6 +260,19 @@ class Diff(object):
       if graphed:
         self.plot_files.append(div_file)
     return True
+ 
+  def check_sla(self, sla, diff_metric):
+    """
+    Check whether the SLA has passed or failed
+    """
+    try:
+      diff_val = float(diff_metric['absolute_diff'])
+    except ValueError:
+      return False
+    if not (sla.check_sla_passed(diff_val)):
+      self.sla_failures += 1
+      self.sla_failure_list.append(DiffSLAFailure(sla, diff_metric))
+    return True
 
   def generate(self):
     """
@@ -261,7 +310,10 @@ class Diff(object):
                     else:
                       diff_metric['percent_diff'] = 'N/A'
                   else:
-                    diff_metric['percent_diff'] = naarad.utils.normalize_float_for_display((diff_metric[1] - diff_metric[0]) * 100 / diff_metric[0])
+                    diff_metric['percent_diff'] = naarad.utils.normalize_float_for_display((diff_metric[1] - diff_metric[0]) * 100 / diff_metric[0])                        
+                  # check whether there is a SLA failure
+                  if (submetric in self.sla_map.keys()) & (stat in self.sla_map[submetric].keys()):
+                    self.check_sla(self.sla_map[submetric][stat], diff_metric)
     else:
       return False
     self.plot_diff()
@@ -275,6 +327,14 @@ class Diff(object):
       with open(os.path.join(self.output_directory,CONSTANTS.CLIENT_CHARTING_FILE),'w') as client_file:
         client_file.write(client_html)
     return True
+
+class DiffSLAFailure:
+  """
+  DiffSLAFailures object tracks the information related to a SLA failure
+  """
+  def __init__(self, sla, diff_metric):
+    self.sla = sla
+    self.diff_metric = diff_metric
 
 class NaaradReport:
   """
