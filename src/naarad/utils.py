@@ -17,7 +17,7 @@ import re
 import sys
 import time
 import urllib
-
+from naarad.sla import SLA
 from naarad.metrics.sar_metric import SARMetric
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData
@@ -108,6 +108,21 @@ def get_rule_strings(config_obj, section):
       rule_strings[key.replace('.sla','')] = kwargs[key]
       del kwargs[key]
   return rule_strings, kwargs
+
+def extract_sla_from_config_file(obj, options_file):
+  """
+  Helper function to parse diff config file, which contains SLA rules for diff comparisons
+  """
+  rule_strings = {}
+  config_obj = ConfigParser.ConfigParser()
+  config_obj.optionxform = str
+  config_obj.read(options_file)
+  for section in config_obj.sections():
+    if section == 'DIFF':
+      rule_strings, kwargs = get_rule_strings(config_obj, section)
+      break
+  for (key, val) in rule_strings.iteritems():
+    set_sla(obj, key, val)
 
 def parse_basic_metric_options(config_obj, section):
   """
@@ -543,3 +558,58 @@ def get_standardized_timestamp(timestamp, ts_format):
   else:
     ts = datetime.datetime.strptime(timestamp,ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
   return ts
+
+def set_sla(obj, sub_metric, rules):
+  """
+  Extract SLAs from a set of rules
+  """
+  if not hasattr(obj, 'sla_map'):
+    return False
+  rules_list = rules.split()
+  for rule in rules_list:
+    if '<' in rule:
+      stat, threshold = rule.split('<')
+      sla = SLA(sub_metric, stat, float(threshold), 'lt')
+    elif '>' in rule:
+      stat, threshold = rule.split('>')
+      sla = SLA(sub_metric, stat, float(threshold), 'gt')
+    else:
+      if hasattr(obj, 'logger'):
+        obj.logger.error('Unsupported SLA type defined : ' + rule)
+      sla = None
+    obj.sla_map[sub_metric][stat] = sla
+    if hasattr(obj, 'sla_list'):
+      obj.sla_list.append(sla)  # TODO : remove this once report has grading done in the metric tables
+  return True
+
+def check_slas(obj):
+  """
+  Check if all SLAs pass
+  :return: 0 (if all SLAs pass) or the number of SLAs failures
+  """
+  if not hasattr(obj, 'sla_map'):
+    return 0
+
+  ret = 0
+  for sub_metric in obj.sla_map.keys():
+    for stat_name in obj.sla_map[sub_metric].keys():
+      sla = obj.sla_map[sub_metric][stat_name]
+      if stat_name[0] == 'p' and hasattr(obj, 'calculated_percentiles'):
+        if sub_metric in obj.calculated_percentiles.keys():
+          percentile_num = int(stat_name[1:])
+          if isinstance(percentile_num, float) or isinstance(percentile_num, int):
+            if percentile_num in obj.calculated_percentiles[sub_metric].keys():
+              if not sla.check_sla_passed(obj.calculated_percentiles[sub_metric][percentile_num]):
+                ret = ret + 1
+      if sub_metric in obj.calculated_stats.keys() and hasattr(obj, 'calculated_stats'):
+        if stat_name in obj.calculated_stats[sub_metric].keys():
+          if not sla.check_sla_passed(obj.calculated_stats[sub_metric][stat_name]):
+            ret = ret + 1
+  # Save SLA results in a file
+  if len(obj.sla_map.keys()) > 0 and hasattr(obj, 'get_sla_csv'):
+    sla_csv_file = obj.get_sla_csv()
+    with open(sla_csv_file, 'w') as FH:
+      for sub_metric in obj.sla_map.keys():
+        for stat, sla in obj.sla_map[sub_metric].items():
+          FH.write('%s\n' % (sla.get_csv_repr()))
+  return ret

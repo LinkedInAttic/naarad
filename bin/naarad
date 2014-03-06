@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(
 
 import naarad.utils
 from naarad.metrics.metric import Metric
+from naarad.reporting.diff import Diff
 from naarad.metrics.gc_metric import GCMetric
 from naarad.metrics.innotop_metric import INNOMetric
 from naarad.metrics.sar_metric import SARMetric
@@ -52,6 +53,7 @@ graphing_modules['javascript'] = dygraphs
 
 Metric.graphing_modules = graphing_modules
 Metric.device_types = device_type_metrics
+Diff.graphing_modules = graphing_modules
 
 version = "0.1"
 
@@ -126,7 +128,7 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
         metric.calc()
         metric.calculate_stats() 
         global sla_failures
-        sla_failures = sla_failures + metric.check_slas()
+        sla_failures = sla_failures + naarad.utils.check_slas(metric)
         graph_lock.acquire()
         metric.graph(graphing_library)
         graph_lock.release()
@@ -200,8 +202,8 @@ def main():
       else:
         diff_report = Diff([NaaradReport(args.diff[0], None), NaaradReport(args.diff[1], None)], 'diff', args.output_dir, os.path.join(args.output_dir, args.resource_path), args.resource_path)
         if args.config:
-          diffoptfile = get_config_file(args.config)
-          diff_report.extract_sla_from_config_file(diffoptfile)
+          diff_opt_file = get_config_file(args.config)
+          naarad.utils.extract_sla_from_config_file(diff_report, diff_opt_file)
         diff_report.generate()
       if args.exit_code & (diff_report.sla_failures > 0):
         sys.exit(CONSTANTS.SLA_FAILURE)

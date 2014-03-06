@@ -12,7 +12,6 @@ import re
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
 import naarad.httpdownload
-from naarad.sla import SLA
 import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.metrics.metric')
@@ -59,7 +58,7 @@ class Metric(object):
     self.sla_map = defaultdict(lambda: defaultdict(None))
 
     for (key, val) in rule_strings.iteritems():
-      self.set_sla(key, val)
+      naarad.utils.set_sla(self, key, val)
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -76,21 +75,6 @@ class Metric(object):
     elif self.ts_end and timestamp > self.ts_end:
       return True
     return False
-
-  def set_sla(self, sub_metric, rules):
-    rules_list = rules.split()
-    for rule in rules_list:
-      if '<' in rule:
-        stat, threshold = rule.split('<')
-        sla = SLA(sub_metric, stat, float(threshold), 'lt')
-      elif '>' in rule:
-        stat, threshold = rule.split('>')
-        sla = SLA(sub_metric, stat, float(threshold), 'gt')
-      else:
-        logger.error('Unsupported SLA type defined : ' + rule)
-        sla = None
-      self.sla_map[sub_metric][stat] = sla
-      self.sla_list.append(sla)  # TODO : remove this once report has grading done in the metric tables
 
   def collect_local(self):
     return os.path.exists(self.infile)
@@ -232,36 +216,6 @@ class Metric(object):
         if imp_metric_stats_present:
           self.important_stats_files.append(imp_metric_stats_csv_file)
       self.stats_files.append(metric_stats_csv_file)
-
-  def check_slas(self):
-    """
-    Check if all SLAs pass
-
-    :return: 0 (if all SLAs pass) or the number of SLAs failures
-    """
-    ret = 0
-    for sub_metric in self.sla_map.keys():
-      for stat_name in self.sla_map[sub_metric].keys():
-        sla = self.sla_map[sub_metric][stat_name]
-        if stat_name[0] == 'p':
-          if sub_metric in self.calculated_percentiles.keys():
-            percentile_num = int(stat_name[1:])
-            if isinstance(percentile_num, float) or isinstance(percentile_num, int):
-              if percentile_num in self.calculated_percentiles[sub_metric].keys():
-                if not sla.check_sla_passed(self.calculated_percentiles[sub_metric][percentile_num]):
-                  ret = ret + 1
-        if sub_metric in self.calculated_stats.keys():
-          if stat_name in self.calculated_stats[sub_metric].keys():
-            if not sla.check_sla_passed(self.calculated_stats[sub_metric][stat_name]):
-              ret = ret + 1
-    # Save SLA results in a file
-    if len(self.sla_map.keys()) > 0:
-      sla_csv_file = self.get_sla_csv()
-      with open(sla_csv_file, 'w') as FH:
-        for sub_metric in self.sla_map.keys():
-          for stat, sla in self.sla_map[sub_metric].items():
-            FH.write('%s\n' % (sla.get_csv_repr()))
-    return ret
 
   def calc(self):
     if not self.calc_metrics:

@@ -18,9 +18,8 @@ import naarad.utils
 import naarad.naarad_constants as CONSTANTS
 import naarad.resources
 from naarad.graphing.plot_data import PlotData as PD
-import naarad.graphing.matplotlib_naarad as matplot
-from naarad.sla import SLA
 import ConfigParser
+import time
 
 logger = logging.getLogger('naarad.reporting.diff')
 
@@ -52,38 +51,6 @@ class Diff(object):
     self.sla_map = defaultdict(lambda: defaultdict(None))
     self.sla_failures = 0
     self.sla_failure_list = []
-
-  def set_sla(self, sub_metric, rules):
-    """
-    Extract SLAs from a set of rules
-    """
-    rules_list = rules.split()
-    for rule in rules_list:
-      if '<' in rule:
-        stat, threshold = rule.split('<')
-        sla = SLA(sub_metric, stat, float(threshold), 'lt')
-      elif '>' in rule:
-        stat, threshold = rule.split('>')
-        sla = SLA(sub_metric, stat, float(threshold), 'gt')
-      else:
-        logger.error('Unsupported SLA type defined : ' + rule)
-        sla = None
-      self.sla_map[sub_metric][stat] = sla
-
-  def extract_sla_from_config_file(self, optf):
-    """
-    Helper function to parse diff config file, which contains SLA rules for diff comparisons
-    """
-    rule_strings = {}
-    config_obj = ConfigParser.ConfigParser()
-    config_obj.optionxform = str
-    config_obj.read(optf)
-    for section in config_obj.sections():
-      if section == 'DIFF':
-        rule_strings, kwargs = naarad.utils.get_rule_strings(config_obj, section)
-        break
-    for (key, val) in rule_strings.iteritems():
-      self.set_sla(key, val)
 
   def get_resources_location(self):
     """
@@ -243,7 +210,7 @@ class Diff(object):
             shutil.copy(os.path.join(os.path.join(report.location,self.resource_path),filename), report.local_location)
     return True
 
-  def plot_diff(self):
+  def plot_diff(self, graphing_library = 'matplotlib'):
     """
     Generate CDF diff plots of the submetrics
     """
@@ -252,11 +219,11 @@ class Diff(object):
     for submetric in diff_datasource:
       baseline_csv = naarad.utils.get_default_csv(self.reports[0].local_location, (submetric+'.percentiles'))
       current_csv = naarad.utils.get_default_csv(self.reports[1].local_location, (submetric+'.percentiles'))
-      if ((os.path.isfile(baseline_csv) & os.path.isfile(current_csv)) == False):
+      if ((naarad.utils.is_valid_file(baseline_csv) & naarad.utils.is_valid_file(current_csv)) == False):
         continue
       baseline_plot = PD(input_csv=baseline_csv, csv_column=1, series_name=submetric, y_label=submetric, precision=None, graph_height=600, graph_width=1200, graph_type='line', plot_label='baseline', x_label='Percentiles')
       current_plot = PD(input_csv=current_csv, csv_column=1, series_name=submetric, y_label=submetric, precision=None, graph_height=600, graph_width=1200, graph_type='line', plot_label='current', x_label='Percentiles')
-      graphed, div_file = matplot.graph_data_on_the_same_graph([baseline_plot, current_plot], os.path.join(self.output_directory, self.resource_path), self.resource_path, (submetric+'.diff'))
+      graphed, div_file = Diff.graphing_modules[graphing_library].graph_data_on_the_same_graph([baseline_plot, current_plot], os.path.join(self.output_directory, self.resource_path), self.resource_path, (submetric+'.diff'))
       if graphed:
         self.plot_files.append(div_file)
     return True
