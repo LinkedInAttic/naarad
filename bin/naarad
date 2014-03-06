@@ -291,7 +291,8 @@ def main():
       if run_step.run_type == CONSTANTS.RUN_TYPE_WORKLOAD:
         workload_run_steps.append(run_step)
     # Get analysis time period from workload run steps
-    ts_start, ts_end = naarad.utils.get_run_time_period(workload_run_steps)
+    if len(workload_run_steps) > 0:
+      ts_start, ts_end = naarad.utils.get_run_time_period(workload_run_steps)
 
     threads = []
     graph_lock = threading.Lock()
