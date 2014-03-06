@@ -33,14 +33,15 @@ from naarad.reporting.diff import Diff, NaaradReport
 from naarad.run_steps.run_step import Run_Step
 from naarad.run_steps.local_cmd import Local_Cmd
 import naarad.naarad_constants as CONSTANTS
-import time
 
 try:
   from naarad.naarad_imports import metric_classes, aggregate_metric_classes, graphing_modules, device_type_metrics
 except ImportError:
   metric_classes = {}
   graphing_modules = {}
-  aggregate_metric_classes = {} 
+  aggregate_metric_classes = {}
+  device_type_metrics = {}
+
 #Naarad pre-defined
 metric_classes['GC'] = GCMetric
 metric_classes['SAR'] = SARMetric
@@ -233,12 +234,12 @@ def main():
           naarad.utils.parse_graph_section(config_obj, section, outdir_default, indir_default)
       elif section.startswith('RUN-STEP'):
         run_order, run_step = naarad.utils.parse_run_step_section(config_obj, section)
-        if run_order == naarad.naarad_constants.PRE_ANALYSIS_RUN:
+        if run_order == CONSTANTS.PRE_ANALYSIS_RUN:
           pre_run_steps.append(run_step)
         # DURING_ANALYSIS_RUN not supported yet
-        elif run_order == naarad.naarad_constants.DURING_ANALYSIS_RUN:
+        elif run_order == CONSTANTS.DURING_ANALYSIS_RUN:
           in_run_steps.append(run_step)
-        elif run_order == naarad.naarad_constants.POST_ANALYSIS_RUN:
+        elif run_order == CONSTANTS.POST_ANALYSIS_RUN:
           post_run_steps.append(run_step)
         else:
           logger.error('Unknown RUN-STEP run_order specified')
@@ -287,7 +288,7 @@ def main():
 
     for run_step in sorted(pre_run_steps, key=lambda step: step.run_rank):
       run_step.run()
-      if run_step.run_type == naarad.naarad_constants.RUN_TYPE_WORKLOAD:
+      if run_step.run_type == CONSTANTS.RUN_TYPE_WORKLOAD:
         workload_run_steps.append(run_step)
     # Get analysis time period from workload run steps
     ts_start, ts_end = naarad.utils.get_run_time_period(workload_run_steps)

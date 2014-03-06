@@ -23,7 +23,7 @@ from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData
 from naarad.run_steps.run_step import Run_Step
 from naarad.run_steps.local_cmd import Local_Cmd
-import naarad.naarad_constants
+import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.utils')
 
@@ -191,27 +191,28 @@ def parse_run_step_section(config_obj, section):
   :param section: Section name
   :return: an initialized Run_Step object
   """
-
-  run_cmd = config_obj.get(section, 'run_cmd')
+  try:
+    run_cmd = config_obj.get(section, 'run_cmd')
+    run_rank = int(config_obj.get(section, 'run_rank'))
+  except ConfigParser.NoOptionError:
+    logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
+    sys.exit()
+  except ValueError:
+    logger.error("Bad run_rank %s specified in section %s, should be integer. Exiting.", config_obj.get(section, 'run_rank'), section)
+    sys.exit()
   if config_obj.has_option(section, 'run_type'):
     run_type = config_obj.get(section, 'run_type')
   else:
-    run_type = naarad.naarad_constants.RUN_TYPE_WORKLOAD
+    run_type = CONSTANTS.RUN_TYPE_WORKLOAD
   if config_obj.has_option(section, 'run_order'):
     run_order = config_obj.get(section, 'run_order')
   else:
-    run_order = naarad.naarad_constants.PRE_ANALYSIS_RUN
-  if config_obj.has_option(section, 'run_rank'):
-    run_rank = int(config_obj.get(section, 'run_rank'))
-    if run_rank > Run_Step.max_run_rank:
-      Run_Step.max_run_rank = run_rank + 1
-  else:
-    run_rank = Run_Step.max_run_rank
-    Run_Step.max_run_rank += 1
+    run_order = CONSTANTS.PRE_ANALYSIS_RUN
   if config_obj.has_option(section, 'call_type'):
     call_type = config_obj.get(section, 'call_type')
   else:
     call_type = 'local'
+
   if call_type == 'local':
     run_step_obj = Local_Cmd(run_type, run_cmd, call_type, run_order, run_rank)
   else:
