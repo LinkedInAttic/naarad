@@ -589,7 +589,6 @@ def check_slas(obj):
   """
   if not hasattr(obj, 'sla_map'):
     return 0
-
   ret = 0
   for sub_metric in obj.sla_map.keys():
     for stat_name in obj.sla_map[sub_metric].keys():
