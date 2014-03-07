@@ -56,3 +56,10 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
     return success, div_file
   else:
     return False, None
+
+def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path, output_filename):
+  """ 
+  graph_data_on_the_same_graph: put a list of plots on the same graph: currently it supports CDF
+  """
+  logger.warning('graph_data_on_the_same_graph is currently not supported in dygraph')
+  return False, None

@@ -12,7 +12,6 @@ import re
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
 import naarad.httpdownload
-from naarad.sla import SLA
 import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.metrics.metric')
@@ -59,7 +58,7 @@ class Metric(object):
     self.sla_map = defaultdict(lambda: defaultdict(None))
 
     for (key, val) in rule_strings.iteritems():
-      self.set_sla(key, val)
+      naarad.utils.set_sla(self, key, val)
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -76,21 +75,6 @@ class Metric(object):
     elif self.ts_end and timestamp > self.ts_end:
       return True
     return False
-
-  def set_sla(self, sub_metric, rules):
-    rules_list = rules.split()
-    for rule in rules_list:
-      if '<' in rule:
-        stat, threshold = rule.split('<')
-        sla = SLA(sub_metric, stat, float(threshold), 'lt')
-      elif '>' in rule:
-        stat, threshold = rule.split('>')
-        sla = SLA(sub_metric, stat, float(threshold), 'gt')
-      else:
-        logger.error('Unsupported SLA type defined : ' + rule)
-        sla = None
-      self.sla_map[sub_metric][stat] = sla
-      self.sla_list.append(sla)  # TODO : remove this once report has grading done in the metric tables
 
   def collect_local(self):
     return os.path.exists(self.infile)
@@ -172,10 +156,9 @@ class Metric(object):
             data[out_csv] = []
             data[out_csv].append( ts + ',' + words[i+1] )
     # Post processing, putting data in csv files
-
     data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]),sorted(qps.items())) 
     for csv in data.keys():
-      self.csv_files.append(csv)   
+      self.csv_files.append(csv)
       with open(csv, 'w') as fh:
         fh.write('\n'.join(data[csv]) )
     return True
@@ -234,36 +217,6 @@ class Metric(object):
           self.important_stats_files.append(imp_metric_stats_csv_file)
       self.stats_files.append(metric_stats_csv_file)
 
-  def check_slas(self):
-    """
-    Check if all SLAs pass
-
-    :return: 0 (if all SLAs pass) or the number of SLAs failures
-    """
-    ret = 0
-    for sub_metric in self.sla_map.keys():
-      for stat_name in self.sla_map[sub_metric].keys():
-        sla = self.sla_map[sub_metric][stat_name]
-        if stat_name[0] == 'p':
-          if sub_metric in self.calculated_percentiles.keys():
-            percentile_num = int(stat_name[1:])
-            if isinstance(percentile_num, float) or isinstance(percentile_num, int):
-              if percentile_num in self.calculated_percentiles[sub_metric].keys():
-                if not sla.check_sla_passed(self.calculated_percentiles[sub_metric][percentile_num]):
-                  ret = ret + 1
-        if sub_metric in self.calculated_stats.keys():
-          if stat_name in self.calculated_stats[sub_metric].keys():
-            if not sla.check_sla_passed(self.calculated_stats[sub_metric][stat_name]):
-              ret = ret + 1
-    # Save SLA results in a file
-    if len(self.sla_map.keys()) > 0:
-      sla_csv_file = self.get_sla_csv()
-      with open(sla_csv_file, 'w') as FH:
-        for sub_metric in self.sla_map.keys():
-          for stat, sla in self.sla_map[sub_metric].items():
-            FH.write('%s\n' % (sla.get_csv_repr()))
-    return ret
-
   def calc(self):
     if not self.calc_metrics:
       return
@@ -310,21 +263,19 @@ class Metric(object):
             NEW_FH.write(str(new_metric_val))
             NEW_FH.write('\n')
 
-  def graph(self, graphing_library = 'matplotlib'):
-    html_string = []
-    html_string.append('<h1>Metric: {0}</h1>\n'.format(self.metric_type))
+  def plot_timeseries(self, graphing_library = 'matplotlib'):
+    """
+    plot timeseries for sub-metrics 
+    """
     graphed = False
-    logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
     for out_csv in self.csv_files:
       csv_filename = os.path.basename(out_csv)
       # The last element is .csv, don't need that in the name of the chart
       column = self.csv_column_map[out_csv]
-      column = naarad.utils.sanitize_string(column)
-      
+      column = naarad.utils.sanitize_string(column)      
       graph_title = '.'.join(csv_filename.split('.')[0:-1])
       if self.sub_metric_description and column in self.sub_metric_description.keys():
         graph_title += ' ('+self.sub_metric_description[column]+')'
-        
       if self.sub_metric_unit and column in self.sub_metric_unit.keys():
         plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column +' ('+ self.sub_metric_unit[column]+')', precision=None, graph_height=600, graph_width=1200, graph_type='line')]
       else:
@@ -332,4 +283,39 @@ class Metric(object):
       graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.resource_directory, self.resource_path, graph_title)
       if graphed:
         self.plot_files.append(div_file)
+    return True
+
+  def plot_cdf(self, graphing_library = 'matplotlib'):
+    """
+    plot CDF for important sub-metrics 
+    """
+    graphed = False
+    for percentile_csv in self.percentiles_files:
+      csv_filename = os.path.basename(percentile_csv)
+      # The last element is .csv, don't need that in the name of the chart
+      column = self.csv_column_map[percentile_csv.replace(".percentiles.", ".")]
+      column = naarad.utils.sanitize_string(column)
+      if column not in self.important_sub_metrics:
+        continue
+      graph_title = '.'.join(csv_filename.split('.')[0:-1])
+      if self.sub_metric_description and column in self.sub_metric_description.keys():
+        graph_title += ' ('+self.sub_metric_description[column]+')'
+      if self.sub_metric_unit and column in self.sub_metric_unit.keys():
+        plot_data = [PD(input_csv=percentile_csv, csv_column=1, series_name=graph_title, x_label='Percentiles', y_label=column +' ('+ self.sub_metric_unit[column]+')', precision=None, graph_height=600, graph_width=1200, graph_type='line')]
+      else:
+        plot_data = [PD(input_csv=percentile_csv, csv_column=1, series_name=graph_title, x_label='Percentiles', y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
+      graphed, div_file = Metric.graphing_modules[graphing_library].graph_data_on_the_same_graph(plot_data, self.resource_directory, self.resource_path, graph_title)
+      if graphed:
+        self.plot_files.append(div_file)
+    return True
+
+  def graph(self, graphing_library = 'matplotlib'):
+    """ 
+    graph generates two types of graphs
+    'time': generate a time-series plot for all submetrics (the x-axis is a time series)
+    'cdf': generate a CDF plot for important submetrics (the x-axis shows percentiles)
+    """
+    logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
+    self.plot_cdf(graphing_library)
+    self.plot_timeseries(graphing_library)
     return True

@@ -46,3 +46,10 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
     with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
       div_file.write('<figure><embed type="image/svg+xml" src="' + resource_path + '/' + output_filename + '.svg' + '"/></figure>')
     return True,  os.path.join(output_directory, output_filename + '.div')
+
+def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path, output_filename):
+  """ 
+  graph_data_on_the_same_graph: put a list of plots on the same graph: currently it supports CDF
+  """
+  logger.warning('graph_data_on_the_same_graph is currently not supported in pygal')
+  return False, None
