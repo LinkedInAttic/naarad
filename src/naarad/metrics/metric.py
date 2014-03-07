@@ -301,10 +301,10 @@ class Metric(object):
       if self.sub_metric_description and column in self.sub_metric_description.keys():
         graph_title += ' ('+self.sub_metric_description[column]+')'
       if self.sub_metric_unit and column in self.sub_metric_unit.keys():
-        plot_data = [PD(input_csv=percentile_csv, csv_column=1, series_name=graph_title, y_label=column +' ('+ self.sub_metric_unit[column]+')', precision=None, graph_height=600, graph_width=1200, graph_type='line')]
+        plot_data = [PD(input_csv=percentile_csv, csv_column=1, series_name=graph_title, x_label='Percentiles', y_label=column +' ('+ self.sub_metric_unit[column]+')', precision=None, graph_height=600, graph_width=1200, graph_type='line')]
       else:
-        plot_data = [PD(input_csv=percentile_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
-      graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.resource_directory, self.resource_path, graph_title, 'cdf')
+        plot_data = [PD(input_csv=percentile_csv, csv_column=1, series_name=graph_title, x_label='Percentiles', y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
+      graphed, div_file = Metric.graphing_modules[graphing_library].graph_data_on_the_same_graph(plot_data, self.resource_directory, self.resource_path, graph_title)
       if graphed:
         self.plot_files.append(div_file)
     return True
