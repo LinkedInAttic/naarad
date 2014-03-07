@@ -276,6 +276,4 @@ class JmeterMetric(Metric):
         graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.resource_directory, self.resource_path, self.metric_type + '.' + transaction )
         if graphed:
           self.plot_files.append(div_file)
-      # plot cdf for important submetrics as well
-      metric.plot_cdf(graphing_library)
       return True
