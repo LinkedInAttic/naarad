@@ -16,9 +16,6 @@ class Run_Step(object):
   Post-run setup scripts
   """
 
-  # Max run_rank till now. Used for defining run_rank for run_steps without user-defined run_rank
-  max_run_rank = 0
-
   def __init__(self, run_type, run_cmd, call_type, run_order, run_rank, should_wait=True, should_kill=False, duration=None):
     """
     Init method

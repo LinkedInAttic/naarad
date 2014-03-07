@@ -233,13 +233,13 @@ def main():
         graphing_library, crossplots, outdir_default, indir_default, graph_timezone = \
           naarad.utils.parse_graph_section(config_obj, section, outdir_default, indir_default)
       elif section.startswith('RUN-STEP'):
-        run_order, run_step = naarad.utils.parse_run_step_section(config_obj, section)
-        if run_order == CONSTANTS.PRE_ANALYSIS_RUN:
+        run_step = naarad.utils.parse_run_step_section(config_obj, section)
+        if run_step.run_order == CONSTANTS.PRE_ANALYSIS_RUN:
           pre_run_steps.append(run_step)
         # DURING_ANALYSIS_RUN not supported yet
-        elif run_order == CONSTANTS.DURING_ANALYSIS_RUN:
+        elif run_step.run_order == CONSTANTS.DURING_ANALYSIS_RUN:
           in_run_steps.append(run_step)
-        elif run_order == CONSTANTS.POST_ANALYSIS_RUN:
+        elif run_step.run_order == CONSTANTS.POST_ANALYSIS_RUN:
           post_run_steps.append(run_step)
         else:
           logger.error('Unknown RUN-STEP run_order specified')

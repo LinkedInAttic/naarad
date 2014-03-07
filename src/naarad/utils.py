@@ -218,7 +218,7 @@ def parse_run_step_section(config_obj, section):
   else:
     logger.warning('Unsupported RUN_STEP supplied, call_type should be local')
     run_step_obj = None
-  return run_order, run_step_obj
+  return run_step_obj
 
 def parse_graph_section(config_obj, section, outdir_default, indir_default):
   """
