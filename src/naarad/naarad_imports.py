@@ -19,7 +19,7 @@ from naarad.metrics.cluster_metric import ClusterMetric
 metric_classes = {
     #'MyMetric' : MyMetricParserClass
     'JMETER' : JmeterMetric,
-    'LINKEDINANDROIDRUM' : LinkedInAndroidRumMetric, 
+    'LINKEDINANDROIDRUM' : LinkedInAndroidRumMetric,
     'PROCVMSTAT' : ProcVmstatMetric,
     'PROCMEMINFO' : ProcMeminfoMetric, 
     'PROCZONEINFO' : ProcZoneinfoMetric
