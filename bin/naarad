@@ -152,6 +152,8 @@ def main():
   graph_timezone = None
   graphing_library = 'matplotlib'
   variables_dict = {}
+  ts_start = None
+  ts_end = None
   bin_path = os.path.dirname( __file__ )
 
   arg_parser = argparse.ArgumentParser()
@@ -297,9 +299,9 @@ def main():
     threads = []
     graph_lock = threading.Lock()
     for metric in metrics:
-      if ts_start:
+      if ts_start and not metric.ts_start:
         metric.ts_start = ts_start
-      if ts_end:
+      if ts_end and not metric.ts_start:
         metric.ts_end = ts_end
       thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock))
       thread.start()
