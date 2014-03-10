@@ -26,9 +26,6 @@ def setup_module():
   call_type = 'local'
   local_cmd_obj = Local_Cmd(run_type, run_cmd, call_type, run_order, run_rank)
 
-def teardown_module():
-  return
-
 def test_run_local_cmd():
   """
   Test whether local command works as expected
@@ -43,7 +40,7 @@ def test_run_local_cmd():
 def test_run_local_cmd_with_kill():
   """
   Test whether local command works as expected when kill is specified
-  :return:
+  :return: None
   """
   global local_cmd_obj
   local_cmd_obj.kill_after_seconds = 5
