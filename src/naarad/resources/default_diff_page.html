@@ -20,17 +20,48 @@
 </div><!-- /topbar -->
 <div class="container">
   <div class="content">
+
+    {%- if sla_failure_list %}
     <div class="row">
       <div class="span12">
-        <table class="table">
-            <h2 class="content-title">
-                <span class="text">Summary</span>
-            </h2>
-            <tr><td>Report 1: {{ reports[0].location }}</td></tr>
-            <tr><td>Report 2: {{ reports[1].location }}</td></tr>
-        </table>
+        <div id="sla failure summary" style="overflow-x:auto;">
+          <h2 class="content-title">
+            <span class="text">Summary</span>
+          </h2>
+          <table id="table-diff-sla-failure" class="table table-bordered table-striped sortable">
+            <caption>Summary of SLA Failures</caption>
+            <thead>
+              <tr>
+                <th>sub_metric</th>
+                <th>sla_rule</th>
+                <th>Baseline Value</th>
+                <th>Current Value</th>
+                <th>Diff</th>
+              </tr>
+            </thead>
+            <tbody>
+              {%- for sla_failure in sla_failure_list %}
+              {%- if sla_failure.sla.sla_passed == True %}
+              <tr class="success">
+              {%- elif sla_failure.sla.sla_passed == False %}
+              <tr class="danger">
+              {%- else %}
+              <tr>
+              {%- endif %}
+                <td>{{sla_failure.sla.sub_metric}}</td>
+                <td>{{sla_failure.sla.stat_name}} {{sla_failure.sla.sla_type}} {{sla_failure.sla.threshold}}</td>
+                <td>{{sla_failure.diff_metric[0]}}</td>
+                <td>{{sla_failure.diff_metric[1]}}</td>
+                <td>{{sla_failure.diff_metric['absolute_diff']}}</td>
+              </tr>
+             {%- endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
+    {%- endif %}
+
     {%- if diff_data %}
       {%- for metric in diff_data|sort %}
       <div class="row">
@@ -75,7 +106,23 @@
                 <tr>
                   <td>{{ sub_metric }}</td>
                   {%- for stats in diff_data[metric][sub_metric]|sort %}
-                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">{{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}</td>
+                  {%- if sub_metric in sla_map.keys() %}
+                  {%- if stats in sla_map[sub_metric].keys() %}
+                  {%- if sla_map[sub_metric][stats].sla_passed == True %} 
+                  <td class="success" type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                  {%- elif sla_map[sub_metric][stats].sla_passed ==  False %}
+                  <td class="danger" type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                  {%- else %}
+                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                  {%- endif %}
+                  {%- else %}
+                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                  {%- endif %}
+                  {%- else %}
+                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                  {%- endif %}
+                  {{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}
+                  </td>
                   {%- endfor %}
                 </tr>
               {%- endfor %}
@@ -86,5 +133,29 @@
       </div>
       {%- endfor %}
     {%- endif %}
+
+    {%- if plot_div_content %}
+    <div id="diff-metric-plots" class="row">
+      <div id="diff-metric-plots-span" class="span12">
+    <h3>Metrics Diff Plots</h3>
+    <p>
+        {{ plot_div_content }}
+    </p>
+    </div>
+    </div>
+    {%- endif %}
+
+    <div class="row">
+      <div class="span12">
+        <table class="table">
+            <h2 class="content-title">
+                <span class="text">Source Files Locations</span>
+            </h2>
+            <tr><td>Report 1: {{ reports[0].location }}</td></tr>
+            <tr><td>Report 2: {{ reports[1].location }}</td></tr>
+        </table>
+      </div>
+    </div>
+
   </div>
 </div>

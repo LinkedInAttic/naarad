@@ -261,6 +261,7 @@ class JmeterMetric(Metric):
       html_string.append('<h2>Metric: {0}</h2>\n'.format(self.metric_type))
       logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
       plot_data = {}
+      # plot time series data for submetrics
       for out_csv in sorted(self.csv_files, reverse=True):
         csv_filename = os.path.basename(out_csv)
         # The last element is .csv, don't need that in the name of the chart

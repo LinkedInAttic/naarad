@@ -16,12 +16,14 @@ class Run_Step(object):
   Post-run setup scripts
   """
 
-  def __init__(self, run_type, run_cmd, call_type, should_wait=True, should_kill=False, duration=None):
+  def __init__(self, run_type, run_cmd, call_type, run_order, run_rank, should_wait=True, should_kill=False, duration=None):
     """
     Init method
-    :param run_type: Type of run_step: Workload, Pre-run, Post-run, Mid-run etc
+    :param run_type: Type of run_step: "workload" only for now
     :param run_cmd: Details of command to be run. It could be a command or API call
     :param call_type: Kind of call -- local or remote
+    :param run_order: When to run this w.r.t analysis. One of ('pre', 'in', 'post')
+    :param run_rank: In what order to run this
     :param should_wait: Boolean whether naarad should wait for the run command to finish or not before moving on
     :param should_kill: Boolean whether naarad would need the kill the command (in case its a forever command with a
                         specified duration
@@ -31,6 +33,8 @@ class Run_Step(object):
     self.run_type = run_type
     self.run_cmd = run_cmd
     self.call_type = call_type
+    self.run_order = run_order
+    self.run_rank = run_rank
     self.should_wait = should_wait
     self.should_kill = should_kill
     self.duration = duration

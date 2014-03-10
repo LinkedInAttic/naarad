@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(
 
 import naarad.utils
 from naarad.metrics.metric import Metric
+from naarad.reporting.diff import Diff
 from naarad.metrics.gc_metric import GCMetric
 from naarad.metrics.innotop_metric import INNOMetric
 from naarad.metrics.sar_metric import SARMetric
@@ -32,14 +33,15 @@ from naarad.reporting.report import Report
 from naarad.reporting.diff import Diff, NaaradReport
 from naarad.run_steps.run_step import Run_Step
 from naarad.run_steps.local_cmd import Local_Cmd
-
-import time
+import naarad.naarad_constants as CONSTANTS
 
 try:
-  from naarad.naarad_imports import metric_classes, graphing_modules, device_type_metrics
+  from naarad.naarad_imports import metric_classes, aggregate_metric_classes, graphing_modules, device_type_metrics
 except ImportError:
   metric_classes = {}
   graphing_modules = {}
+  aggregate_metric_classes = {}
+  device_type_metrics = {}
 
 #Naarad pre-defined
 metric_classes['GC'] = GCMetric
@@ -52,6 +54,7 @@ graphing_modules['javascript'] = dygraphs
 
 Metric.graphing_modules = graphing_modules
 Metric.device_types = device_type_metrics
+Diff.graphing_modules = graphing_modules
 
 version = "0.1"
 
@@ -63,6 +66,9 @@ template_urls = {
     }
 
 logger = logging.getLogger('naarad')
+
+# tracks the number of SLA failures
+sla_failures = 0
 
 def init_logging(log_level):
   log_file = 'naarad.log'
@@ -123,6 +129,8 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
         metric.calc()
         metric.calculate_stats()
         metric.check_slas()
+        global sla_failures
+        sla_failures = sla_failures + naarad.utils.check_slas(metric)
         if not skip_plots:
           graph_lock.acquire()
           metric.graph(graphing_library)
@@ -134,20 +142,50 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
 
 def print_usage():
   print ("Usage: "
-               "\n To generate a diff report      : naarad -d report1 report2 -o <output_location>"
-               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file>")
+               "\n To generate a diff report      : naarad -d report1 report2 -o <output_location> -c <optional: config-file> -e <optional: turn on exit code>"
+               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file> -e <optional: turn on exit code>")
+
+def get_config_file(arg):
+  """
+    Helper function to extract the config file from arguments
+  """
+  # Download config if its a URL
+  if naarad.utils.is_valid_url(arg):
+    options_file = naarad.utils.download_file(arg)
+  elif arg.startswith("template:"):
+    #Its a template
+    if arg in template_urls.keys():
+      logger.info('Using template ' + arg + ' used from ' + template_urls[arg] )
+      options_file = naarad.utils.download_file(template_urls[arg])
+    else:
+      sys.exit("ERROR: Template " + arg + " not found. Exiting...")
+    with open(options_file, 'r') as FH:
+      print "Config file used looks like this:"
+      print "-------------"
+      print FH.read()
+      print "-------------"
+  else:
+    options_file = arg
+  if not os.path.exists(options_file):
+    sys.exit("ERROR: Config file " + options_file + " doesn't exist. If this is a URL, please use the fully qualified domain name\nExiting....")
+  return options_file  
 
 def main():
   metrics = []
+  aggregate_metrics = [] 
   crossplots = []
-  run_steps = []
+  pre_run_steps = []
+  in_run_steps = []
+  post_run_steps = []
+  workload_run_steps = []
   graph_timezone = None
   graphing_library = 'matplotlib'
   variables_dict = {}
+  ts_start = None
+  ts_end = None
   bin_path = os.path.dirname( __file__ )
   skip_plots = False
   arg_parser = argparse.ArgumentParser()
-
   arg_parser.add_argument('-c', '--config', help="file with specifications for each metric and graphs")
   arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
   arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
@@ -157,6 +195,7 @@ def main():
   arg_parser.add_argument('-l', '--log', help="log level")
   arg_parser.add_argument('-d', '--diff', nargs=2, help="Specify the location of two naarad reports to diff separated by a space. Can be local or http(s) locations. The first report is used as a baseline.", metavar=("report-1", "report-2"))
   arg_parser.add_argument('-n', '--no_plots', help="Don't generate plot images.", action="store_true")
+  arg_parser.add_argument('-e', '--exit_code', help="optional argument to enable exit_code for naarad", action="store_true")
   #TODO(Ritesh) : Print a list of all templates supported with descriptions
   #arg_parser.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
 
@@ -173,8 +212,13 @@ def main():
         print_usage()
       else:
         diff_report = Diff([NaaradReport(args.diff[0], None), NaaradReport(args.diff[1], None)], 'diff', args.output_dir, os.path.join(args.output_dir, args.resource_path), args.resource_path)
+        if args.config:
+          diff_opt_file = get_config_file(args.config)
+          naarad.utils.extract_sla_from_config_file(diff_report, diff_opt_file)
         diff_report.generate()
-      sys.exit(0)
+      if args.exit_code & (diff_report.sla_failures > 0):
+        sys.exit(CONSTANTS.SLA_FAILURE)
+      sys.exit(0)   
     elif not args.config:
       print_usage()
       sys.exit(0)
@@ -186,24 +230,7 @@ def main():
         print FH.read()
       sys.exit("----")
 
-    # Download config if its a URL
-    if naarad.utils.is_valid_url(args.config):
-      optfile = naarad.utils.download_file(args.config)
-    elif args.config.startswith("template:"):
-      #Its a template
-      if args.config in template_urls.keys():
-        logger.info('Using template ' + args.config + ' used from ' + template_urls[args.config] )
-        optfile = naarad.utils.download_file(template_urls[args.config])
-      else:
-        sys.exit("ERROR: Template " + args.config + " not found. Exiting...")
-      with open(optfile, 'r') as FH:
-        print "Config file used looks like this:"
-        print "-------------"
-        print FH.read()
-        print "-------------"
-    else:
-      optfile = args.config
-
+    optfile = get_config_file(args.config)
     indir_default = args.input_dir
     outdir_default = args.output_dir
     resource_path = args.resource_path
@@ -212,9 +239,6 @@ def main():
       for var in args.variables:
         words = var.split('=')
         variables_dict[words[0]] = words[1]
-
-    if not os.path.exists(optfile):
-      sys.exit("ERROR: Config file " + optfile + " doesn't exist. If this is a URL, please use the fully qualified domain name\nExiting....")
 
     # Parse the config file
     # TODO: Refactor the config parsing code
@@ -228,7 +252,16 @@ def main():
         graphing_library, crossplots, outdir_default, indir_default, graph_timezone = \
           naarad.utils.parse_graph_section(config_obj, section, outdir_default, indir_default)
       elif section.startswith('RUN-STEP'):
-        run_steps.append(naarad.utils.parse_run_step_section(config_obj, section))
+        run_step = naarad.utils.parse_run_step_section(config_obj, section)
+        if run_step.run_order == CONSTANTS.PRE_ANALYSIS_RUN:
+          pre_run_steps.append(run_step)
+        # DURING_ANALYSIS_RUN not supported yet
+        elif run_step.run_order == CONSTANTS.DURING_ANALYSIS_RUN:
+          in_run_steps.append(run_step)
+        elif run_step.run_order == CONSTANTS.POST_ANALYSIS_RUN:
+          post_run_steps.append(run_step)
+        else:
+          logger.error('Unknown RUN-STEP run_order specified')
       else:
         # section name is used to create sub-directories, so enforce it. 
         if not naarad.utils.is_valid_metric_name(section):
@@ -244,9 +277,14 @@ def main():
               metric.ignore = True
           metrics.extend(sar_metrics)
         else:
-          new_metric = naarad.utils.parse_metric_section(config_obj, section, metric_classes, outdir_default, resource_path)
-          new_metric.bin_path = bin_path
-          metrics.append(new_metric)
+          new_metric = naarad.utils.parse_metric_section(config_obj, section, metric_classes, metrics, aggregate_metric_classes, outdir_default, resource_path)
+          new_metric.bin_path = bin_path          
+          # put metrics in different thread groups 
+          metric_type = section.split('-')[0]
+          if metric_type in aggregate_metric_classes:
+            aggregate_metrics.append(new_metric)
+          else:
+            metrics.append(new_metric)
 
     if outdir_default:
       try:
@@ -260,33 +298,56 @@ def main():
       except OSError as exception:
         if exception.errno != errno.EEXIST:
           raise
-      logger.info('Report.html and the plots will be in ' + outdir_default)
+      logger.info('Reports and the plots will be in ' + outdir_default)
     else:
       sys.exit("No output directory defined. Please use option -o, or update the config. Exiting...")
 
     if graph_timezone:
       logger.info('X-axis will be displayed in timezone: %s', graph_timezone)
-    threads = []
-    #TODO: Implement ordering of run_steps
-    for run_step in run_steps:
+
+    for run_step in sorted(pre_run_steps, key=lambda step: step.run_rank):
       run_step.run()
-    ts_start, ts_end = naarad.utils.get_run_time_period(run_steps)
+      if run_step.run_type == CONSTANTS.RUN_TYPE_WORKLOAD:
+        workload_run_steps.append(run_step)
+    # Get analysis time period from workload run steps
+    if len(workload_run_steps) > 0:
+      ts_start, ts_end = naarad.utils.get_run_time_period(workload_run_steps)
+
+    threads = []
     graph_lock = threading.Lock()
     for metric in metrics:
-      if ts_start:
+      if ts_start and not metric.ts_start:
         metric.ts_start = ts_start
-      if ts_end:
+      if ts_end and not metric.ts_start:
         metric.ts_end = ts_end
       thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
       t.join()
+      
+    # handling CLUSTER metric and other aggregate metrics, which has to wait for all regular metric threads to complete.   
+    for metric in aggregate_metrics:
+      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, skip_plots))
+      thread.start()
+      threads.append(thread)
+    for t in threads:
+      t.join()
+
     if len(crossplots) > 0:
       correlated_plots = naarad.utils.nway_plotting(crossplots, metrics, resource_directory, resource_path)
     else:
-      correlated_plots = []
-    rpt = Report(None, outdir_default, resource_directory, resource_path, metrics, correlated_plots=correlated_plots)
+      correlated_plots = []      
+    rpt = Report(None, outdir_default, resource_directory, resource_path, metrics + aggregate_metrics, correlated_plots=correlated_plots)
     rpt.generate()
+
+    for run_step in sorted(post_run_steps, key=lambda step: step.run_rank):
+      run_step.run()
+
+  global sla_failures  
+  if args.exit_code:
+    if sla_failures > 0: 
+      sys.exit(CONSTANTS.SLA_FAILURE)
+
 if __name__ == '__main__':
   main()

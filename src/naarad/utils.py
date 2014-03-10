@@ -17,12 +17,13 @@ import re
 import sys
 import time
 import urllib
-
+from naarad.sla import SLA
 from naarad.metrics.sar_metric import SARMetric
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData
 from naarad.run_steps.run_step import Run_Step
 from naarad.run_steps.local_cmd import Local_Cmd
+import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.utils')
 
@@ -94,6 +95,36 @@ def get_run_time_period(run_steps):
   logger.info('get_run_time_period range returned ' + str(ts_start) + ' to ' + str(ts_end))
   return ts_start, ts_end
 
+def get_rule_strings(config_obj, section):
+  """
+  Extract rule strings from a section
+  :param config_obj: ConfigParser object
+  :param section: Section name
+  :return: the rule strings
+  """
+  rule_strings = {}
+  kwargs = dict(config_obj.items(section))
+  for key in kwargs.keys():
+    if key.endswith('.sla'):
+      rule_strings[key.replace('.sla','')] = kwargs[key]
+      del kwargs[key]
+  return rule_strings, kwargs
+
+def extract_sla_from_config_file(obj, options_file):
+  """
+  Helper function to parse diff config file, which contains SLA rules for diff comparisons
+  """
+  rule_strings = {}
+  config_obj = ConfigParser.ConfigParser()
+  config_obj.optionxform = str
+  config_obj.read(options_file)
+  for section in config_obj.sections():
+    if section == 'DIFF':
+      rule_strings, kwargs = get_rule_strings(config_obj, section)
+      break
+  for (key, val) in rule_strings.iteritems():
+    set_sla(obj, key, val)
+
 def parse_basic_metric_options(config_obj, section):
   """
   Parse basic options from metric sections of the config
@@ -101,6 +132,9 @@ def parse_basic_metric_options(config_obj, section):
   :param section: Section name
   :return: all the parsed options
   """
+  infile = None
+  aggr_hosts = None
+  aggr_metrics = None
   ts_start = None
   ts_end = None
   precision = None
@@ -112,8 +146,12 @@ def parse_basic_metric_options(config_obj, section):
       config_obj.remove_option(section, 'hostname')
     else:
       logger.info('No hostname is found in section %s ' % section)
-    infile = config_obj.get(section, 'infile')
-    config_obj.remove_option(section, 'infile')
+    
+    #'infile' is not mandatory for aggregate metrics
+    if config_obj.has_option(section,'infile'):
+      infile = config_obj.get(section, 'infile')
+      config_obj.remove_option(section, 'infile')
+
     label = sanitize_string_section_name(section)
     if config_obj.has_option(section, 'ts_start'):
       ts_start = config_obj.get(section, 'ts_start')
@@ -124,33 +162,45 @@ def parse_basic_metric_options(config_obj, section):
     if config_obj.has_option(section, 'precision'):
       precision = config_obj.get(section, 'precision')
       config_obj.remove_option(section, 'precision')
-    kwargs = dict(config_obj.items(section))
-    for key in kwargs.keys():
-      if key.endswith('.sla'):
-        rule_strings[key.replace('.sla','')] = kwargs[key]
-        del kwargs[key]
+    #support aggregate metrics, which take aggr_hosts and aggr_metrics
+    if config_obj.has_option(section, 'aggr_hosts'):
+      aggr_hosts = config_obj.get(section, 'aggr_hosts')
+      config_obj.remove_option(section, 'aggr_hosts')
+    else: 
+      logger.info('No aggr_hosts is found in section %s ' % section)
+    if config_obj.has_option(section, 'aggr_metrics'):
+      aggr_metrics = config_obj.get(section, 'aggr_metrics')
+      config_obj.remove_option(section, 'aggr_metrics')
+    else: 
+      logger.info('No aggr_metrics is found in section %s ' % section)
+    rule_strings, kwargs = get_rule_strings(config_obj, section)
   except ConfigParser.NoOptionError:
     logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
     sys.exit()
-  return hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings
+  return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, kwargs, rule_strings
 
-def parse_metric_section(config_obj, section, metric_classes, outdir_default, resource_path):
+def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregate_metric_classes, outdir_default, resource_path):
   """
   Parse a metric section and create a Metric object
   :param config_obj: ConfigParser object
   :param section: Section name
   :param metric_classes: List of valid metric types
+  :param metrics: List of all regular metric objects (used by aggregate metric)
+  :param aggregate_metric_classes: List of all valid aggregate metric types
   :param outdir_default: Default output directory
   :param resource_path: Default resource directory
   :return: An initialized Metric object
   """
-  hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings = parse_basic_metric_options(config_obj, section)
+  hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, kwargs, rule_strings = parse_basic_metric_options(config_obj, section)
   #TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
-  if not metric_type in metric_classes:
-    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
-  else:
+  if metric_type in metric_classes: # regular metrics
     new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+  elif metric_type in aggregate_metric_classes:       #aggregate metrics     
+    new_metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+  else:            # new metrics. 
+    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+
   if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
     new_metric.ignore = True
   if config_obj.has_option(section, 'calc_metrics'):
@@ -165,14 +215,30 @@ def parse_run_step_section(config_obj, section):
   :param section: Section name
   :return: an initialized Run_Step object
   """
-  run_type = config_obj.get(section, 'run_type')
-  run_cmd = config_obj.get(section, 'run_cmd')
+  try:
+    run_cmd = config_obj.get(section, 'run_cmd')
+    run_rank = int(config_obj.get(section, 'run_rank'))
+  except ConfigParser.NoOptionError:
+    logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
+    sys.exit()
+  except ValueError:
+    logger.error("Bad run_rank %s specified in section %s, should be integer. Exiting.", config_obj.get(section, 'run_rank'), section)
+    sys.exit()
+  if config_obj.has_option(section, 'run_type'):
+    run_type = config_obj.get(section, 'run_type')
+  else:
+    run_type = CONSTANTS.RUN_TYPE_WORKLOAD
+  if config_obj.has_option(section, 'run_order'):
+    run_order = config_obj.get(section, 'run_order')
+  else:
+    run_order = CONSTANTS.PRE_ANALYSIS_RUN
   if config_obj.has_option(section, 'call_type'):
     call_type = config_obj.get(section, 'call_type')
   else:
     call_type = 'local'
+
   if call_type == 'local':
-    run_step_obj = Local_Cmd(run_type, run_cmd, call_type)
+    run_step_obj = Local_Cmd(run_type, run_cmd, call_type, run_order, run_rank)
   else:
     logger.warning('Unsupported RUN_STEP supplied, call_type should be local')
     run_step_obj = None
@@ -265,6 +331,7 @@ def sanitize_string(string):
   if string.startswith('%'):
     string = string.replace('%', 'percent-')
   else:
+    string = string.replace('.%', '.percent-') #handle the cases of "all.%sys"
     string = string.replace('%', '-percent-')
   return string
 
@@ -508,3 +575,57 @@ def get_standardized_timestamp(timestamp, ts_format):
   else:
     ts = datetime.datetime.strptime(timestamp,ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
   return ts
+
+def set_sla(obj, sub_metric, rules):
+  """
+  Extract SLAs from a set of rules
+  """
+  if not hasattr(obj, 'sla_map'):
+    return False
+  rules_list = rules.split()
+  for rule in rules_list:
+    if '<' in rule:
+      stat, threshold = rule.split('<')
+      sla = SLA(sub_metric, stat, float(threshold), 'lt')
+    elif '>' in rule:
+      stat, threshold = rule.split('>')
+      sla = SLA(sub_metric, stat, float(threshold), 'gt')
+    else:
+      if hasattr(obj, 'logger'):
+        obj.logger.error('Unsupported SLA type defined : ' + rule)
+      sla = None
+    obj.sla_map[sub_metric][stat] = sla
+    if hasattr(obj, 'sla_list'):
+      obj.sla_list.append(sla)  # TODO : remove this once report has grading done in the metric tables
+  return True
+
+def check_slas(obj):
+  """
+  Check if all SLAs pass
+  :return: 0 (if all SLAs pass) or the number of SLAs failures
+  """
+  if not hasattr(obj, 'sla_map'):
+    return 0
+  ret = 0
+  for sub_metric in obj.sla_map.keys():
+    for stat_name in obj.sla_map[sub_metric].keys():
+      sla = obj.sla_map[sub_metric][stat_name]
+      if stat_name[0] == 'p' and hasattr(obj, 'calculated_percentiles'):
+        if sub_metric in obj.calculated_percentiles.keys():
+          percentile_num = int(stat_name[1:])
+          if isinstance(percentile_num, float) or isinstance(percentile_num, int):
+            if percentile_num in obj.calculated_percentiles[sub_metric].keys():
+              if not sla.check_sla_passed(obj.calculated_percentiles[sub_metric][percentile_num]):
+                ret = ret + 1
+      if sub_metric in obj.calculated_stats.keys() and hasattr(obj, 'calculated_stats'):
+        if stat_name in obj.calculated_stats[sub_metric].keys():
+          if not sla.check_sla_passed(obj.calculated_stats[sub_metric][stat_name]):
+            ret = ret + 1
+  # Save SLA results in a file
+  if len(obj.sla_map.keys()) > 0 and hasattr(obj, 'get_sla_csv'):
+    sla_csv_file = obj.get_sla_csv()
+    with open(sla_csv_file, 'w') as FH:
+      for sub_metric in obj.sla_map.keys():
+        for stat, sla in obj.sla_map[sub_metric].items():
+          FH.write('%s\n' % (sla.get_csv_repr()))
+  return ret

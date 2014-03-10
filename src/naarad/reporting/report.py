@@ -38,12 +38,12 @@ class Report(object):
   def copy_local_includes(self):
     resource_folder = self.get_resources_location()
     for stylesheet in self.stylesheet_includes:
-      if ('http' not in stylesheet) and naarad.utils.is_valid_file(os.path.join(resource_folder,stylesheet)):
-        shutil.copy(os.path.join(resource_folder,stylesheet),self.resource_directory)
+      if ('http' not in stylesheet) and naarad.utils.is_valid_file(os.path.join(resource_folder, stylesheet)):
+        shutil.copy(os.path.join(resource_folder, stylesheet), self.resource_directory)
 
     for javascript in self.javascript_includes:
-      if ('http' not in javascript) and naarad.utils.is_valid_file(os.path.join(resource_folder,javascript)):
-        shutil.copy(os.path.join(resource_folder,javascript), self.resource_directory)
+      if ('http' not in javascript) and naarad.utils.is_valid_file(os.path.join(resource_folder, javascript)):
+        shutil.copy(os.path.join(resource_folder, javascript), self.resource_directory)
 
     return None
 
@@ -92,7 +92,7 @@ class Report(object):
   def generate_client_charting_page(self, template_environment, timeseries_csv_list, percentiles_csv_list, summary_enabled, header_template_data):
     client_charting_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(**header_template_data) + '\n'
     client_charting_html += template_environment.get_template(CONSTANTS.TEMPLATE_CLIENT_CHARTING).render(metric_list=sorted(self.metric_list), timeseries_data=sorted(timeseries_csv_list), percentiles_data=sorted(percentiles_csv_list), summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
-    with open(os.path.join(self.resource_directory,CONSTANTS.PLOTS_CSV_LIST_FILE),'w') as FH:
+    with open(os.path.join(self.resource_directory, CONSTANTS.PLOTS_CSV_LIST_FILE),'w') as FH:
       FH.write(','.join(sorted(timeseries_csv_list)))
     return client_charting_html
 
@@ -161,7 +161,7 @@ class Report(object):
       client_charting_report.write(self.generate_client_charting_page(template_environment, timeseries_csv_list, percentiles_csv_list, summary_enabled, header_template_data))
 
     if len(stats_files) > 0 :
-      with open(os.path.join(self.resource_directory,CONSTANTS.STATS_CSV_LIST_FILE),'w') as stats_file:
+      with open(os.path.join(self.resource_directory, CONSTANTS.STATS_CSV_LIST_FILE),'w') as stats_file:
         stats_file.write(','.join(stats_files))
 
     return True
