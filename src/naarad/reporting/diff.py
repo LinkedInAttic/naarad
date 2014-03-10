@@ -110,8 +110,8 @@ class Diff(object):
 
   def discover(self, metafile):
     """
-    Determine what summary stats and time series csv exist for the reports that need to be diffed.
-    :return: boolean: return whether the summary stats / time series csv summary was successfully located
+    Determine what summary stats, time series, and CDF csv exist for the reports that need to be diffed.
+    :return: boolean: return whether the summary stats / time series / CDF csv summary was successfully located
     """
     for report in self.reports:
       if report.remote_location == 'local':
@@ -119,8 +119,10 @@ class Diff(object):
           with open(os.path.join(os.path.join(report.location, self.resource_path), metafile),'r') as meta_file:
             if metafile == CONSTANTS.STATS_CSV_LIST_FILE:
               report.stats = meta_file.readlines()[0].split(',')
-            else:
+            elif metafile == CONSTANTS.PLOTS_CSV_LIST_FILE:
               report.datasource = meta_file.readlines()[0].split(',')
+            elif metafile == CONSTANTS.CDF_PLOTS_CSV_LIST_FILE:
+              report.cdf_datasource = meta_file.readlines()[0].split(',')
         else:
             report.status = 'NO_SUMMARY_STATS'
             self.status = 'ERROR'
@@ -133,8 +135,10 @@ class Diff(object):
         if meta_file_data:
           if metafile == CONSTANTS.STATS_CSV_LIST_FILE:
             report.stats = meta_file_data.split(',')
-          else:
+          elif metafile == CONSTANTS.PLOTS_CSV_LIST_FILE:
             report.datasource = meta_file_data.split(',')
+          elif metafile == CONSTANTS.CDF_PLOTS_CSV_LIST_FILE:
+            report.cdf_datasource = meta_file_data.split(',')
         else:
           report.status = 'NO_SUMMARY_STATS'
           self.status = 'ERROR'
@@ -173,7 +177,41 @@ class Diff(object):
         for filename in report.datasource:
           try:
             shutil.copy(os.path.join(os.path.join(report.location,self.resource_path),filename + '.csv'), report.local_location)
-            shutil.copy(os.path.join(os.path.join(report.location,self.resource_path),filename + '.percentiles.csv'), report.local_location)
+          except IOError as exeption:
+            continue
+    return True
+
+  def collect_cdf_datasources(self):
+    """
+    Identify what cdf series exist in both the diffed reports and download them to the diff report resources directory
+    :return: True/False : return status of whether the download of time series resources succeeded.
+    """
+    report_count = 0
+    if self.status != 'OK':
+      return False
+    diff_cdf_datasource = sorted(set(self.reports[0].cdf_datasource) & set(self.reports[1].cdf_datasource))
+    if diff_cdf_datasource:
+      self.reports[0].cdf_datasource = diff_cdf_datasource
+      self.reports[1].cdf_datasource = diff_cdf_datasource
+    else:
+      self.status = 'NO_COMMON_STATS'
+      logger.error('No common metrics were found between the two reports')
+      return False
+    for report in self.reports:
+      report.label = report_count
+      report_count += 1
+      report.local_location = os.path.join(self.resource_directory,str(report.label))
+      try:
+        os.makedirs(report.local_location)
+      except OSError as exeption:
+        if exeption.errno != errno.EEXIST:
+          raise
+      if report.remote_location != 'local':
+        naarad.httpdownload.download_url_list(map(lambda x: report.remote_location + '/' + self.resource_path + '/' + x + '.csv', report.cdf_datasource), report.local_location)
+      else:
+        for filename in report.cdf_datasource:
+          try:
+            shutil.copy(os.path.join(os.path.join(report.location,self.resource_path),filename + '.csv'), report.local_location)
           except IOError as exeption:
             continue
     return True
@@ -246,7 +284,7 @@ class Diff(object):
     Generate a diff report from the reports specified.
     :return: True/False : return status of whether the diff report generation succeeded.
     """
-    if self.discover(CONSTANTS.STATS_CSV_LIST_FILE) and self.discover(CONSTANTS.PLOTS_CSV_LIST_FILE) and self.collect() and self.collect_datasources():
+    if self.discover(CONSTANTS.STATS_CSV_LIST_FILE) and self.discover(CONSTANTS.PLOTS_CSV_LIST_FILE) and self.discover(CONSTANTS.CDF_PLOTS_CSV_LIST_FILE) and self.collect() and self.collect_datasources() and self.collect_cdf_datasources():
       for stats in self.reports[0].stats:
         stats_0 = os.path.join(self.reports[0].local_location, stats)
         stats_1 = os.path.join(self.reports[1].local_location, stats)
@@ -320,5 +358,6 @@ class NaaradReport:
     self.status = 'OK'
     self.stats = []
     self.datasource = []
+    self.cdf_datasource = []
     self.label = ''
 

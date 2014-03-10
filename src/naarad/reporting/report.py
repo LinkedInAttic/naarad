@@ -94,6 +94,8 @@ class Report(object):
     client_charting_html += template_environment.get_template(CONSTANTS.TEMPLATE_CLIENT_CHARTING).render(metric_list=sorted(self.metric_list), timeseries_data=sorted(timeseries_csv_list), percentiles_data=sorted(percentiles_csv_list), summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
     with open(os.path.join(self.resource_directory, CONSTANTS.PLOTS_CSV_LIST_FILE),'w') as FH:
       FH.write(','.join(sorted(timeseries_csv_list)))
+    with open(os.path.join(self.resource_directory, CONSTANTS.CDF_PLOTS_CSV_LIST_FILE),'w') as FH:
+      FH.write(','.join(sorted(percentiles_csv_list)))
     return client_charting_html
 
   def get_resources_location(self):
