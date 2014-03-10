@@ -23,11 +23,7 @@ class Metric(object):
   ignore = False
   timezone = "PDT"
   options = None
-  
-  sub_metrics = None   #users can specify what sub_metrics to process/plot;  
-
-  calculated_stats = {}
-  calculated_percentiles = {}
+  sub_metrics = None   #users can specify what sub_metrics to process/plot;
 
   def __init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, **other_options):
@@ -57,6 +53,9 @@ class Metric(object):
     self.important_sub_metrics = ()
     self.sla_list = []  # TODO : remove this once report has grading done in the metric tables
     self.sla_map = defaultdict(lambda: defaultdict(None))
+    self.calculated_stats = {}
+    self.calculated_percentiles = {}
+    self.summary_stats = defaultdict(dict)
 
     for (key, val) in rule_strings.iteritems():
       self.set_sla(key, val)
@@ -136,6 +135,13 @@ class Metric(object):
     csv = os.path.join(self.resource_directory, self.metric_type + '.sla.csv')
     return csv
 
+  def update_summary_stats(self, column):
+    for stat in CONSTANTS.DEFAULT_SUMMARY_STATS:
+      if stat.startswith('p'):
+        self.summary_stats[column][stat] = naarad.utils.normalize_float_for_display(self.calculated_percentiles[column][int(stat[1:])])
+      else:
+        self.summary_stats[column][stat] = naarad.utils.normalize_float_for_display(self.calculated_stats[column][stat])
+
   def parse(self):
     logger.info("Working on" + self.infile)
     timestamp_format = None
@@ -214,6 +220,7 @@ class Metric(object):
             for percentile in sorted(self.calculated_percentiles[column].iterkeys()):
               FH_P.write("%d, %f\n" % (percentile, self.calculated_percentiles[column][percentile]))
           self.percentiles_files.append(percentile_csv_file)
+          self.update_summary_stats(column)
           to_write = [column, self.calculated_stats[column]['mean'], self.calculated_stats[column]['std'], self.calculated_percentiles[column][50], self.calculated_percentiles[column][75], self.calculated_percentiles[column][90], self.calculated_percentiles[column][95], self.calculated_percentiles[column][99], self.calculated_stats[column]['min'], self.calculated_stats[column]['max']]
           to_write = map(lambda x: naarad.utils.normalize_float_for_display(x), to_write)
           if not metric_stats_present:

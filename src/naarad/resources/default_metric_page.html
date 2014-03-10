@@ -79,7 +79,7 @@
     </div>
     {%- endif %}
 
-    {%- if metric_stats %}
+    {%- if metric.summary_stats|length %}
     <div id="{{ metric.label }}-summary-table" class="row">
         <div id="{{ metric.label }}-summary-table-span" class="span12">
         <h3>Metric Summary</h3>
@@ -87,16 +87,32 @@
         <table class="table table-hover table-striped table-bordered sortable">
             <thead>
                 <tr>
-                {%- for header in metric_stats[0] %}
+                    <th>sub_metric</th>
+                    {%- for header in metric.summary_stats[metric.summary_stats.keys()[0]].keys()|sort %}
                     <th>{{ header }}</th>
-                {%- endfor %}
+                    {%- endfor %}
                 </tr>
             </thead>
             <tbody>
-                {% for row in range(1,metric_stats|length) %}
+                {%- for sub_metric in metric.summary_stats.keys() %}
                     <tr>
-                    {%- for row_data in metric_stats[row] %}
-                        <td>{{ row_data }}</td>
+                        <td>{{ sub_metric }}</td>
+                    {%- for stat in metric.summary_stats[sub_metric]|sort %}
+                        {%- if sub_metric in metric.sla_map.keys() %}
+                            {%- if stat in metric.sla_map[sub_metric].keys() %}
+                                {%- if metric.sla_map[sub_metric][stat].sla_passed == True %}
+                                    <td class="success" title="{{ metric.sla_map[sub_metric][stat].stat_name }} {{ metric.sla_map[sub_metric][stat].sla_type }} {{ metric.sla_map[sub_metric][stat].threshold}}">{{ metric.summary_stats[sub_metric][stat] }}</td>
+                                {%- elif metric.sla_map[sub_metric][stat].sla_passed == False %}
+                                    <td class="danger" title="{{ metric.sla_map[sub_metric][stat].stat_name }} {{ metric.sla_map[sub_metric][stat].sla_type }} {{ metric.sla_map[sub_metric][stat].threshold}}">{{ metric.summary_stats[sub_metric][stat] }}</td>
+                                {%- else %}
+                                    <td>{{ metric.summary_stats[sub_metric][stat] }}</td>
+                                {%- endif %}
+                            {%- else %}
+                                <td>{{ metric.summary_stats[sub_metric][stat] }}</td>
+                            {%- endif %}
+                        {%- else %}
+                            <td>{{ metric.summary_stats[sub_metric][stat] }}</td>
+                        {%- endif %}
                     {%- endfor %}
                     </tr>
                 {%- endfor %}

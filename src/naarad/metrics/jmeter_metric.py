@@ -51,6 +51,7 @@ class JmeterMetric(Metric):
     self.calculated_stats = {}
     self.aggregation_granularity = 'minute'
     self.calculated_percentiles = {}
+    self.summary_stats = defaultdict(dict)
     self.important_sub_metrics = naarad.naarad_imports.important_sub_metrics_import['JMETER']
     if other_options:
       for (key, val) in other_options.iteritems():
@@ -179,6 +180,7 @@ class JmeterMetric(Metric):
     percentiles_to_calculate.append(99)
     for transaction in raw_response_times:
       self.calculated_stats[transaction], self.calculated_percentiles[transaction] = naarad.utils.calculate_stats(raw_response_times[transaction], stats_to_calculate, percentiles_to_calculate)
+      self.update_summary_stats(transaction)
     return None
 
   def parse(self):
@@ -213,8 +215,8 @@ class JmeterMetric(Metric):
           continue
         line_data = dict(re.findall(line_regex, line))
         aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(line_data['ts'], granularity)
-        self.aggregate_count_over_time(processed_data, line_data, [line_data['lb'], '__overall_summary__'], aggregate_timestamp)
-        self.aggregate_values_over_time(processed_data, line_data, [line_data['lb'], '__overall_summary__'], ['t', 'by'], aggregate_timestamp)
+        self.aggregate_count_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], aggregate_timestamp)
+        self.aggregate_values_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], ['t', 'by'], aggregate_timestamp)
       logger.info('Finished parsing : %s', self.infile)
 
       logger.info('Processing metrics for output to csv')
@@ -239,8 +241,6 @@ class JmeterMetric(Metric):
       for sub_metric in self.calculated_stats:
         percentile_data = self.calculated_percentiles[sub_metric]
         stats_data = self.calculated_stats[sub_metric]
-        if sub_metric == '__overall_summary__':
-          sub_metric = 'Overall_Summary'
         csv_data = ','.join([sub_metric,str(numpy.round_(stats_data['mean'], 2)),str(numpy.round_(stats_data['std'], 2)),str(numpy.round_(stats_data['median'], 2)),str(numpy.round_(stats_data['min'], 2)),str(numpy.round_(stats_data['max'], 2)),str(numpy.round_(percentile_data[90], 2)),str(numpy.round_(percentile_data[95], 2)),str(numpy.round_(percentile_data[99], 2))])
         FH.write(csv_data + '\n')
       self.stats_files.append(stats_csv)

@@ -36,14 +36,50 @@
 </div><!-- /topbar -->
 <div class="container">
   <div class="content">
+          <div id="sla-failures" class="row">
+          <div id="sla-failures-span" class="span12">
+          {%- for metric in metric_list %}
+            {%- if metric.sla_list|length > 0 %}
+            <div id="{{ metric.label }}-sla-table" class="row">
+                <div id="{{ metric.label }}-sla-table-span" class="span12">
+                    <h3>{{ metric.label }} Failed SLA Summary</h3>
+                    <div style="overflow-x:auto;">
+                        <table class="table table-hover table-striped table-bordered sortable">
+                            <thead>
+                                <tr>
+                                    <th>sub_metric</th>
+                                    <th>sla rule</th>
+                                    <th>value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {%- for sla in metric.sla_list %}
+                                {%- if sla.sla_passed == False %}
+                                <tr class="danger">
+                                    <td>{{ sla.sub_metric }}</td>
+                                    <td>{{ sla.stat_name }} {{ sla.sla_type }} {{ sla.threshold}}</td>
+                                    <td>{{ sla.stat_value }}</td>
+                                </tr>
+                                {%- endif %}
+                                {%- endfor %}
+                            </tbody>
+                            <tfoot></tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {%- endif %}
+          {%- endfor %}
+          </div>
+          </div>
       {%- if summary_html_content %}
           {{ summary_html_content }}
       {%- endif %}
-      {%- if correlated_plot_content %}
-          <div id="correlated-plots" class="row">
-          <div id="correlated-plots-span" class="span12">
-            <h3>Correlated Metric Plots</h3>
-            {{ correlated_plot_content }}
+      {%- if overlaid_plot_content %}
+          <div id="overlaid-plots" class="row">
+          <div id="overlaid-plots-span" class="span12">
+            <h3>Overlaid Metric Plots</h3>
+            {{ overlaid_plot_content }}
           </div>
           </div>
       {%- endif %}
