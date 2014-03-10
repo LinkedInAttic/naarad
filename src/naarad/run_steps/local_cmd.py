@@ -10,6 +10,7 @@ import logging
 import shlex
 import subprocess
 import time
+from threading import Timer
 from naarad.run_steps.run_step import Run_Step
 
 logger = logging.getLogger('naarad.run_steps.local_cmd')
@@ -20,8 +21,9 @@ class Local_Cmd(Run_Step):
   This type will be most likely used when running workload from the same machine running naarad
   """
 
-  def __init__(self, run_type, run_cmd, call_type, run_order, run_rank, should_wait=True):
-    Run_Step.__init__(self, run_type, run_cmd, call_type, run_order, run_rank, should_wait)
+  def __init__(self, run_type, run_cmd, call_type, run_order, run_rank, should_wait=True, kill_after_seconds=None):
+    Run_Step.__init__(self, run_type, run_cmd, call_type, run_order, run_rank, should_wait, kill_after_seconds)
+    self.process = None
 
   def run(self):
     """
@@ -35,12 +37,23 @@ class Local_Cmd(Run_Step):
     #TODO: Add try catch blocks. Kill process on CTRL-C
     # Infer time period for analysis. Assume same timezone between client and servers.
     self.ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
-    process = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
+    self.process = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
+    if self.kill_after_seconds:
+      self.timer = Timer(self.kill_after_seconds, self.kill)
+      self.timer.start()
     #Using 2nd method here to stream output:
     # http://stackoverflow.com/questions/2715847/python-read-streaming-input-from-subprocess-communicate
-    for line in iter(process.stdout.readline, b''):
+    for line in iter(self.process.stdout.readline, b''):
       logger.info(line)
-    process.communicate()
+    self.process.communicate()
     self.ts_end = time.strftime("%Y-%m-%d %H:%M:%S")
     logger.info('subprocess finished')
     logger.info('run_step started at ' + self.ts_start + ' and ended at ' + self.ts_end)
+
+  def kill(self):
+    """
+    If run_step needs to be killed after a specific duration, this method will be called
+    :return: None
+    """
+    logger.info('Terminating run_step...')
+    self.process.terminate()
