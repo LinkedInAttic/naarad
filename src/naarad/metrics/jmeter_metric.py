@@ -73,7 +73,7 @@ class JmeterMetric(Metric):
     if transaction_name == '__overall_summary__':
       transaction_name = 'Overall_Summary'
     csv = os.path.join(self.resource_directory, self.metric_type + '.' + transaction_name + '.' + col + '.csv')
-    self.csv_column_map[csv] = column
+    self.csv_column_map[csv] = transaction_name + '.' + col
     return csv
 
   def aggregate_count_over_time(self, metric_store, line_data, transaction_list, aggregate_timestamp):
@@ -179,8 +179,8 @@ class JmeterMetric(Metric):
     percentiles_to_calculate = range(5,101,5) # TODO: get input from user
     percentiles_to_calculate.append(99)
     for transaction in raw_response_times:
-      self.calculated_stats[transaction], self.calculated_percentiles[transaction] = naarad.utils.calculate_stats(raw_response_times[transaction], stats_to_calculate, percentiles_to_calculate)
-      self.update_summary_stats(transaction)
+      self.calculated_stats[transaction + '.' + 'ResponseTime'], self.calculated_percentiles[transaction + '.' + 'ResponseTime'] = naarad.utils.calculate_stats(raw_response_times[transaction], stats_to_calculate, percentiles_to_calculate)
+      self.update_summary_stats(transaction + '.' + 'ResponseTime')
     return None
 
   def parse(self):
@@ -254,6 +254,11 @@ class JmeterMetric(Metric):
         self.percentiles_files.append(percentiles_csv)
 
   def graph(self, graphing_library='matplotlib'):
+    self.plot_timeseries(graphing_library)
+    self.plot_cdf(graphing_library)
+    return True
+
+  def plot_timeseries(self, graphing_library='matplotlib'):
     if graphing_library != 'matplotlib':
      return Metric.graph(self, graphing_library)
     else:

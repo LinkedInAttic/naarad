@@ -128,7 +128,6 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
       if metric.parse():
         metric.calc()
         metric.calculate_stats()
-        metric.check_slas()
         global sla_failures
         sla_failures = sla_failures + naarad.utils.check_slas(metric)
         if not skip_plots:
