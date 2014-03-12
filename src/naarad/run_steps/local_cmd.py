@@ -38,15 +38,19 @@ class Local_Cmd(Run_Step):
     #TODO: Add try catch blocks. Kill process on CTRL-C
     # Infer time period for analysis. Assume same timezone between client and servers.
     self.ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
-    self.process = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
-    if self.kill_after_seconds:
-      self.timer = Timer(self.kill_after_seconds, self.kill)
-      self.timer.start()
-    #Using 2nd method here to stream output:
-    # http://stackoverflow.com/questions/2715847/python-read-streaming-input-from-subprocess-communicate
-    for line in iter(self.process.stdout.readline, b''):
-      logger.info(line)
-    self.process.communicate()
+    try:
+      self.process = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
+      if self.kill_after_seconds:
+        self.timer = Timer(self.kill_after_seconds, self.kill)
+        self.timer.start()
+      #Using 2nd method here to stream output:
+      # http://stackoverflow.com/questions/2715847/python-read-streaming-input-from-subprocess-communicate
+      for line in iter(self.process.stdout.readline, b''):
+        logger.info(line)
+      self.process.communicate()
+    except KeyboardInterrupt:
+      logger.warning('Handling keyboard interrupt (Ctrl-C)')
+      self.kill()
     if self.timer:
       self.timer.cancel()
     self.ts_end = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -55,7 +59,7 @@ class Local_Cmd(Run_Step):
 
   def kill(self):
     """
-    If run_step needs to be killed after a specific duration, this method will be called
+    If run_step needs to be killed, this method will be called
     :return: None
     """
     logger.info('Trying to terminating run_step...')
