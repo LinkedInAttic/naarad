@@ -39,7 +39,7 @@
           <div id="sla-failures" class="row">
           <div id="sla-failures-span" class="span12">
           {%- for metric in metric_list %}
-            {%- if metric.sla_list|length > 0 %}
+            {%- if metric.status == 1 %}
             <div id="{{ metric.label }}-sla-table" class="row">
                 <div id="{{ metric.label }}-sla-table-span" class="span12">
                     <h3>{{ metric.label }} Failed SLA Summary</h3>

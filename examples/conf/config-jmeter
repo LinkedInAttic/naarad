@@ -1,6 +1,12 @@
 [JMETER]
 infile=perf-result.xml
 aggregation_granularity=minute
+Overall_Summary.ResponseTime.sla=mean<100000 p95<20000
+
+[GC]
+infile=gc.log
+sub_metrics=appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GCPause cmsCM cmsCP cmsCS cmsCR safept apptime
+GCPause.sla=mean<0.05 p50<0.05 p99<0.05
 
 [GRAPH]
 graphing_library=matplotlib

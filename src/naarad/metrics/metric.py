@@ -17,12 +17,6 @@ import naarad.naarad_constants as CONSTANTS
 logger = logging.getLogger('naarad.metrics.metric')
 
 class Metric(object):
-  beginning_ts = None
-  beginning_date = None
-  ignore = False
-  timezone = "PDT"
-  options = None
-  sub_metrics = None   #users can specify what sub_metrics to process/plot;
 
   def __init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, **other_options):
@@ -55,7 +49,13 @@ class Metric(object):
     self.calculated_stats = {}
     self.calculated_percentiles = {}
     self.summary_stats = defaultdict(dict)
-
+    self.status = CONSTANTS.OK
+    self.beginning_ts = None
+    self.beginning_date = None
+    self.ignore = False
+    self.timezone = "PDT"
+    self.options = None
+    self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
     for (key, val) in rule_strings.iteritems():
       naarad.utils.set_sla(self, key, val)
     if other_options:

@@ -6,6 +6,11 @@ Unless required by applicable law or agreed to in writing, software distribute
 """
 # Metric Constants
 DEFAULT_SUMMARY_STATS = ['mean', 'std', 'p50', 'p75', 'p90', 'p95', 'p99', 'min', 'max']
+OK = 0
+SLA_FAILED = 1
+COLLECT_FAILED = 2
+PARSE_FAILED = 3
+GRAPH_FAILED = 4
 
 # Report Constants
 DEFAULT_REPORT_TITLE = 'naarad analysis report'

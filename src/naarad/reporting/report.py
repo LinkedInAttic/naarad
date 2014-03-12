@@ -74,10 +74,11 @@ class Report(object):
       for stats_file in metric.important_stats_files:
         if naarad.utils.is_valid_file(stats_file):
           return True
+      if metric.status == CONSTANTS.SLA_FAILED:
+          return True
     if self.validate_file_list(self.correlated_plots):
         return True
-    else:
-        return False
+    return False
 
   def generate_summary_page(self, template_environment, summary_html_content, coplot_html_content, header_template_data):
     summary_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(**header_template_data) + '\n'
