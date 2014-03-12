@@ -35,3 +35,4 @@ class Run_Step(object):
     self.run_rank = run_rank
     self.should_wait = should_wait
     self.kill_after_seconds = kill_after_seconds
+    self.timer = None

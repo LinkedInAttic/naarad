@@ -12,6 +12,7 @@ import subprocess
 import time
 from threading import Timer
 from naarad.run_steps.run_step import Run_Step
+import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.run_steps.local_cmd')
 
@@ -46,6 +47,8 @@ class Local_Cmd(Run_Step):
     for line in iter(self.process.stdout.readline, b''):
       logger.info(line)
     self.process.communicate()
+    if self.timer:
+      self.timer.cancel()
     self.ts_end = time.strftime("%Y-%m-%d %H:%M:%S")
     logger.info('subprocess finished')
     logger.info('run_step started at ' + self.ts_start + ' and ended at ' + self.ts_end)
@@ -55,5 +58,12 @@ class Local_Cmd(Run_Step):
     If run_step needs to be killed after a specific duration, this method will be called
     :return: None
     """
-    logger.info('Terminating run_step...')
+    logger.info('Trying to terminating run_step...')
     self.process.terminate()
+    time_waited_seconds = 0
+    while self.process.poll() is None:
+      time.sleep(0.5)
+      time_waited_seconds += 0.5
+      if time_waited_seconds >= CONSTANTS.SECONDS_TO_KILL_AFTER_SIGTERM and self.process.poll() is None:
+        logger.warning('Waited %d seconds for run_step to terminate. Killing now....', CONSTANTS.SECONDS_TO_KILL_AFTER_SIGTERM )
+        self.process.kill()
