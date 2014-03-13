@@ -292,7 +292,7 @@ class Metric(object):
     items = sub_metric.split('.')
     if sub_metric in self.important_sub_metrics:
       return True
-    if items[len(items)-1] in self.important_sub_metrics:
+    if items[-1] in self.important_sub_metrics:
       return True
     return False
 
