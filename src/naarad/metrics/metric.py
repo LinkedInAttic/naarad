@@ -48,10 +48,9 @@ class Metric(object):
     self.sla_map = defaultdict(lambda: defaultdict(None))
     self.calculated_stats = {}
     self.calculated_percentiles = {}
+    self.summary_stats_list = CONSTANTS.DEFAULT_SUMMARY_STATS
     self.summary_stats = defaultdict(dict)
     self.status = CONSTANTS.OK
-    self.beginning_ts = None
-    self.beginning_date = None
     self.ignore = False
     self.timezone = "PDT"
     self.options = None
@@ -121,7 +120,7 @@ class Metric(object):
     return csv
 
   def update_summary_stats(self, column):
-    for stat in CONSTANTS.DEFAULT_SUMMARY_STATS:
+    for stat in self.summary_stats_list:
       if stat.startswith('p'):
         self.summary_stats[column][stat] = naarad.utils.normalize_float_for_display(self.calculated_percentiles[column][int(stat[1:])])
       else:

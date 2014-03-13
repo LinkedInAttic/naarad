@@ -1,88 +1,85 @@
 <body data-spy="scroll" data-target=".topbar" data-offset="90">
-<div class="topbar navbar navbar-fixed-top navbar-inverse">
-  <div class="navbar-inner">
-   <div class="container">
-    <div class="topbar-content">
-
-    <a class="brand" href="https://github.com/linkedin/naarad">naarad</a>
-
-    <ul class="nav">
-        <li class="active">
-            <a href="summary_report.html" title="Summary">
+  <div class="topbar navbar navbar-fixed-top navbar-inverse">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="topbar-content">
+          <a class="brand" href="https://github.com/linkedin/naarad">naarad</a>
+          <ul class="nav">
+            <li class="active">
+              <a href="summary_report.html" title="Summary">
                 <span>Summary</span>
-            </a>
-        </li>
-
-        <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+              </a>
+            </li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                 <span>Metrics</span>
                 <b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu">
+              </a>
+              <ul class="dropdown-menu">
                 {%- for metric_name in metric_list %}
-                <li>
+                  <li>
                     <a href="{{ metric_name.label }}_report.html">
                         <span>{{ metric_name.label }}</span>
                     </a>
-                </li>
+                  </li>
                 {%- endfor %}
-            </ul>
-        </li>
-        <li><a href="report.html"><span>Chart</span></a></li>
-    </ul>
-    </div><!-- /topbar-content -->
-   </div><!-- /container -->
- </div><!-- /topbar-inner -->
-</div><!-- /topbar -->
-<div class="container">
-  <div class="content">
-          <div id="sla-failures" class="row">
-          <div id="sla-failures-span" class="span12">
+              </ul>
+            </li>
+            <li><a href="report.html"><span>Chart</span></a></li>
+          </ul>
+        </div><!-- /topbar-content -->
+      </div><!-- /container -->
+    </div><!-- /topbar-inner -->
+  </div><!-- /topbar -->
+  <div class="container">
+    <div class="content">
+      <div id="sla-failures" class="row">
+        <div id="sla-failures-span" class="span12">
           {%- for metric in metric_list %}
             {%- if metric.status == 1 %}
-            <div id="{{ metric.label }}-sla-table" class="row">
+              <div id="{{ metric.label }}-sla-table" class="row">
                 <div id="{{ metric.label }}-sla-table-span" class="span12">
-                    <h3>{{ metric.label }} Failed SLA Summary</h3>
-                    <div style="overflow-x:auto;">
-                        <table class="table table-hover table-striped table-bordered sortable">
-                            <thead>
-                                <tr>
-                                    <th>sub_metric</th>
-                                    <th>sla rule</th>
-                                    <th>value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {%- for sla in metric.sla_list %}
-                                {%- if sla.sla_passed == False %}
-                                <tr class="danger">
-                                    <td>{{ sla.sub_metric }}</td>
-                                    <td>{{ sla.stat_name }} {{ sla.sla_type }} {{ sla.threshold}}</td>
-                                    <td>{{ sla.stat_value }}</td>
-                                </tr>
-                                {%- endif %}
-                                {%- endfor %}
-                            </tbody>
-                            <tfoot></tfoot>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            {%- endif %}
-          {%- endfor %}
-          </div>
-          </div>
-      {%- if summary_html_content %}
-          {{ summary_html_content }}
-      {%- endif %}
-      {%- if overlaid_plot_content %}
-          <div id="overlaid-plots" class="row">
-          <div id="overlaid-plots-span" class="span12">
-            <h3>Overlaid Metric Plots</h3>
-            {{ overlaid_plot_content }}
-          </div>
-          </div>
-      {%- endif %}
-    </div>
-</div>
+                  <h3>{{ metric.label }} Failed SLA Summary</h3>
+                  <div style="overflow-x:auto;">
+                    <table class="table table-hover table-striped table-bordered sortable">
+                     <thead>
+                       <tr>
+                         <th>sub_metric</th>
+                         <th>sla rule</th>
+                         <th>value</th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       {%- for sla in metric.sla_list %}
+                         {%- if sla.sla_passed == False %}
+                           <tr class="danger">
+                             <td>{{ sla.sub_metric }}</td>
+                             <td>{{ sla.stat_name }} {{ sla.sla_type }} {{ sla.threshold}}</td>
+                             <td>{{ sla.stat_value }}</td>
+                           </tr>
+                         {%- endif %}
+                       {%- endfor %}
+                     </tbody>
+                     <tfoot></tfoot>
+                   </table>
+                 </div>
+               </div>
+             </div> <!-- /sla-failures-span -->
+           {%- endif %}
+         {%- endfor %}
+       </div>
+     </div> <!-- /sla-failures -->
+     {%- if summary_html_content %}
+       {{ summary_html_content }}
+     {%- endif %}
+     {%- if overlaid_plot_content %}
+       <div id="overlaid-plots" class="row">
+         <div id="overlaid-plots-span" class="span12">
+           <h3>Overlaid Metric Plots</h3>
+           {{ overlaid_plot_content }}
+         </div> <!-- /overlaid-plots-span -->
+       </div> <!-- /overlaid-plots -->
+     {%- endif %}
+   </div> <!-- /content -->
+  </div> <!-- /container -->
 

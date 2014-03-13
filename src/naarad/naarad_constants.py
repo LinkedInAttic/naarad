@@ -11,6 +11,7 @@ SLA_FAILED = 1
 COLLECT_FAILED = 2
 PARSE_FAILED = 3
 GRAPH_FAILED = 4
+REPORT_FAILED = 5
 
 # Report Constants
 DEFAULT_REPORT_TITLE = 'naarad analysis report'
