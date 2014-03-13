@@ -254,6 +254,7 @@ class JmeterMetric(Metric):
         self.percentiles_files.append(percentiles_csv)
 
   def graph(self, graphing_library='matplotlib'):
+    import pdb; pdb.set_trace() #*********************************************
     if graphing_library != 'matplotlib':
      return Metric.graph(self, graphing_library)
     else:

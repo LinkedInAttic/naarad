@@ -290,9 +290,11 @@ class Metric(object):
     check whether the given sub metric is in important_sub_metrics list 
     """
     items = sub_metric.split('.')
-    if items[len(items)-1] not in self.important_sub_metrics:
-      return False
-    return True
+    if sub_metric in self.important_sub_metrics:
+      return True
+    if items[len(items)-1] in self.important_sub_metrics:
+      return True
+    return False
 
   def plot_cdf(self, graphing_library = 'matplotlib'):
     """
