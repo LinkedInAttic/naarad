@@ -122,8 +122,8 @@ class Report(object):
     self.metric_list = set(self.metric_list) - set(metrics_in_error)
 
     for metric in self.metric_list:
-      timeseries_csv_list.extend(map(self.strip_file_extension,map(os.path.basename, metric.csv_files)))
-      percentiles_csv_list.extend(map(self.strip_file_extension,map(os.path.basename, metric.percentiles_files)))
+      timeseries_csv_list.extend(map(self.strip_file_extension, map(os.path.basename, metric.csv_files)))
+      percentiles_csv_list.extend(map(self.strip_file_extension, map(os.path.basename, metric.percentiles_files)))
       metric_html = ''
       div_html = ''
       for plot_div in sorted(metric.plot_files):
