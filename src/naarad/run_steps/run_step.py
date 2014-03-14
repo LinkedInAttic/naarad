@@ -16,7 +16,7 @@ class Run_Step(object):
   Post-run setup scripts
   """
 
-  def __init__(self, run_type, run_cmd, call_type, run_order, run_rank, should_wait=True, should_kill=False, duration=None):
+  def __init__(self, run_type, run_cmd, call_type, run_order, run_rank, should_wait=True, kill_after_seconds=None):
     """
     Init method
     :param run_type: Type of run_step: "workload" only for now
@@ -25,9 +25,7 @@ class Run_Step(object):
     :param run_order: When to run this w.r.t analysis. One of ('pre', 'in', 'post')
     :param run_rank: In what order to run this
     :param should_wait: Boolean whether naarad should wait for the run command to finish or not before moving on
-    :param should_kill: Boolean whether naarad would need the kill the command (in case its a forever command with a
-                        specified duration
-    :param duration: Seconds for which the command should be run before being killed if should_kill is set to True
+    :param kill_after_seconds: Seconds for which the command should be run before being killed
     :return: None
     """
     self.run_type = run_type
@@ -36,5 +34,5 @@ class Run_Step(object):
     self.run_order = run_order
     self.run_rank = run_rank
     self.should_wait = should_wait
-    self.should_kill = should_kill
-    self.duration = duration
+    self.kill_after_seconds = kill_after_seconds
+    self.timer = None
