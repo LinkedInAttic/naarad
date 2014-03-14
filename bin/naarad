@@ -252,6 +252,9 @@ def main():
           naarad.utils.parse_graph_section(config_obj, section, outdir_default, indir_default)
       elif section.startswith('RUN-STEP'):
         run_step = naarad.utils.parse_run_step_section(config_obj, section)
+        if not run_step:
+          logger.error('Ignoring section %s, could not parse it correctly', section)
+          continue
         if run_step.run_order == CONSTANTS.PRE_ANALYSIS_RUN:
           pre_run_steps.append(run_step)
         # DURING_ANALYSIS_RUN not supported yet

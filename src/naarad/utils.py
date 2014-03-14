@@ -215,6 +215,7 @@ def parse_run_step_section(config_obj, section):
   :param section: Section name
   :return: an initialized Run_Step object
   """
+  kill_after_seconds = None
   try:
     run_cmd = config_obj.get(section, 'run_cmd')
     run_rank = int(config_obj.get(section, 'run_rank'))
@@ -236,11 +237,16 @@ def parse_run_step_section(config_obj, section):
     call_type = config_obj.get(section, 'call_type')
   else:
     call_type = 'local'
+  if config_obj.has_option(section, 'kill_after_seconds'):
+    try:
+      kill_after_seconds = int(config_obj.get(section, 'kill_after_seconds'))
+    except ValueError:
+      logger.error("Bad kill_after_seconds %s specified in section %s, should be integer.", config_obj.get(section, 'kill_after_seconds'), section)
 
   if call_type == 'local':
-    run_step_obj = Local_Cmd(run_type, run_cmd, call_type, run_order, run_rank)
+    run_step_obj = Local_Cmd(run_type, run_cmd, call_type, run_order, run_rank, kill_after_seconds=kill_after_seconds)
   else:
-    logger.warning('Unsupported RUN_STEP supplied, call_type should be local')
+    logger.error('Unsupported RUN_STEP supplied, call_type should be local')
     run_step_obj = None
   return run_step_obj
 
