@@ -1,7 +1,7 @@
 [SAR-device-host1]
 hostname=host1
 infile=sar.device.out
-devices=sda
+devices=sda sdb
 
 [SAR-cpuusage-host1]
 hostname=host1
@@ -10,7 +10,7 @@ infile=sar.cpuusage.out
 [SAR-device-host2]
 hostname=host2
 infile=sar.device.out
-devices=sda
+devices=sda sdb
 
 [SAR-cpuusage-host2]
 hostname=host2
@@ -18,7 +18,7 @@ infile=sar.cpuusage.out
 
 [CLUSTER-1]
 aggr_hosts=host1 host2
-aggr_metrics=SAR-device.sda.await:sum,aver,count SAR-cpuusage.all.percent-sys:sum
+aggr_metrics=SAR-device.sda.await:sum,aver,count SAR-cpuusage.all.percent-sys:aver SAR-device.sdb.await
 
 [GRAPH]
 graphing_library=matplotlib

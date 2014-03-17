@@ -59,8 +59,12 @@ class ClusterMetric(Metric):
       if len(fields) > 1:  # if config file has ":sum,count"
         for func in fields[1].split(","):
           functions.add(func)      
-        
-      cur_column = aggr_metric[len(cur_metric_type)+1:aggr_metric.find(":")]  #e.g. sda.await or all.percent-sys
+      
+      function_index = aggr_metric.find(":")  # for use of extracting the sub-metric
+      if function_index > -1:
+        cur_column = aggr_metric[len(cur_metric_type)+1:function_index]  #e.g. sda.await or all.percent-sys
+      else:
+        cur_column = aggr_metric[len(cur_metric_type)+1:]  #e.g. sda.await or all.percent-sys
       cur_column = cur_column.replace('percent-','%')  # to handle the case when user specify "percent-" rather than '%'; we expect "%"
     
       merged_raw = []      #store all the raw values
