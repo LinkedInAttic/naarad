@@ -1,0 +1,3 @@
+[DIFF]
+GCPause.sla=mean>5000 p50>5000
+appstop.sla=mean>5000 p50>5000
