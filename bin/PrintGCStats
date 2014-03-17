@@ -464,7 +464,7 @@ function recordStatsInternal(idx, seconds) {
   if (seconds > max_v[idx]) max_v[idx] = seconds;
 }
 
-function writePlotDataOriginal(tstamp, value) {
+function writePlotData(tstamp, value) {
   if (plotcolumns == 4) {
     # Column 1 = start time, 2 = duration, 3 = end time, 4 = duration.
     #printf("%9.7f %9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value, value);
@@ -491,34 +491,7 @@ function writePlotDataOriginal(tstamp, value) {
   }
 }
 
-function writePlotData(tstamp, value, outputFile) {
-  if (plotcolumns == 4) {
-    # Column 1 = start time, 2 = duration, 3 = end time, 4 = duration.
-    #printf("%9.7f %9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value, value);
-    printf("%9.3f %9.7f %9.3f %9.7f\n", tstamp, value, tstamp + value, value) >> outputFile;
-    return;
-  }
-  if (plotcolumns == 2) {
-    # Column 1 = start time, 2 = value.
-    # printf("%9.7f %9.7f\n", tstamp, value);
-    printf("%9.3f %9.7f\n", tstamp, value) >> outputFile;
-    return;
-  }
-  if (plotcolumns == 1) {
-    # Column 1 = start time.
-    # printf("%9.7f\n", tstamp);
-    printf("%9.3f\n", tstamp) >> outputFile;
-    return;
-  }
-  if (plotcolumns == 3) {
-    # Column 1 = start time, 2 = duration, 3 = end time.
-    # printf("%9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value);
-    printf("%9.3f %9.7f %9.3f\n", tstamp, value, tstamp + value) >> outputFile;
-    return;
-  }
-}
-
-function recordStatsOriginal(idx, value) {
+function recordStats(idx, value) {
   if (verbose) print name_v[idx] ":" NR ":" value;
   if (plot_idx < 0) {
     # Plotting disabled; record statistics.
@@ -531,14 +504,6 @@ function recordStatsOriginal(idx, value) {
     if (rs_tstamp < 0.0) rs_tstamp = ++plot_cnt;
     writePlotData(rs_tstamp, value);
   }
-}
-
-function recordStats(idx, value) {
-  if (verbose) print name_v[idx] ":" NR ":" value;
-    # Plotting enabled; skip statistics and just print a plot line.
-    rs_tstamp = getTimeStamp();
-    if (rs_tstamp < 0.0) rs_tstamp = ++plot_cnt;
-    writePlotData(rs_tstamp, value, prefix"-"name_v[idx]"-out.txt");
 }
 
 function parseHeapSizes(sizes, str) {
@@ -684,14 +649,6 @@ function printInterval() {
 
     initIntervalVars();
   }
-}
-
-$0 ~ ".* age .*" {
-  next;
-}
-
-$0 ~ "Desired.*" {
-  next;
 }
 
 
@@ -886,7 +843,7 @@ $0 ~ full_gc_re timestamp_re ".*\\[" fw_yng_gen_re ": " heap_report_re "\\] " he
     # Skip the update of the totgc numbers, that was handled above.
     recordStatsInternal(gen1i_idx, secs);
     recordStatsInternal(gen1i_idx + last_idx, secs);
-  } else {
+  } else if (plot_idx == gen1i_idx) {
     recordStats(gen1i_idx, secs);
   }
   recordGen0Kb($0, 1);
@@ -926,7 +883,7 @@ $0 ~ "\\[GC " timestamp_re "\\[" fw_yng_gen_re ": " heap_report_re "\\] " heap_r
     # Skip the update of the totgc numbers, that will be handled below.
     recordStatsInternal(gen0c_idx, secs);
     recordStatsInternal(gen0c_idx + last_idx, secs);
-  } else {
+  } else if (plot_idx == gen0c_idx) {
     recordStats(gen0c_idx, secs);
   }
 
