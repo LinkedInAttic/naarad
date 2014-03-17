@@ -31,8 +31,8 @@ class ClusterMetric(Metric):
   def __init__ (self, section, aggregate_hosts, aggregate_metrics, metrics, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, **other_options):
     self.metrics = metrics
-    self.aggr_metrics = re.split(",| |:", aggregate_metrics)  #support both "," and " ", ":" as separator
-    self.aggr_hosts = re.split(",| |:", aggregate_hosts) 
+    self.aggr_metrics = re.split(" ", aggregate_metrics)
+    self.aggr_hosts = re.split(" ", aggregate_hosts) 
                   
     #Metric arguments take 'infile' and 'hostname', for ClusterMetric, they are invalid, so just provide empty strings.     
     Metric.__init__(self, section, '', '', output_directory, resource_path, label, ts_start, ts_end, rule_strings)
@@ -46,30 +46,86 @@ class ClusterMetric(Metric):
     take metrics, filter all metrics based on hostname, and metric_type (which comes from section)
     for each metric, merge the corresponding csv files into one, and output to disk
     update corresponding properties such as csv_column_map. 
+    by default, each aggr_metric only gets "raw" function (the simply merged data points)
+    users can specify other functions:  count (qps), sum (aggregated value), aver (averaged value)
     """
-
-    for aggr_metric in self.aggr_metrics:   # e.g., SAR-device.sda.await
-      cur_metric_type =  aggr_metric.split(".")[0]  # e.g. SAR-device
-      cur_column = aggr_metric[len(cur_metric_type)+1:]  #e.g. sda.await or all.percent-sys
-      cur_column = cur_column.replace('percent-','%')  # to handle the case when user specify "percent-" rather than '%';  what we expect is "%"      
     
-      merged_data = []      #store all the possible values
+    for aggr_metric in self.aggr_metrics:   # e.g., SAR-device.sda.await:count,sum,aver
+      functions = set()
+      functions.add('raw')  #raw merging is always supported
+      
+      fields = aggr_metric.split(":")   
+      cur_metric_type = fields[0].split(".")[0]  # e.g. SAR-device
+      if len(fields) > 1:  # if config file has ":sum,count"
+        for func in fields[1].split(","):
+          functions.add(func)      
+        
+      cur_column = aggr_metric[len(cur_metric_type)+1:aggr_metric.find(":")]  #e.g. sda.await or all.percent-sys
+      cur_column = cur_column.replace('percent-','%')  # to handle the case when user specify "percent-" rather than '%'; we expect "%"
+    
+      merged_raw = []      #store all the raw values
+      merged_sum = dict()       #store the sum values for each timestamp   
+      merged_count = dict()     #store the count of each timestamp (i.e. qps)
+      
       for metric in self.metrics:   # loop the list to find from all metrics to merge       
         file_csv = ""
         if metric.hostname in self.aggr_hosts and \
-          cur_column in metric.csv_column_map.values():             
-          file_csv = metric.get_csv(cur_column)                      
+          cur_column in metric.csv_column_map.values():  
+          file_csv = metric.get_csv(cur_column)   
+                             
           with open(file_csv) as fh:
             for line in fh:
               # handle the last line from each file gracefully by adding "\n"
               if "\n" in line:
-                merged_data.append(line)
+                merged_raw.append(line)
               else:
-                merged_data.append(line + "\n")      
-      out_csv = self.get_csv(cur_column)                 
+                merged_raw.append(line + "\n")      
+              
+              # generate "sum" and "aver" sub-metric
+              words = line.split(",")  
+              value = words[1]                     
+              ts = words[0]  
+              ts_tail_index = words[0].find('.') #in case of sub-seconds, then we only want seconds
+              if ts_tail_index > -1:
+                ts = ts[:ts_tail_index]  #excluding the last '.' to extract only "second"-time
+              
+              if ts in merged_sum.keys():
+                merged_sum[ts] += float(value)
+                merged_count[ts] += 1
+              else:
+                merged_sum[ts] = float(value)
+                merged_count[ts] = 1    
+
+      #"raw" csv file
+      out_csv = self.get_csv(cur_column)
       with open(out_csv, 'w') as fh:
         self.csv_files.append(out_csv)
-        fh.write("".join(sorted(merged_data)) )
+        fh.write("".join(sorted(merged_raw)) )
+        
+      #"sum"  csv file
+      if 'sum' in functions:
+        out_csv = self.get_csv(cur_column + '.sum')
+        self.csv_files.append(out_csv)
+        with open(out_csv, 'w') as fh:
+          for k,v in sorted(merged_sum.items()):
+            fh.write(k + "," + str(v)+"\n")
+      
+      # "aver" csv file  
+      if 'aver' in functions: 
+        out_csv = self.get_csv(cur_column + '.aver')
+        self.csv_files.append(out_csv)
+        with open(out_csv, 'w') as fh:
+          for k,v in sorted(merged_sum.items()):
+            fh.write(k + "," + str(v/merged_count[k])+"\n")
+          
+      # "count" csv file (qps)
+      if 'count' in functions:
+        out_csv = self.get_csv(cur_column + '.count')
+        self.csv_files.append(out_csv)
+        with open(out_csv, 'w') as fh:
+          for k,v in sorted(merged_count.items()):
+            fh.write(k + "," + str(v)+"\n")
+          
       gc.collect()
     return True
   
