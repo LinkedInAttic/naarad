@@ -51,6 +51,7 @@ class JmeterMetric(Metric):
     self.calculated_stats = {}
     self.aggregation_granularity = 'minute'
     self.calculated_percentiles = {}
+    self.summary_stats = defaultdict(dict)
     self.important_sub_metrics = naarad.naarad_imports.important_sub_metrics_import['JMETER']
     if other_options:
       for (key, val) in other_options.iteritems():
@@ -72,7 +73,7 @@ class JmeterMetric(Metric):
     if transaction_name == '__overall_summary__':
       transaction_name = 'Overall_Summary'
     csv = os.path.join(self.resource_directory, self.metric_type + '.' + transaction_name + '.' + col + '.csv')
-    self.csv_column_map[csv] = column
+    self.csv_column_map[csv] = transaction_name + '.' + col
     return csv
 
   def aggregate_count_over_time(self, metric_store, line_data, transaction_list, aggregate_timestamp):
@@ -178,7 +179,8 @@ class JmeterMetric(Metric):
     percentiles_to_calculate = range(5,101,5) # TODO: get input from user
     percentiles_to_calculate.append(99)
     for transaction in raw_response_times:
-      self.calculated_stats[transaction], self.calculated_percentiles[transaction] = naarad.utils.calculate_stats(raw_response_times[transaction], stats_to_calculate, percentiles_to_calculate)
+      self.calculated_stats[transaction + '.' + 'ResponseTime'], self.calculated_percentiles[transaction + '.' + 'ResponseTime'] = naarad.utils.calculate_stats(raw_response_times[transaction], stats_to_calculate, percentiles_to_calculate)
+      self.update_summary_stats(transaction + '.' + 'ResponseTime')
     return None
 
   def parse(self):
@@ -213,8 +215,8 @@ class JmeterMetric(Metric):
           continue
         line_data = dict(re.findall(line_regex, line))
         aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(line_data['ts'], granularity)
-        self.aggregate_count_over_time(processed_data, line_data, [line_data['lb'], '__overall_summary__'], aggregate_timestamp)
-        self.aggregate_values_over_time(processed_data, line_data, [line_data['lb'], '__overall_summary__'], ['t', 'by'], aggregate_timestamp)
+        self.aggregate_count_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], aggregate_timestamp)
+        self.aggregate_values_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], ['t', 'by'], aggregate_timestamp)
       logger.info('Finished parsing : %s', self.infile)
 
       logger.info('Processing metrics for output to csv')
@@ -239,8 +241,6 @@ class JmeterMetric(Metric):
       for sub_metric in self.calculated_stats:
         percentile_data = self.calculated_percentiles[sub_metric]
         stats_data = self.calculated_stats[sub_metric]
-        if sub_metric == '__overall_summary__':
-          sub_metric = 'Overall_Summary'
         csv_data = ','.join([sub_metric,str(numpy.round_(stats_data['mean'], 2)),str(numpy.round_(stats_data['std'], 2)),str(numpy.round_(stats_data['median'], 2)),str(numpy.round_(stats_data['min'], 2)),str(numpy.round_(stats_data['max'], 2)),str(numpy.round_(percentile_data[90], 2)),str(numpy.round_(percentile_data[95], 2)),str(numpy.round_(percentile_data[99], 2))])
         FH.write(csv_data + '\n')
       self.stats_files.append(stats_csv)
@@ -254,6 +254,11 @@ class JmeterMetric(Metric):
         self.percentiles_files.append(percentiles_csv)
 
   def graph(self, graphing_library='matplotlib'):
+    self.plot_timeseries(graphing_library)
+    self.plot_cdf(graphing_library)
+    return True
+
+  def plot_timeseries(self, graphing_library='matplotlib'):
     if graphing_library != 'matplotlib':
      return Metric.graph(self, graphing_library)
     else:

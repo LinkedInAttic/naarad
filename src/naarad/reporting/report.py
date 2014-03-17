@@ -74,14 +74,15 @@ class Report(object):
       for stats_file in metric.important_stats_files:
         if naarad.utils.is_valid_file(stats_file):
           return True
+      if metric.status == CONSTANTS.SLA_FAILED:
+          return True
     if self.validate_file_list(self.correlated_plots):
         return True
-    else:
-        return False
+    return False
 
-  def generate_summary_page(self, template_environment, summary_html_content, coplot_html_content):
-    summary_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path) + '\n'
-    summary_html += template_environment.get_template(CONSTANTS.TEMPLATE_SUMMARY_PAGE).render(metric_list=sorted(self.metric_list), summary_html_content=summary_html_content, correlated_plot_content=coplot_html_content) + '\n'
+  def generate_summary_page(self, template_environment, summary_html_content, coplot_html_content, header_template_data):
+    summary_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(**header_template_data) + '\n'
+    summary_html += template_environment.get_template(CONSTANTS.TEMPLATE_SUMMARY_PAGE).render(metric_list=sorted(self.metric_list), summary_html_content=summary_html_content, overlaid_plot_content=coplot_html_content) + '\n'
     summary_html += template_environment.get_template(CONSTANTS.TEMPLATE_FOOTER).render()
     return summary_html
 
@@ -89,8 +90,8 @@ class Report(object):
     filename = file_name.split('.')
     return '.'.join(filename[0:-1])
 
-  def generate_client_charting_page(self, template_environment, timeseries_csv_list, percentiles_csv_list, summary_enabled):
-    client_charting_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path) + '\n'
+  def generate_client_charting_page(self, template_environment, timeseries_csv_list, percentiles_csv_list, summary_enabled, header_template_data):
+    client_charting_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(**header_template_data) + '\n'
     client_charting_html += template_environment.get_template(CONSTANTS.TEMPLATE_CLIENT_CHARTING).render(metric_list=sorted(self.metric_list), timeseries_data=sorted(timeseries_csv_list), percentiles_data=sorted(percentiles_csv_list), summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
     with open(os.path.join(self.resource_directory, CONSTANTS.PLOTS_CSV_LIST_FILE),'w') as FH:
       FH.write(','.join(sorted(timeseries_csv_list)))
@@ -103,18 +104,27 @@ class Report(object):
     template_loader = FileSystemLoader(self.get_resources_location())
     self.copy_local_includes()
     template_environment = Environment(loader=template_loader)
+    header_template_data= { 'custom_stylesheet_includes' : CONSTANTS.STYLESHEET_INCLUDES,
+                            'custom_javascript_includes' : CONSTANTS.JAVASCRIPT_INCLUDES,
+                            'resource_path': self.resource_path }
     summary_html_content = ''
     coplot_html_content = ''
-    metric_html = ''
     summary_enabled = self.enable_summary_tab()
     timeseries_csv_list = []
     percentiles_csv_list = []
     stats_files = []
-    metric_html = ''
+    metrics_in_error = []
+
+    # if a metric has no csv_files associated with it, assume something failed upstream and skip metric from report.
+    for metric in self.metric_list:
+      if len(metric.csv_files) == 0:
+        metrics_in_error.append(metric)
+    self.metric_list = set(self.metric_list) - set(metrics_in_error)
 
     for metric in self.metric_list:
       timeseries_csv_list.extend(map(self.strip_file_extension, map(os.path.basename, metric.csv_files)))
       percentiles_csv_list.extend(map(self.strip_file_extension, map(os.path.basename, metric.percentiles_files)))
+      metric_html = ''
       div_html = ''
       for plot_div in sorted(metric.plot_files):
         with open(plot_div,'r') as div_file:
@@ -126,11 +136,15 @@ class Report(object):
           summary_html_content += template_environment.get_template(CONSTANTS.TEMPLATE_SUMMARY_CONTENT).render(metric_stats=summary_stats, metric=metric) + '\n'
 
       for metric_stats_file in metric.stats_files:
+        metric_template_data = {}
         if naarad.utils.is_valid_file(metric_stats_file) or len(metric.plot_files) > 0:
           stats_files.append(os.path.basename(metric_stats_file))
-          metric_stats = self.get_summary_table(metric_stats_file)
-          metric_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path)
-          metric_html += template_environment.get_template(CONSTANTS.TEMPLATE_METRIC_PAGE).render(metric_stats=metric_stats, plot_div_content=div_html, metric=metric, metric_list=sorted(self.metric_list), summary_enabled=summary_enabled)
+          metric_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(**header_template_data)
+          metric_template_data = {'plot_div_content': div_html,
+                                  'metric': metric,
+                                  'metric_list': sorted(self.metric_list),
+                                  'summary_enabled': summary_enabled}
+          metric_html += template_environment.get_template(CONSTANTS.TEMPLATE_METRIC_PAGE).render(**metric_template_data)
           metric_html += template_environment.get_template(CONSTANTS.TEMPLATE_FOOTER).render()
       if metric_html != '':
         with open(os.path.join(self.output_directory, metric.label + CONSTANTS.METRIC_REPORT_SUFFIX), 'w') as metric_report:
@@ -142,10 +156,10 @@ class Report(object):
 
     if summary_enabled:
       with open(os.path.join(self.output_directory, CONSTANTS.SUMMARY_REPORT_FILE),'w') as summary_report:
-        summary_report.write(self.generate_summary_page(template_environment, summary_html_content, coplot_html_content))
+        summary_report.write(self.generate_summary_page(template_environment, summary_html_content, coplot_html_content, header_template_data))
 
     with open(os.path.join(self.output_directory, CONSTANTS.CLIENT_CHARTING_FILE),'w') as client_charting_report:
-      client_charting_report.write(self.generate_client_charting_page(template_environment, timeseries_csv_list, percentiles_csv_list, summary_enabled))
+      client_charting_report.write(self.generate_client_charting_page(template_environment, timeseries_csv_list, percentiles_csv_list, summary_enabled, header_template_data))
 
     if len(stats_files) > 0 :
       with open(os.path.join(self.resource_directory, CONSTANTS.STATS_CSV_LIST_FILE),'w') as stats_file:

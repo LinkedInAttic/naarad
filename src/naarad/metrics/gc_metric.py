@@ -34,6 +34,8 @@ class GCMetric(Metric):
     # TODO: Make this list configurable
     self.important_sub_metrics = important_sub_metrics_import['GC']
     self.sub_metrics = self.val_types
+    self.beginning_ts = None
+    self.beginning_date = None
     for (key, val) in other_options.iteritems():
       if key == 'gc-options':
         self.sub_metrics = val.split()
