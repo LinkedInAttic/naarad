@@ -55,7 +55,7 @@
 # Usage:
 #
 # PrintGCStats -v cpus=<n> [-v interval=<seconds>] [-v verbose=1] [file ...]
-# PrintGCStats -v plot=name [-v plotcolumns=<n>] [-v verbose=1] [file ...]
+# PrintGCStats -v plot=name[,name2,name3,...] [-v plotcolumns=<n>] [-v verbose=1] [file ...]
 # 
 # cpus		- number of cpus on the machine where java was run, used to
 #		  compute cpu time available and gc 'load' factors.  No default;
@@ -164,7 +164,7 @@
 BEGIN {
   usage_msg = "PrintGCStats -v cpus=<n> [-v interval=<seconds>] " \
 	      "[-v verbose=1] [file ...]\n" \
-              "PrintGCStats -v plot=name [-v plotcolumns=<n>] "\
+              "PrintGCStats -v plot=name[,name2,name3,...] [-v plotcolumns=<n>] "\
 	      "[-v verbose=1] [file ...]";
 
   # Seconds between printing per-interval statistics; a negative value disables
@@ -204,12 +204,12 @@ BEGIN {
   cmsIM_idx = ++i;	# CMS Initial Mark
   cmsRM_idx = ++i;	# CMS Remark
   cmsRS_idx = ++i;	# CMS Resize (evm only)
-  totgc_idx = ++i;	# Total gc pause time
 
   # These must be greater than the totgc_idx.
   gen0usr_idx = ++i;    # CPU user time in gen0
   gen0sys_idx = ++i;    # CPU sys time in gen0
   gen0real_idx = ++i;    # CPU sys time in gen0
+  totgc_idx = ++i;	# Total gc pause time
   cmsCM_idx = ++i;	# CMS Concurrent Mark
   cmsCP_idx = ++i;	# CMS Concurrent Preclean
   cmsCS_idx = ++i;	# CMS Concurrent Sweep
@@ -308,32 +308,44 @@ BEGIN {
     name_v[last_idx + i] = name_v[i];	# Copy names.
   }
 
-  plot_idx = -1;
+#  plot_idx = -1;
+  requested_plot_count = 0;
+  available_plot_count = 0;
   if (plot != "") {
+      requested_plot_count = split(plot,plots,",");
+    }
     # Convert the plot=name value to a plot_idx.  The default is no plotting,
     # which occurs when plot_idx < 0.
-    for (i = 0; plot_idx < 0 && i < last_idx; ++i) {
-      if (plot == name_v[i]) {
-	plot_idx = i;
+    for (i = 1; i <= requested_plot_count; i++) {
+      for (j = 0; j < last_idx ; ++j) {
+        if(plots[i] == name_v[j]) {
+         available_plot_count += 1; 
+         plot_idx[j] = "True" ;
+        }
       }
-    }
+    } 
 
-    if (plot_idx < 0) {
+    if (available_plot_count == 0) {
       print "PrintGCStats:  unrecognized plot name plot=" plot ".";
       print usage_msg;
       exit(1);
     }
-  }
 
-  # If plotting, set plotcolumns based on the statistic being plotted (unless
+  # If plotting, set plot_columns based on the statistic being plotted (unless
   # plotcolumns was set on the command line).
-  if (plot_idx >= 0 && plotcolumns == 0) {
-    if (plot_idx >= MB_a_idx && plot_idx <= MB_ch_idx) {
-      # Use 2 columns for size-based statistics.
-      plotcolumns = 2;
-    } else {
-      # Use 4 columns for time-based statistics.
-      plotcolumns = 4;
+  if (available_plot_count > 0) {
+    for (i = 0; i < last_idx; ++i) {
+      if (plotcolumns > 0) {
+        plot_columns[i] = plotcolumns;
+      } else {
+        if (i >= MB_a_idx && i <= MB_ch_idx) {
+          # Use 2 columns for size-based statistics.
+          plot_columns[i] = 2;
+        } else {
+          # Use 4 columns for time-based statistics.
+          plot_columns[i] = 4;
+        }
+      }
     }
   }
 
@@ -464,45 +476,46 @@ function recordStatsInternal(idx, seconds) {
   if (seconds > max_v[idx]) max_v[idx] = seconds;
 }
 
-function writePlotData(tstamp, value) {
-  if (plotcolumns == 4) {
+function writePlotData(tstamp, value, widx) {
+  if (plot_columns[widx] == 4) {
     # Column 1 = start time, 2 = duration, 3 = end time, 4 = duration.
     #printf("%9.7f %9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value, value);
-    printf("%9.3f %9.7f %9.3f %9.7f\n", tstamp, value, tstamp + value, value);
+    printf("%9.3f %9.7f %9.3f %9.7f %s\n", tstamp, value, tstamp + value, value, name_v[widx]);
     return;
   }
-  if (plotcolumns == 2) {
+  if (plot_columns[widx] == 2) {
     # Column 1 = start time, 2 = value.
     # printf("%9.7f %9.7f\n", tstamp, value);
-    printf("%9.3f %9.7f\n", tstamp, value);
+    printf("%9.3f %9.7f %s\n", tstamp, value, name_v[widx]);
     return;
   }
-  if (plotcolumns == 1) {
+  if (plot_columns[widx] == 1) {
     # Column 1 = start time.
     # printf("%9.7f\n", tstamp);
-    printf("%9.3f\n", tstamp);
+    printf("%9.3f %s\n", tstamp, name_v[widx]);
     return;
   }
-  if (plotcolumns == 3) {
+  if (plot_columns[widx] == 3) {
     # Column 1 = start time, 2 = duration, 3 = end time.
     # printf("%9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value);
-    printf("%9.3f %9.7f %9.3f\n", tstamp, value, tstamp + value);
+    printf("%9.3f %9.7f %9.3f %s\n", tstamp, value, tstamp + value, name_v[widx]);
     return;
   }
 }
 
 function recordStats(idx, value) {
   if (verbose) print name_v[idx] ":" NR ":" value;
-  if (plot_idx < 0) {
+  if (available_plot_count == 0) {
     # Plotting disabled; record statistics.
     recordStatsInternal(idx, value);
     recordStatsInternal(idx + last_idx, value);
     if (idx < totgc_idx) recordStatsInternal(totgc_idx, value);
-  } else if (idx == plot_idx || plot_idx == totgc_idx && idx < totgc_idx) {
+#  } else if (idx in plot_idx || totgc_idx in plot_idx && idx < totgc_idx) {
+  } else if (idx in plot_idx) {
     # Plotting enabled; skip statistics and just print a plot line.
     rs_tstamp = getTimeStamp();
     if (rs_tstamp < 0.0) rs_tstamp = ++plot_cnt;
-    writePlotData(rs_tstamp, value);
+    writePlotData(rs_tstamp, value, idx);
   }
 }
 
@@ -602,7 +615,7 @@ function recordParOldPhaseTime(str, phase_label, idx) {
 
 function printInterval() {
   # No intervals if plotting.
-  if (plot_idx >= 0) return;
+  if (available_plot_count > 0) return;
 
   # Check for a time stamp.
   pi_tmp = getTimeStamp();
@@ -649,6 +662,14 @@ function printInterval() {
 
     initIntervalVars();
   }
+}
+
+$0 ~ ".* age .*" {
+  next;
+}
+
+$0 ~ "Desired.*" {
+  next;
 }
 
 
@@ -839,11 +860,11 @@ $0 ~ full_gc_re timestamp_re ".*\\[" fw_yng_gen_re ": " heap_report_re "\\] " he
   tInt = sub(".*Train: [^,]+, ", "", tString);
   tInt = sub(" secs.*", "", tString);
   secs = tString + 0.0;
-  if (plot_idx < 0) {
+  if (available_plot_count == 0) {
     # Skip the update of the totgc numbers, that was handled above.
     recordStatsInternal(gen1i_idx, secs);
     recordStatsInternal(gen1i_idx + last_idx, secs);
-  } else if (plot_idx == gen1i_idx) {
+  } else if (gen1i_idx in plot_idx) {
     recordStats(gen1i_idx, secs);
   }
   recordGen0Kb($0, 1);
@@ -879,11 +900,11 @@ $0 ~ "\\[GC " timestamp_re "\\[" fw_yng_gen_re ": " heap_report_re "\\] " heap_r
   secs = substr($0, RSTART, RLENGTH - 5) + 0;
   tString = substr($0, RSTART + RLENGTH);
 
-  if (plot_idx < 0) {
+  if (available_plot_count == 0) {
     # Skip the update of the totgc numbers, that will be handled below.
     recordStatsInternal(gen0c_idx, secs);
     recordStatsInternal(gen0c_idx + last_idx, secs);
-  } else if (plot_idx == gen0c_idx) {
+  } else if (gen0c_idx in plot_idx) {
     recordStats(gen0c_idx, secs);
   }
 
@@ -1257,7 +1278,7 @@ function recordGCPauseEVM(idx) {
 
 END {
   # No summary stats if plotting.
-  if (plot_idx >= 0) exit(0);
+  if (available_plot_count > 0) exit(0);
 
   if (interval >= 0) print "";
 
