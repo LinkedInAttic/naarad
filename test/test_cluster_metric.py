@@ -21,7 +21,7 @@ config_dir = 'examples/conf'
 config_file = 'config-cluster'
 input_dir = 'examples/logs'
 
-files_to_check = ["CLUSTER-1.sda.await.png", "CLUSTER-1.all.percent-sys.png", 'CLUSTER-1.sda.await.sum.png']
+files_to_check = ["CLUSTER-1.sda.await.raw.png", 'CLUSTER-1.sda.await.sum.png', 'CLUSTER-1.sda.await.count.png', 'CLUSTER-1.all.percent-sys.raw.png']
 
 def setup():
   create_tmp_dir()

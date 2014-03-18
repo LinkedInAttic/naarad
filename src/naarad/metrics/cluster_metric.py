@@ -40,7 +40,14 @@ class ClusterMetric(Metric):
     # in particular, Section can specify a subset of all rows (default has 43 rows):  "sub_metrics=nr_free_pages nr_inactive_anon"
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())        
-          
+    
+    self.sub_metric_description = {
+      'raw': 'Raw event values',
+      'sum': 'Sum of all values',
+      'count': 'The number of events',
+      'avg': 'The average value',
+     }    
+      
   def collect(self):
     """
     take metrics, filter all metrics based on hostname, and metric_type (which comes from section)
@@ -98,7 +105,7 @@ class ClusterMetric(Metric):
                 merged_count[ts] = 1      
 
       #"raw" csv file
-      out_csv = self.get_csv(cur_column)
+      out_csv = self.get_csv(cur_column + ".raw")
       with open(out_csv, 'w') as fh:
         self.csv_files.append(out_csv)
         fh.write("".join(sorted(merged_raw)) )        
