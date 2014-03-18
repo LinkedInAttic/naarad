@@ -18,6 +18,7 @@ DEFAULT_REPORT_TITLE = 'naarad analysis report'
 STYLESHEET_INCLUDES = ['bootstrap.min.css', 'inversion.css']
 JAVASCRIPT_INCLUDES = ['jquery-1.7.1.min.js', 'dygraph-combined.js', 'bootstrap.js', 'sorttable.js', 'naarad.js']
 PLOTS_CSV_LIST_FILE = 'list.txt'
+CDF_PLOTS_CSV_LIST_FILE = 'cdf_list.txt'
 STATS_CSV_LIST_FILE = 'stats.txt'
 SUMMARY_REPORT_FILE = 'summary_report.html'
 CLIENT_CHARTING_FILE = 'report.html'

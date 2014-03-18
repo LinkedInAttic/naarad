@@ -290,6 +290,17 @@ class Metric(object):
       if graphed:
         self.plot_files.append(div_file)
     return True
+  
+  def check_important_sub_metrics(self, sub_metric):
+    """
+    check whether the given sub metric is in important_sub_metrics list 
+    """
+    if sub_metric in self.important_sub_metrics:
+      return True
+    items = sub_metric.split('.')
+    if items[-1] in self.important_sub_metrics:
+      return True
+    return False
 
   def plot_cdf(self, graphing_library = 'matplotlib'):
     """
@@ -300,9 +311,9 @@ class Metric(object):
       csv_filename = os.path.basename(percentile_csv)
       # The last element is .csv, don't need that in the name of the chart
       column = self.csv_column_map[percentile_csv.replace(".percentiles.", ".")]
-      column = naarad.utils.sanitize_string(column)
-      if column not in self.important_sub_metrics:
+      if not self.check_important_sub_metrics(column):
         continue
+      column = naarad.utils.sanitize_string(column)
       graph_title = '.'.join(csv_filename.split('.')[0:-1])
       if self.sub_metric_description and column in self.sub_metric_description.keys():
         graph_title += ' ('+self.sub_metric_description[column]+')'
