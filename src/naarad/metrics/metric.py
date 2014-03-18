@@ -289,9 +289,9 @@ class Metric(object):
     """
     check whether the given sub metric is in important_sub_metrics list 
     """
-    items = sub_metric.split('.')
     if sub_metric in self.important_sub_metrics:
       return True
+    items = sub_metric.split('.')
     if items[-1] in self.important_sub_metrics:
       return True
     return False
