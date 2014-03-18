@@ -35,7 +35,7 @@ def create_tmp_dir():
   ''' if the tmp dir grenerated already exists, then simply return'''
   ''' the user simply try again to generate another unique tmp dir'''
   global tmp_dir
-  tmp_dir = os.path.join('./tmp/', str(uuid.uuid4()))
+  tmp_dir = os.path.join('./','tmp' + '.' +str(uuid.uuid4()))   #./tmp.'randomstring'
   if not os.path.exists(tmp_dir):
     os.makedirs(tmp_dir)
   else:
