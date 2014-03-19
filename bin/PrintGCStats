@@ -528,12 +528,14 @@ function recordStats(idx, value) {
     recordStatsInternal(idx, value);
     recordStatsInternal(idx + last_idx, value);
     if (idx < totgc_idx) recordStatsInternal(totgc_idx, value);
-#  } else if (idx in plot_idx || totgc_idx in plot_idx && idx < totgc_idx) {
-  } else if (idx in plot_idx || totgc_idx in plot_idx && idx < totgc_idx) {
+  } else if (idx in plot_idx || (totgc_idx in plot_idx && idx < totgc_idx)) {
     # Plotting enabled; skip statistics and just print a plot line.
     rs_tstamp = getTimeStamp();
     if (rs_tstamp < 0.0) rs_tstamp = ++plot_cnt;
     writePlotData(rs_tstamp, value, idx);
+    if (totgc_idx in plot_idx && idx < totgc_idx) {
+      writePlotData(rs_tstamp, value, totgc_idx);
+    }
   }
 }
 
