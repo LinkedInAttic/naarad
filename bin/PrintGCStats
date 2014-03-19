@@ -204,12 +204,11 @@ BEGIN {
   cmsIM_idx = ++i;	# CMS Initial Mark
   cmsRM_idx = ++i;	# CMS Remark
   cmsRS_idx = ++i;	# CMS Resize (evm only)
-
+  totgc_idx = ++i;	# Total gc pause time
   # These must be greater than the totgc_idx.
   gen0usr_idx = ++i;    # CPU user time in gen0
   gen0sys_idx = ++i;    # CPU sys time in gen0
   gen0real_idx = ++i;    # CPU sys time in gen0
-  totgc_idx = ++i;	# Total gc pause time
   cmsCM_idx = ++i;	# CMS Concurrent Mark
   cmsCP_idx = ++i;	# CMS Concurrent Preclean
   cmsCS_idx = ++i;	# CMS Concurrent Sweep
@@ -530,7 +529,7 @@ function recordStats(idx, value) {
     recordStatsInternal(idx + last_idx, value);
     if (idx < totgc_idx) recordStatsInternal(totgc_idx, value);
 #  } else if (idx in plot_idx || totgc_idx in plot_idx && idx < totgc_idx) {
-  } else if (idx in plot_idx) {
+  } else if (idx in plot_idx || totgc_idx in plot_idx && idx < totgc_idx) {
     # Plotting enabled; skip statistics and just print a plot line.
     rs_tstamp = getTimeStamp();
     if (rs_tstamp < 0.0) rs_tstamp = ++plot_cnt;
