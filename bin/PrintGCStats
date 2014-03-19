@@ -664,14 +664,25 @@ function printInterval() {
   }
 }
 
+
 $0 ~ ".* age .*" {
   next;
-}
+};
 
 $0 ~ "Desired.*" {
   next;
-}
+};
 
+$0 ~ ".*ParNew$" {
+  parnew_prefix = $0;
+  updateLog = 1;
+  next;
+};
+
+updateLog == 1 {
+  $0 = parnew_prefix$0;
+  updateLog = 0;
+}
 
 # Match CMS initial mark output from PrintGCDetails.
 # 
