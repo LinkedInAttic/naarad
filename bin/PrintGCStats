@@ -55,7 +55,7 @@
 # Usage:
 #
 # PrintGCStats -v cpus=<n> [-v interval=<seconds>] [-v verbose=1] [file ...]
-# PrintGCStats -v plot=name[,name2,name3,...] [-v plotcolumns=<n>] [-v verbose=1] [file ...]
+# PrintGCStats -v plot=name[,name2,name3,...] [-v plotcolumns=<n>] [-v verbose=1] [-v splitfiles=1] [file ...]
 # 
 # cpus		- number of cpus on the machine where java was run, used to
 #		  compute cpu time available and gc 'load' factors.  No default;
@@ -165,7 +165,7 @@ BEGIN {
   usage_msg = "PrintGCStats -v cpus=<n> [-v interval=<seconds>] " \
 	      "[-v verbose=1] [file ...]\n" \
               "PrintGCStats -v plot=name[,name2,name3,...] [-v plotcolumns=<n>] "\
-	      "[-v verbose=1] [file ...]";
+	      "[-v verbose=1] [-v splitfiles=1] [-v splitfileprefix=prefix] [file ...]";
 
   # Seconds between printing per-interval statistics; a negative value disables
   # intervals (the default).  Allow command line to override.
@@ -477,28 +477,47 @@ function recordStatsInternal(idx, seconds) {
 }
 
 function writePlotData(tstamp, value, widx) {
+  if (splitfileprefix == "") {
+    splitfileprefix = "GC";
+  }
   if (plot_columns[widx] == 4) {
     # Column 1 = start time, 2 = duration, 3 = end time, 4 = duration.
     #printf("%9.7f %9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value, value);
-    printf("%9.3f %9.7f %9.3f %9.7f %s\n", tstamp, value, tstamp + value, value, name_v[widx]);
+    if (splitfiles == 1) {
+      printf("%9.3f %9.7f %9.3f %9.7f %s\n", tstamp, value, tstamp + value, value, name_v[widx]) >> splitfileprefix"-"name_v[widx]"-out.txt";
+    } else {
+      printf("%9.3f %9.7f %9.3f %9.7f %s\n", tstamp, value, tstamp + value, value, name_v[widx]);
+    }
     return;
   }
   if (plot_columns[widx] == 2) {
     # Column 1 = start time, 2 = value.
     # printf("%9.7f %9.7f\n", tstamp, value);
-    printf("%9.3f %9.7f %s\n", tstamp, value, name_v[widx]);
+    if (splitfiles == 1) {
+      printf("%9.3f %9.7f %s\n", tstamp, value, name_v[widx]) >> splitfileprefix"-"name_v[widx]"-out.txt";
+    } else {
+      printf("%9.3f %9.7f %s\n", tstamp, value, name_v[widx]);
+    }
     return;
   }
   if (plot_columns[widx] == 1) {
     # Column 1 = start time.
     # printf("%9.7f\n", tstamp);
-    printf("%9.3f %s\n", tstamp, name_v[widx]);
+    if (splitfiles == 1) {
+      printf("%9.3f %s\n", tstamp, name_v[widx]) >> splitfileprefix"-"name_v[widx]"-out.txt";
+    } else {
+      printf("%9.3f %9.7f %s\n", tstamp, value, name_v[widx]);
+    }
     return;
   }
   if (plot_columns[widx] == 3) {
     # Column 1 = start time, 2 = duration, 3 = end time.
     # printf("%9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value);
-    printf("%9.3f %9.7f %9.3f %s\n", tstamp, value, tstamp + value, name_v[widx]);
+    if (splitfiles == 1) {
+      printf("%9.3f %9.7f %9.3f %s\n", tstamp, value, tstamp + value, name_v[widx]) >> splitfileprefix"-"name_v[widx]"-out.txt";
+    } else {
+      printf("%9.3f %9.7f %s\n", tstamp, value, name_v[widx]);
+    }
     return;
   }
 }
