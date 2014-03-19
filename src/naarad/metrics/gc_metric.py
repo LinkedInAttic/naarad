@@ -37,7 +37,7 @@ class GCMetric(Metric):
     self.beginning_ts = None
     self.beginning_date = None
     for (key, val) in other_options.iteritems():
-      if key == 'gc-options':
+      if key == 'gc-options' or key == 'sub_metrics':
         self.sub_metrics = val.split()
       else:
         setattr(self, key, val)
@@ -86,13 +86,10 @@ class GCMetric(Metric):
       timedelta = datetime.timedelta(milliseconds=diffms)
       return beginning_date + timedelta
 
-  def parse_val_types(self, sub_metric, no_age_file):
-    outfile = os.path.join(self.resource_directory, self.metric_type + '-' + sub_metric + '-out.txt')
-    awk_cmd = os.path.join(self.bin_path, 'PrintGCStats')
-    cmd = awk_cmd + ' -v plot=' + sub_metric + ' -v interval=1 ' + no_age_file + ' > ' +  outfile
-    thread_id = threading.current_thread().ident
-    logger.info("Thread # %d - Parsing a GC metric with cmd: %s", thread_id, cmd)
-    os.system(cmd)
+  def parse_val_types(self, sub_metric):
+    outfile = os.path.join(self.resource_directory, self.label + '-' + sub_metric + '-out.txt')
+    if not naarad.utils.is_valid_file(outfile):
+      return
     outcsv = self.get_csv(sub_metric)
     with open(outcsv, 'w') as csvf:
       with open(outfile, 'r') as txt_fh:
@@ -107,87 +104,35 @@ class GCMetric(Metric):
           csvf.write(words[1])
           csvf.write('\n')
     self.csv_files.append(outcsv)
-    os.remove(outfile)
+    # os.remove(outfile)
 
   def parse(self):
-    # check if outdir exists, if not, create it
-    if not os.path.isdir(self.outdir):
-      os.makedirs(self.outdir)
-    if not os.path.isdir(self.resource_directory):
-      os.makedirs(self.resource_directory)
-
-    no_age_file = os.path.join(self.resource_directory, self.label + '-noage')
-    app_stop_file = self.get_csv('appstop')
-
-    stop = {}
-    ts = None
-
+    prefix = os.path.join(self.resource_directory, self.label)
+    awk_cmd = os.path.join(self.bin_path, 'PrintGCStats')
+    gc_metrics = set(self.val_types) & set(self.sub_metrics)
+    cmd = awk_cmd + ' -v plot=' + ','.join(gc_metrics) + ' -v splitfiles=1 -v splitfileprefix=' + prefix + ' ' + self.infile
+    logger.info("Parsing GC metric with cmd: %s", cmd)
+    os.system(cmd)
     gc_date_regex = re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+[+-][0-9]{4}:')
-
-    no_age_fh = open(no_age_file, 'w')
     with open(self.infile, 'r') as inf:
       for line in inf:
         if re.match(gc_date_regex, line) and self.beginning_date is None:
-          #2012-02-23T21:29:35.894-0800: 17.070: [GC 17.086: [ParNew
-          # TODO : Use regex and groups to do this parsing instead of splits
           words = line.split()
           jvmts = float(words[1].split('.')[0])
           tstamp = words[0].split('T')
           time = tstamp[1].split('.')
           clock = tstamp[0] + ' ' + time[0]
-
           self.beginning_date = datetime.datetime.strptime(clock, self.clock_format)
           self.beginning_ts = float(jvmts)
           logger.info('Setting beginning date and ts')
-
-        if 'Desired' not in line and 'age' not in line:
-          if 'ParNew' in line:
-            no_new_line = line.rstrip('\n')
-            no_age_fh.write(no_new_line)
-          else:
-            no_age_fh.write(line)
-        # capture stop time stats
-        if re.match(gc_date_regex, line) or 'stopped' in line:
-          words = line.split()
-          if 'stopped' in line:
-            if ts:
-              if not ts in stop:
-                stop[ts] = float(words[-2])
-              else:
-                stop[ts] += float(words[-2])
-          else:
-            try:
-              ts = float(words[1].rstrip(':'))
-            except:
-              logger.warn("Unexpected error: %s", sys.exc_info()[0])
-              logger.warn("at line: %s", line)
-            else:
-              if not ts in stop:
-                stop[ts] = 0
-    no_age_fh.close()
-
-    # Writing stop time stats
-    with open(app_stop_file, 'w') as appstopf:
-      for ts in sorted(stop.iterkeys()):
-        # Implementing timestamp support
-        begin_ts = str( self.get_clock_from_jvmts(self.beginning_date, self.beginning_ts, ts) )
-        if self.ts_out_of_range(begin_ts):
-          continue
-        appstopf.write( begin_ts + ',' + str(stop[ts]) )
-        appstopf.write( '\n' )
-
-    self.csv_files.append(app_stop_file)
-
-    with open(no_age_file, 'r') as no_age_fh:
-      threads = []
-      for x in self.val_types:
-        if not x in self.sub_metrics:
-          continue
-        thread = threading.Thread(target=self.parse_val_types, args=(x, no_age_file))
-        thread.start()
-        threads.append(thread)
-      for t in threads:
-        logger.info("Waiting for thread %d to finish.... ", t.ident)
-        t.join()
+          break
+    threads = []
+    for gc_sub_metric in gc_metrics:
+      thread = threading.Thread(target=self.parse_val_types, args=(gc_sub_metric,))
+      thread.start()
+      threads.append(thread)
+    for t in threads:
+      logger.info("Waiting for thread %d to finish.... ", t.ident)
+      t.join()
     return True
 
