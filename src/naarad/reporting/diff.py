@@ -51,6 +51,7 @@ class Diff(object):
     self.sla_map = defaultdict(lambda: defaultdict(None))
     self.sla_failures = 0
     self.sla_failure_list = []
+    self.percent_sla_failure_list = []
 
   def get_resources_location(self):
     """
@@ -104,7 +105,7 @@ class Diff(object):
     template_loader = FileSystemLoader(self.get_resources_location())
     template_environment = Environment(loader=template_loader)
     diff_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path, report_title='naarad diff report') + '\n'
-    diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_DIFF_PAGE).render(diff_data=self.diff_data, plot_div_content=div_html, reports=self.reports, sla_failure_list=self.sla_failure_list, sla_map=self.sla_map) + '\n'
+    diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_DIFF_PAGE).render(diff_data=self.diff_data, plot_div_content=div_html, reports=self.reports, sla_failure_list=self.sla_failure_list, percent_sla_failure_list=self.percent_sla_failure_list, sla_map=self.sla_map) + '\n'
     diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_FOOTER).render()
     return diff_html
 
@@ -272,11 +273,15 @@ class Diff(object):
     """
     try:
       diff_val = float(diff_metric['absolute_diff'])
+      percent_diff_val = float(diff_metric['percent_diff'])
     except ValueError:
       return False
-    if not (sla.check_sla_passed(diff_val)):
+    if sla.threshold is not None and not (sla.check_sla_passed(diff_val)):
       self.sla_failures += 1
       self.sla_failure_list.append(DiffSLAFailure(sla, diff_metric))
+    if sla.percent_threshold is not None and not (sla.check_percent_sla_passed(percent_diff_val)):
+      self.sla_failures += 1
+      self.percent_sla_failure_list.append(DiffSLAFailure(sla, diff_metric))
     return True
 
   def generate(self):

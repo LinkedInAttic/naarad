@@ -592,10 +592,10 @@ def set_sla(obj, sub_metric, rules):
   for rule in rules_list:
     if '<' in rule:
       stat, threshold = rule.split('<')
-      sla = SLA(sub_metric, stat, float(threshold), 'lt')
+      sla = SLA(sub_metric, stat, threshold, 'lt')
     elif '>' in rule:
       stat, threshold = rule.split('>')
-      sla = SLA(sub_metric, stat, float(threshold), 'gt')
+      sla = SLA(sub_metric, stat, threshold, 'gt')
     else:
       if hasattr(obj, 'logger'):
         obj.logger.error('Unsupported SLA type defined : ' + rule)
