@@ -55,7 +55,7 @@
 # Usage:
 #
 # PrintGCStats -v cpus=<n> [-v interval=<seconds>] [-v verbose=1] [file ...]
-# PrintGCStats -v plot=name[,name2,name3,...] [-v plotcolumns=<n>] [-v verbose=1] [-v splitfiles=1] [file ...]
+# PrintGCStats -v plot=name[,name2,name3,...] [-v plotcolumns=<n>] [-v verbose=1] [-v splitfiles=1] [-v datestamps=1] [-v ts_start] [-v ts_end] [file ...]
 # 
 # cpus		- number of cpus on the machine where java was run, used to
 #		  compute cpu time available and gc 'load' factors.  No default;
@@ -165,12 +165,12 @@ BEGIN {
   usage_msg = "PrintGCStats -v cpus=<n> [-v interval=<seconds>] " \
 	      "[-v verbose=1] [file ...]\n" \
               "PrintGCStats -v plot=name[,name2,name3,...] [-v plotcolumns=<n>] "\
-	      "[-v verbose=1] [-v splitfiles=1] [-v splitfileprefix=prefix] [file ...]";
+	      "[-v verbose=1] [-v splitfiles=1] [-v splitfileprefix=prefix] [-v datestamps=1] "\
+        "[-v ts_start=start-timestamp] [-v ts_end=end-timestamp] [file ...]";
 
   # Seconds between printing per-interval statistics; a negative value disables
   # intervals (the default).  Allow command line to override.
   timeStampDelta = interval == 0 ? -1 : interval;
-
   # Number of cpus.  Require this on the command line since defaulting to 1 is
   # too error prone.  Older versions used ncpu as the var name; accept it for
   # compatibility.
@@ -189,12 +189,15 @@ BEGIN {
   # initialization is complete.
   firstTimeStamp = -1.0;	# sentinel
   prevTimeStamp = lastTimeStamp = firstTimeStamp;
-
   lastFileName = "";	# Used to detect when the input file has changed.
 
   # This value is added to time stamps so that input from multiple files appears
   # to have monotonically increasing timestamps.
   timeStampOffset = 0.0;
+
+  # Support time range filtering
+  if(ts_start == "") ts_start = "2000-01-01 00:00:00.000";
+  if(ts_end == "") ts_end = "3000-01-01 00:00:00.000";
 
   i = -1;
   gen0c_idx = ++i;	# With PrintGCDetails, DefNew collection time only.
@@ -455,6 +458,15 @@ function printPercent(name, tot, tot_units, period, period_units) {
     name, tot, tot_units, period, period_units, ratio(tot * 100.0, period));
 }
 
+function getDateTimeStamp() {
+#2012-02-23T22:17:02.495
+  gts_tmp_str = $0;
+  if (!match(gts_tmp_str,"^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9]+")) return -1.0;
+  gts_tmp = substr(gts_tmp_str, RSTART, RLENGTH);
+  sub(/T/, " ", gts_tmp);
+  return gts_tmp;
+}
+
 function getTimeStamp() {
   gts_tmp_str = $0;
   # Note:  want to match the time stamp just before the '[GC' or '[Full GC' or
@@ -483,9 +495,17 @@ function writePlotData(tstamp, value, widx) {
     # Column 1 = start time, 2 = duration, 3 = end time, 4 = duration.
     #printf("%9.7f %9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value, value);
     if (splitfiles == 1) {
-      printf("%9.3f %9.7f %9.3f %9.7f %s\n", tstamp, value, tstamp + value, value, name_v[widx]) >> splitfileprefix"-"name_v[widx]"-out.txt";
+      if (datestamps == 1) {
+        printf("%s,%9.7f,%s,%9.7f\n", tstamp, value, tstamp, value) >> splitfileprefix"."name_v[widx]".csv";
+      } else {
+        printf("%9.3f,%9.7f,%9.3f,%9.7f\n", tstamp, value, tstamp + value, value) >> splitfileprefix"."name_v[widx]".csv";
+      }
     } else {
-      printf("%9.3f %9.7f %9.3f %9.7f %s\n", tstamp, value, tstamp + value, value, name_v[widx]);
+      if (datestamps == 1) {
+        printf("%s,%9.7f,%s,%9.7f,%s\n", tstamp, value, tstamp, value, name_v[widx]);
+      } else {
+        printf("%9.3f,%9.7f,%9.3f,%9.7f,%s\n", tstamp, value, tstamp + value, value, name_v[widx]);
+      }
     }
     return;
   }
@@ -493,9 +513,17 @@ function writePlotData(tstamp, value, widx) {
     # Column 1 = start time, 2 = value.
     # printf("%9.7f %9.7f\n", tstamp, value);
     if (splitfiles == 1) {
-      printf("%9.3f %9.7f %s\n", tstamp, value, name_v[widx]) >> splitfileprefix"-"name_v[widx]"-out.txt";
+      if (datestamps == 1) {
+        printf("%s,%9.7f\n", tstamp, value) >> splitfileprefix"."name_v[widx]".csv";
+      } else {
+        printf("%9.3f,%9.7f\n", tstamp, value) >> splitfileprefix"."name_v[widx]".csv";
+      }
     } else {
-      printf("%9.3f %9.7f %s\n", tstamp, value, name_v[widx]);
+      if (datestamps == 1) {
+        printf("%s,%9.7f,%s\n", tstamp, value, name_v[widx]);
+      } else {
+        printf("%9.3f,%9.7f,%s\n", tstamp, value, name_v[widx]);
+      }
     }
     return;
   }
@@ -503,9 +531,17 @@ function writePlotData(tstamp, value, widx) {
     # Column 1 = start time.
     # printf("%9.7f\n", tstamp);
     if (splitfiles == 1) {
-      printf("%9.3f %s\n", tstamp, name_v[widx]) >> splitfileprefix"-"name_v[widx]"-out.txt";
+      if (datestamps == 1) {
+        printf("%s\n", tstamp) >> splitfileprefix"."name_v[widx]".csv";
+      } else {
+        printf("%9.3f\n", tstamp) >> splitfileprefix"."name_v[widx]".csv";
+      }
     } else {
-      printf("%9.3f %9.7f %s\n", tstamp, value, name_v[widx]);
+      if (datestamps == 1) {
+        printf("%s,%s\n", tstamp, name_v[widx]);
+      } else {
+        printf("%9.3f,%s\n", tstamp, name_v[widx]);
+      }
     }
     return;
   }
@@ -513,9 +549,17 @@ function writePlotData(tstamp, value, widx) {
     # Column 1 = start time, 2 = duration, 3 = end time.
     # printf("%9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value);
     if (splitfiles == 1) {
-      printf("%9.3f %9.7f %9.3f %s\n", tstamp, value, tstamp + value, name_v[widx]) >> splitfileprefix"-"name_v[widx]"-out.txt";
+      if (datestamps == 1) {
+        printf("%s,%9.7f,%s\n", tstamp, value, tstamp) >> splitfileprefix"."name_v[widx]".csv";
+      } else {
+        printf("%9.3f,%9.7f,%9.3f\n", tstamp, value, tstamp + value) >> splitfileprefix"."name_v[widx]".csv";
+      }
     } else {
-      printf("%9.3f %9.7f %s\n", tstamp, value, name_v[widx]);
+      if (datestamps == 1) {
+        printf("%s,%9.7f,%s,%s\n", tstamp, value, tstamp, name_v[widx]);
+      } else {
+        printf("%9.3f,%9.7f,%9.3f,%s\n", tstamp, value, tstamp+value, name_v[widx]);
+      }
     }
     return;
   }
@@ -530,11 +574,16 @@ function recordStats(idx, value) {
     if (idx < totgc_idx) recordStatsInternal(totgc_idx, value);
   } else if (idx in plot_idx || (totgc_idx in plot_idx && idx < totgc_idx)) {
     # Plotting enabled; skip statistics and just print a plot line.
-    rs_tstamp = getTimeStamp();
-    if (rs_tstamp < 0.0) rs_tstamp = ++plot_cnt;
-    writePlotData(rs_tstamp, value, idx);
-    if (totgc_idx in plot_idx && idx < totgc_idx) {
-      writePlotData(rs_tstamp, value, totgc_idx);
+    if (datestamps == 1) {
+      rs_tstamp = getDateTimeStamp();
+    } else {
+      rs_tstamp = getTimeStamp();
+    }
+    if (rs_tstamp != -1) {
+      writePlotData(rs_tstamp, value, idx);
+      if (totgc_idx in plot_idx && idx < totgc_idx && idx != gen0c_idx) {
+        writePlotData(rs_tstamp, value, totgc_idx);
+      }
     }
   }
 }
@@ -684,7 +733,6 @@ function printInterval() {
   }
 }
 
-
 $0 ~ ".* age .*" {
   next;
 };
@@ -692,6 +740,7 @@ $0 ~ ".* age .*" {
 $0 ~ "Desired.*" {
   next;
 };
+
 
 $0 ~ ".*ParNew$" {
   parnew_prefix = $0;
@@ -702,6 +751,14 @@ $0 ~ ".*ParNew$" {
 updateLog == 1 {
   $0 = parnew_prefix$0;
   updateLog = 0;
+}
+
+getDateTimeStamp() < ts_start {
+   next;
+}
+
+getDateTimeStamp() > ts_end {
+   exit;
 }
 
 # Match CMS initial mark output from PrintGCDetails.
