@@ -69,8 +69,10 @@
 #
 # plot		- generate data points useful for plotting one of the collected
 #		  statistics instead of the normal statistics summary.  The name
-#		  argument is the name of one of the output statistics, e.g.,
-#		  "gen0t(s)", "cmsRM(s)", "commit0(MB)", etc.
+#		  argument is the name of one (or multiple comma separated names) 
+#     of the output statistics, e.g.,
+#		  gen0t or cmsRM, or commit0", etc. (single plot)
+#     gen0t,cmsRM,GCPause  (multiple plots)
 # 
 # 		  The default output format for time-based statistics such as
 # 		  "gen0t(s)" includes four columns, described below.  The
@@ -98,7 +100,26 @@
 #
 # verbose	- if non-zero, print each item on a separate line in addition
 #		  to the summary statistics
-# 
+#
+# splitfiles - When multiple plots are specified, enabling this flag (by setting
+#              it to 1) will cause each gc metric to be written to its own file.
+#              The output files are named <splitfileprefix>.plot.csv
+#
+# splitfileprefix - Prefix used for naming output files when using splitfiles. If
+#                   no prefix is specified then "GC" will be used as the prefix
+#
+# datestamps - if datestamps is set to 1, use the timestamp as output by the
+#              PrintDateStamps flag instead of the timestamps relative to JVM
+#              start.
+#
+# ts_start - Start time for analysis of the gc log. Any entries before this
+#            time will be ignored. Specify ts_start in the format below
+#            "YYYY-MM-DD HH:MM:SS.sss"
+#
+# ts_end -  End time for analysis of the gc log. Once the end time is reached
+#           the program will quit. Specify ts_end in the format below
+#           "YYYY-MM-DD HH:MM:SS.sss"
+#
 # Typical usage:
 #
 # PrintGCStats -v cpus=4 gc.log > gc.stats
