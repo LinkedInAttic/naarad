@@ -86,26 +86,26 @@
                 <tr>
                   <td>{{ sub_metric }}</td>
                   {%- for stats in diff_data[metric][sub_metric]|sort %}
-                  {%- if sub_metric in sla_map.keys() %}
-                  {%- if stats in sla_map[sub_metric].keys() %}
-                  {%- if sla_map[sub_metric][stats].display == '%' %}
-                  {%- if sla_map[sub_metric][stats].sla_passed == True %} 
-                  <td class="success" type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- elif sla_map[sub_metric][stats].sla_passed ==  False %}
-                  <td class="danger" type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- else %}
-                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- endif %}
-                  {%- else %}
-                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- endif %}
-                  {%- else %}
-                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- endif %}
-                  {%- else %}
-                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- endif %}
-                  {{ diff_data[metric][sub_metric][stats]['percent_diff'] }}%
+                    {%- if sub_metric in sla_map.keys() %}
+                      {%- if stats in sla_map[sub_metric].keys() %}
+                        {%- if sla_map[sub_metric][stats].display == '%' %}
+                          {%- if sla_map[sub_metric][stats].sla_passed == True %} 
+                          <td class="success" type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                          {%- elif sla_map[sub_metric][stats].sla_passed ==  False %}
+                          <td class="danger" type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                          {%- else %}
+                          <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                          {%- endif %}
+                        {%- else %}
+                        <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                        {%- endif %}
+                      {%- else %}
+                      <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                      {%- endif %}
+                    {%- else %}
+                    <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                    {%- endif %}
+                    {{ diff_data[metric][sub_metric][stats]['percent_diff'] }}%
                   </td>
                   {%- endfor %}
                 </tr>
@@ -125,26 +125,26 @@
                 <tr>
                   <td>{{ sub_metric }}</td>
                   {%- for stats in diff_data[metric][sub_metric]|sort %}
-                  {%- if sub_metric in sla_map.keys() %}
-                  {%- if stats in sla_map[sub_metric].keys() %}
-                  {%- if sla_map[sub_metric][stats].display == '' %}
-                  {%- if sla_map[sub_metric][stats].sla_passed == True %} 
-                  <td class="success" type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- elif sla_map[sub_metric][stats].sla_passed ==  False %}
-                  <td class="danger" type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- else %}
-                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- endif %}
-                  {%- else %}
-                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- endif %}
-                  {%- else %}
-                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- endif %}
-                  {%- else %}
-                  <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
-                  {%- endif %}
-                  {{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}
+                    {%- if sub_metric in sla_map.keys() %}
+                      {%- if stats in sla_map[sub_metric].keys() %}
+                        {%- if sla_map[sub_metric][stats].display == '' %}
+                          {%- if sla_map[sub_metric][stats].sla_passed == True %} 
+                          <td class="success" type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                          {%- elif sla_map[sub_metric][stats].sla_passed ==  False %}
+                          <td class="danger" type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                          {%- else %}
+                          <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                          {%- endif %}
+                        {%- else %}
+                        <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                        {%- endif %}
+                      {%- else %}
+                      <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                      {%- endif %}
+                    {%- else %}
+                    <td type="naarad-diff-td-percentage" title="{{ sub_metric }} , {{ stats }} , Report 1={{ diff_data[metric][sub_metric][stats][0] }} , Report 2={{ diff_data[metric][sub_metric][stats][1] }} , diff={{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}, %diff={{diff_data[metric][sub_metric][stats]['percent_diff'] }}">
+                    {%- endif %}
+                    {{ diff_data[metric][sub_metric][stats]['absolute_diff'] }}
                   </td>
                   {%- endfor %}
                 </tr>
