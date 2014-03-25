@@ -113,7 +113,7 @@ def read_naarad_templates():
         logger.info('Adding template ' + template) 
         template_urls[template] = url
 
-def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock):
+def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, skip_plots):
   metric.graph_timezone = graph_timezone
   if metric.outdir is None:
     metric.outdir = os.path.normpath(outdir_default)
@@ -127,12 +127,13 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
     if metric.collect():
       if metric.parse():
         metric.calc()
-        metric.calculate_stats() 
+        metric.calculate_stats()
         global sla_failures
         sla_failures = sla_failures + naarad.utils.check_slas(metric)
-        graph_lock.acquire()
-        metric.graph(graphing_library)
-        graph_lock.release()
+        if not skip_plots:
+          graph_lock.acquire()
+          metric.graph(graphing_library)
+          graph_lock.release()
       else:
         logger.error('Parsing failed for metric: '  + metric.label)
     else:
@@ -182,7 +183,7 @@ def main():
   ts_start = None
   ts_end = None
   bin_path = os.path.dirname( __file__ )
-
+  skip_plots = False
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument('-c', '--config', help="file with specifications for each metric and graphs")
   arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
@@ -192,6 +193,7 @@ def main():
   arg_parser.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
   arg_parser.add_argument('-l', '--log', help="log level")
   arg_parser.add_argument('-d', '--diff', nargs=2, help="Specify the location of two naarad reports to diff separated by a space. Can be local or http(s) locations. The first report is used as a baseline.", metavar=("report-1", "report-2"))
+  arg_parser.add_argument('-n', '--no_plots', help="Don't generate plot images. Useful when you only want SLA calculations. Note that on-demand charts can still be generated through client-charting.", action="store_true")
   arg_parser.add_argument('-e', '--exit_code', help="optional argument to enable exit_code for naarad", action="store_true")
   #TODO(Ritesh) : Print a list of all templates supported with descriptions
   #arg_parser.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
@@ -201,6 +203,8 @@ def main():
   init_logging(args.log)
 
   if args:
+    if args.no_plots:
+      skip_plots = True
     if args.diff:
       if not args.output_dir:
         logger.error('No Output location specified')
@@ -318,7 +322,7 @@ def main():
         metric.ts_start = ts_start
       if ts_end and not metric.ts_start:
         metric.ts_end = ts_end
-      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock))
+      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
@@ -326,7 +330,7 @@ def main():
       
     # handling CLUSTER metric and other aggregate metrics, which has to wait for all regular metric threads to complete.   
     for metric in aggregate_metrics:
-      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock))
+      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:

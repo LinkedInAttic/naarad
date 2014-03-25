@@ -620,10 +620,10 @@ def set_sla(obj, sub_metric, rules):
   for rule in rules_list:
     if '<' in rule:
       stat, threshold = rule.split('<')
-      sla = SLA(sub_metric, stat, float(threshold), 'lt')
+      sla = SLA(sub_metric, stat, threshold, 'lt')
     elif '>' in rule:
       stat, threshold = rule.split('>')
-      sla = SLA(sub_metric, stat, float(threshold), 'gt')
+      sla = SLA(sub_metric, stat, threshold, 'gt')
     else:
       if hasattr(obj, 'logger'):
         obj.logger.error('Unsupported SLA type defined : ' + rule)
@@ -633,33 +633,35 @@ def set_sla(obj, sub_metric, rules):
       obj.sla_list.append(sla)  # TODO : remove this once report has grading done in the metric tables
   return True
 
-def check_slas(obj):
+def check_slas(metric):
   """
   Check if all SLAs pass
   :return: 0 (if all SLAs pass) or the number of SLAs failures
   """
-  if not hasattr(obj, 'sla_map'):
+  if not hasattr(metric, 'sla_map'):
     return 0
   ret = 0
-  for sub_metric in obj.sla_map.keys():
-    for stat_name in obj.sla_map[sub_metric].keys():
-      sla = obj.sla_map[sub_metric][stat_name]
-      if stat_name[0] == 'p' and hasattr(obj, 'calculated_percentiles'):
-        if sub_metric in obj.calculated_percentiles.keys():
+  for sub_metric in metric.sla_map.keys():
+    for stat_name in metric.sla_map[sub_metric].keys():
+      sla = metric.sla_map[sub_metric][stat_name]
+      if stat_name[0] == 'p' and hasattr(metric, 'calculated_percentiles'):
+        if sub_metric in metric.calculated_percentiles.keys():
           percentile_num = int(stat_name[1:])
           if isinstance(percentile_num, float) or isinstance(percentile_num, int):
-            if percentile_num in obj.calculated_percentiles[sub_metric].keys():
-              if not sla.check_sla_passed(obj.calculated_percentiles[sub_metric][percentile_num]):
-                ret = ret + 1
-      if sub_metric in obj.calculated_stats.keys() and hasattr(obj, 'calculated_stats'):
-        if stat_name in obj.calculated_stats[sub_metric].keys():
-          if not sla.check_sla_passed(obj.calculated_stats[sub_metric][stat_name]):
-            ret = ret + 1
+            if percentile_num in metric.calculated_percentiles[sub_metric].keys():
+              if not sla.check_sla_passed(metric.calculated_percentiles[sub_metric][percentile_num]):
+                ret += 1
+                metric.status = CONSTANTS.SLA_FAILED
+      if sub_metric in metric.calculated_stats.keys() and hasattr(metric, 'calculated_stats'):
+        if stat_name in metric.calculated_stats[sub_metric].keys():
+          if not sla.check_sla_passed(metric.calculated_stats[sub_metric][stat_name]):
+            ret += 1
+            metric.status = CONSTANTS.SLA_FAILED
   # Save SLA results in a file
-  if len(obj.sla_map.keys()) > 0 and hasattr(obj, 'get_sla_csv'):
-    sla_csv_file = obj.get_sla_csv()
+  if len(metric.sla_map.keys()) > 0 and hasattr(metric, 'get_sla_csv'):
+    sla_csv_file = metric.get_sla_csv()
     with open(sla_csv_file, 'w') as FH:
-      for sub_metric in obj.sla_map.keys():
-        for stat, sla in obj.sla_map[sub_metric].items():
+      for sub_metric in metric.sla_map.keys():
+        for stat, sla in metric.sla_map[sub_metric].items():
           FH.write('%s\n' % (sla.get_csv_repr()))
   return ret

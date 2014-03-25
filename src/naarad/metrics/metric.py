@@ -17,16 +17,6 @@ import naarad.naarad_constants as CONSTANTS
 logger = logging.getLogger('naarad.metrics.metric')
 
 class Metric(object):
-  beginning_ts = None
-  beginning_date = None
-  ignore = False
-  timezone = "PDT"
-  options = None
-  
-  sub_metrics = None   #users can specify what sub_metrics to process/plot;  
-
-  calculated_stats = {}
-  calculated_percentiles = {}
 
   def __init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, **other_options):
@@ -56,7 +46,15 @@ class Metric(object):
     self.important_sub_metrics = ()
     self.sla_list = []  # TODO : remove this once report has grading done in the metric tables
     self.sla_map = defaultdict(lambda: defaultdict(None))
-
+    self.calculated_stats = {}
+    self.calculated_percentiles = {}
+    self.summary_stats_list = CONSTANTS.DEFAULT_SUMMARY_STATS
+    self.summary_stats = defaultdict(dict)
+    self.status = CONSTANTS.OK
+    self.ignore = False
+    self.timezone = "PDT"
+    self.options = None
+    self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
     for (key, val) in rule_strings.iteritems():
       naarad.utils.set_sla(self, key, val)
     if other_options:
@@ -120,6 +118,13 @@ class Metric(object):
   def get_sla_csv(self):
     csv = os.path.join(self.resource_directory, self.metric_type + '.sla.csv')
     return csv
+
+  def update_summary_stats(self, column):
+    for stat in self.summary_stats_list:
+      if stat.startswith('p'):
+        self.summary_stats[column][stat] = naarad.utils.normalize_float_for_display(self.calculated_percentiles[column][int(stat[1:])])
+      else:
+        self.summary_stats[column][stat] = naarad.utils.normalize_float_for_display(self.calculated_stats[column][stat])
 
   def parse(self):
     logger.info("Working on" + self.infile)
@@ -198,6 +203,7 @@ class Metric(object):
             for percentile in sorted(self.calculated_percentiles[column].iterkeys()):
               FH_P.write("%d, %f\n" % (percentile, self.calculated_percentiles[column][percentile]))
           self.percentiles_files.append(percentile_csv_file)
+          self.update_summary_stats(column)
           to_write = [column, self.calculated_stats[column]['mean'], self.calculated_stats[column]['std'], self.calculated_percentiles[column][50], self.calculated_percentiles[column][75], self.calculated_percentiles[column][90], self.calculated_percentiles[column][95], self.calculated_percentiles[column][99], self.calculated_stats[column]['min'], self.calculated_stats[column]['max']]
           to_write = map(lambda x: naarad.utils.normalize_float_for_display(x), to_write)
           if not metric_stats_present:
@@ -284,6 +290,17 @@ class Metric(object):
       if graphed:
         self.plot_files.append(div_file)
     return True
+  
+  def check_important_sub_metrics(self, sub_metric):
+    """
+    check whether the given sub metric is in important_sub_metrics list 
+    """
+    if sub_metric in self.important_sub_metrics:
+      return True
+    items = sub_metric.split('.')
+    if items[-1] in self.important_sub_metrics:
+      return True
+    return False
 
   def plot_cdf(self, graphing_library = 'matplotlib'):
     """
@@ -294,9 +311,9 @@ class Metric(object):
       csv_filename = os.path.basename(percentile_csv)
       # The last element is .csv, don't need that in the name of the chart
       column = self.csv_column_map[percentile_csv.replace(".percentiles.", ".")]
-      column = naarad.utils.sanitize_string(column)
-      if column not in self.important_sub_metrics:
+      if not self.check_important_sub_metrics(column):
         continue
+      column = naarad.utils.sanitize_string(column)
       graph_title = '.'.join(csv_filename.split('.')[0:-1])
       if self.sub_metric_description and column in self.sub_metric_description.keys():
         graph_title += ' ('+self.sub_metric_description[column]+')'

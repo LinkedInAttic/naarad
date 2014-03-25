@@ -55,7 +55,7 @@
 # Usage:
 #
 # PrintGCStats -v cpus=<n> [-v interval=<seconds>] [-v verbose=1] [file ...]
-# PrintGCStats -v plot=name [-v plotcolumns=<n>] [-v verbose=1] [file ...]
+# PrintGCStats -v plot=name[,name2,name3,...] [-v plotcolumns=<n>] [-v verbose=1] [-v splitfiles=1] [-v datestamps=1] [-v ts_start] [-v ts_end] [file ...]
 # 
 # cpus		- number of cpus on the machine where java was run, used to
 #		  compute cpu time available and gc 'load' factors.  No default;
@@ -69,8 +69,10 @@
 #
 # plot		- generate data points useful for plotting one of the collected
 #		  statistics instead of the normal statistics summary.  The name
-#		  argument is the name of one of the output statistics, e.g.,
-#		  "gen0t(s)", "cmsRM(s)", "commit0(MB)", etc.
+#		  argument is the name of one (or multiple comma separated names) 
+#     of the output statistics, e.g.,
+#		  gen0t or cmsRM, or commit0", etc. (single plot)
+#     gen0t,cmsRM,GCPause  (multiple plots)
 # 
 # 		  The default output format for time-based statistics such as
 # 		  "gen0t(s)" includes four columns, described below.  The
@@ -98,7 +100,26 @@
 #
 # verbose	- if non-zero, print each item on a separate line in addition
 #		  to the summary statistics
-# 
+#
+# splitfiles - When multiple plots are specified, enabling this flag (by setting
+#              it to 1) will cause each gc metric to be written to its own file.
+#              The output files are named <splitfileprefix>.plot.csv
+#
+# splitfileprefix - Prefix used for naming output files when using splitfiles. If
+#                   no prefix is specified then "GC" will be used as the prefix
+#
+# datestamps - if datestamps is set to 1, use the timestamp as output by the
+#              PrintDateStamps flag instead of the timestamps relative to JVM
+#              start.
+#
+# ts_start - Start time for analysis of the gc log. Any entries before this
+#            time will be ignored. Specify ts_start in the format below
+#            "YYYY-MM-DD HH:MM:SS.sss"
+#
+# ts_end -  End time for analysis of the gc log. Once the end time is reached
+#           the program will quit. Specify ts_end in the format below
+#           "YYYY-MM-DD HH:MM:SS.sss"
+#
 # Typical usage:
 #
 # PrintGCStats -v cpus=4 gc.log > gc.stats
@@ -164,13 +185,13 @@
 BEGIN {
   usage_msg = "PrintGCStats -v cpus=<n> [-v interval=<seconds>] " \
 	      "[-v verbose=1] [file ...]\n" \
-              "PrintGCStats -v plot=name [-v plotcolumns=<n>] "\
-	      "[-v verbose=1] [file ...]";
+              "PrintGCStats -v plot=name[,name2,name3,...] [-v plotcolumns=<n>] "\
+	      "[-v verbose=1] [-v splitfiles=1] [-v splitfileprefix=prefix] [-v datestamps=1] "\
+        "[-v ts_start=start-timestamp] [-v ts_end=end-timestamp] [file ...]";
 
   # Seconds between printing per-interval statistics; a negative value disables
   # intervals (the default).  Allow command line to override.
   timeStampDelta = interval == 0 ? -1 : interval;
-
   # Number of cpus.  Require this on the command line since defaulting to 1 is
   # too error prone.  Older versions used ncpu as the var name; accept it for
   # compatibility.
@@ -189,12 +210,15 @@ BEGIN {
   # initialization is complete.
   firstTimeStamp = -1.0;	# sentinel
   prevTimeStamp = lastTimeStamp = firstTimeStamp;
-
   lastFileName = "";	# Used to detect when the input file has changed.
 
   # This value is added to time stamps so that input from multiple files appears
   # to have monotonically increasing timestamps.
   timeStampOffset = 0.0;
+
+  # Support time range filtering
+  if(ts_start == "") ts_start = "2000-01-01 00:00:00.000";
+  if(ts_end == "") ts_end = "3000-01-01 00:00:00.000";
 
   i = -1;
   gen0c_idx = ++i;	# With PrintGCDetails, DefNew collection time only.
@@ -205,7 +229,6 @@ BEGIN {
   cmsRM_idx = ++i;	# CMS Remark
   cmsRS_idx = ++i;	# CMS Resize (evm only)
   totgc_idx = ++i;	# Total gc pause time
-
   # These must be greater than the totgc_idx.
   gen0usr_idx = ++i;    # CPU user time in gen0
   gen0sys_idx = ++i;    # CPU sys time in gen0
@@ -308,32 +331,44 @@ BEGIN {
     name_v[last_idx + i] = name_v[i];	# Copy names.
   }
 
-  plot_idx = -1;
+#  plot_idx = -1;
+  requested_plot_count = 0;
+  available_plot_count = 0;
   if (plot != "") {
+      requested_plot_count = split(plot,plots,",");
+    }
     # Convert the plot=name value to a plot_idx.  The default is no plotting,
     # which occurs when plot_idx < 0.
-    for (i = 0; plot_idx < 0 && i < last_idx; ++i) {
-      if (plot == name_v[i]) {
-	plot_idx = i;
+    for (i = 1; i <= requested_plot_count; i++) {
+      for (j = 0; j < last_idx ; ++j) {
+        if(plots[i] == name_v[j]) {
+         available_plot_count += 1; 
+         plot_idx[j] = "True" ;
+        }
       }
-    }
+    } 
 
-    if (plot_idx < 0) {
+    if (available_plot_count == 0) {
       print "PrintGCStats:  unrecognized plot name plot=" plot ".";
       print usage_msg;
       exit(1);
     }
-  }
 
-  # If plotting, set plotcolumns based on the statistic being plotted (unless
+  # If plotting, set plot_columns based on the statistic being plotted (unless
   # plotcolumns was set on the command line).
-  if (plot_idx >= 0 && plotcolumns == 0) {
-    if (plot_idx >= MB_a_idx && plot_idx <= MB_ch_idx) {
-      # Use 2 columns for size-based statistics.
-      plotcolumns = 2;
-    } else {
-      # Use 4 columns for time-based statistics.
-      plotcolumns = 4;
+  if (available_plot_count > 0) {
+    for (i = 0; i < last_idx; ++i) {
+      if (plotcolumns > 0) {
+        plot_columns[i] = plotcolumns;
+      } else {
+        if (i >= MB_a_idx && i <= MB_ch_idx) {
+          # Use 2 columns for size-based statistics.
+          plot_columns[i] = 2;
+        } else {
+          # Use 4 columns for time-based statistics.
+          plot_columns[i] = 4;
+        }
+      }
     }
   }
 
@@ -444,6 +479,15 @@ function printPercent(name, tot, tot_units, period, period_units) {
     name, tot, tot_units, period, period_units, ratio(tot * 100.0, period));
 }
 
+function getDateTimeStamp() {
+#2012-02-23T22:17:02.495
+  gts_tmp_str = $0;
+  if (!match(gts_tmp_str,"^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9]+")) return -1.0;
+  gts_tmp = substr(gts_tmp_str, RSTART, RLENGTH);
+  sub(/T/, " ", gts_tmp);
+  return gts_tmp;
+}
+
 function getTimeStamp() {
   gts_tmp_str = $0;
   # Note:  want to match the time stamp just before the '[GC' or '[Full GC' or
@@ -464,45 +508,104 @@ function recordStatsInternal(idx, seconds) {
   if (seconds > max_v[idx]) max_v[idx] = seconds;
 }
 
-function writePlotData(tstamp, value) {
-  if (plotcolumns == 4) {
+function writePlotData(tstamp, value, widx) {
+  if (splitfileprefix == "") {
+    splitfileprefix = "GC";
+  }
+  if (plot_columns[widx] == 4) {
     # Column 1 = start time, 2 = duration, 3 = end time, 4 = duration.
     #printf("%9.7f %9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value, value);
-    printf("%9.3f %9.7f %9.3f %9.7f\n", tstamp, value, tstamp + value, value);
+    if (splitfiles == 1) {
+      if (datestamps == 1) {
+        printf("%s,%9.7f,%s,%9.7f\n", tstamp, value, tstamp, value) >> splitfileprefix"."name_v[widx]".csv";
+      } else {
+        printf("%9.3f,%9.7f,%9.3f,%9.7f\n", tstamp, value, tstamp + value, value) >> splitfileprefix"."name_v[widx]".csv";
+      }
+    } else {
+      if (datestamps == 1) {
+        printf("%s,%9.7f,%s,%9.7f,%s\n", tstamp, value, tstamp, value, name_v[widx]);
+      } else {
+        printf("%9.3f,%9.7f,%9.3f,%9.7f,%s\n", tstamp, value, tstamp + value, value, name_v[widx]);
+      }
+    }
     return;
   }
-  if (plotcolumns == 2) {
+  if (plot_columns[widx] == 2) {
     # Column 1 = start time, 2 = value.
     # printf("%9.7f %9.7f\n", tstamp, value);
-    printf("%9.3f %9.7f\n", tstamp, value);
+    if (splitfiles == 1) {
+      if (datestamps == 1) {
+        printf("%s,%9.7f\n", tstamp, value) >> splitfileprefix"."name_v[widx]".csv";
+      } else {
+        printf("%9.3f,%9.7f\n", tstamp, value) >> splitfileprefix"."name_v[widx]".csv";
+      }
+    } else {
+      if (datestamps == 1) {
+        printf("%s,%9.7f,%s\n", tstamp, value, name_v[widx]);
+      } else {
+        printf("%9.3f,%9.7f,%s\n", tstamp, value, name_v[widx]);
+      }
+    }
     return;
   }
-  if (plotcolumns == 1) {
+  if (plot_columns[widx] == 1) {
     # Column 1 = start time.
     # printf("%9.7f\n", tstamp);
-    printf("%9.3f\n", tstamp);
+    if (splitfiles == 1) {
+      if (datestamps == 1) {
+        printf("%s\n", tstamp) >> splitfileprefix"."name_v[widx]".csv";
+      } else {
+        printf("%9.3f\n", tstamp) >> splitfileprefix"."name_v[widx]".csv";
+      }
+    } else {
+      if (datestamps == 1) {
+        printf("%s,%s\n", tstamp, name_v[widx]);
+      } else {
+        printf("%9.3f,%s\n", tstamp, name_v[widx]);
+      }
+    }
     return;
   }
-  if (plotcolumns == 3) {
+  if (plot_columns[widx] == 3) {
     # Column 1 = start time, 2 = duration, 3 = end time.
     # printf("%9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value);
-    printf("%9.3f %9.7f %9.3f\n", tstamp, value, tstamp + value);
+    if (splitfiles == 1) {
+      if (datestamps == 1) {
+        printf("%s,%9.7f,%s\n", tstamp, value, tstamp) >> splitfileprefix"."name_v[widx]".csv";
+      } else {
+        printf("%9.3f,%9.7f,%9.3f\n", tstamp, value, tstamp + value) >> splitfileprefix"."name_v[widx]".csv";
+      }
+    } else {
+      if (datestamps == 1) {
+        printf("%s,%9.7f,%s,%s\n", tstamp, value, tstamp, name_v[widx]);
+      } else {
+        printf("%9.3f,%9.7f,%9.3f,%s\n", tstamp, value, tstamp+value, name_v[widx]);
+      }
+    }
     return;
   }
 }
 
 function recordStats(idx, value) {
   if (verbose) print name_v[idx] ":" NR ":" value;
-  if (plot_idx < 0) {
+  if (available_plot_count == 0) {
     # Plotting disabled; record statistics.
     recordStatsInternal(idx, value);
     recordStatsInternal(idx + last_idx, value);
     if (idx < totgc_idx) recordStatsInternal(totgc_idx, value);
-  } else if (idx == plot_idx || plot_idx == totgc_idx && idx < totgc_idx) {
+  } else if (idx in plot_idx || (totgc_idx in plot_idx && idx < totgc_idx)) {
     # Plotting enabled; skip statistics and just print a plot line.
-    rs_tstamp = getTimeStamp();
-    if (rs_tstamp < 0.0) rs_tstamp = ++plot_cnt;
-    writePlotData(rs_tstamp, value);
+    if (datestamps == 1) {
+      rs_tstamp = getDateTimeStamp();
+    } else {
+      rs_tstamp = getTimeStamp();
+    }
+    if (rs_tstamp != -1) {
+      writePlotData(rs_tstamp, value, idx);
+      if (totgc_idx in plot_idx && idx < totgc_idx && idx != gen0c_idx) {
+        writePlotData(rs_tstamp, value, totgc_idx);
+      }
+    }
   }
 }
 
@@ -602,7 +705,7 @@ function recordParOldPhaseTime(str, phase_label, idx) {
 
 function printInterval() {
   # No intervals if plotting.
-  if (plot_idx >= 0) return;
+  if (available_plot_count > 0) return;
 
   # Check for a time stamp.
   pi_tmp = getTimeStamp();
@@ -651,6 +754,33 @@ function printInterval() {
   }
 }
 
+$0 ~ ".* age .*" {
+  next;
+};
+
+$0 ~ "Desired.*" {
+  next;
+};
+
+
+$0 ~ ".*ParNew$" {
+  parnew_prefix = $0;
+  updateLog = 1;
+  next;
+};
+
+updateLog == 1 {
+  $0 = parnew_prefix$0;
+  updateLog = 0;
+}
+
+getDateTimeStamp() < ts_start {
+   next;
+}
+
+getDateTimeStamp() > ts_end {
+   exit;
+}
 
 # Match CMS initial mark output from PrintGCDetails.
 # 
@@ -839,11 +969,11 @@ $0 ~ full_gc_re timestamp_re ".*\\[" fw_yng_gen_re ": " heap_report_re "\\] " he
   tInt = sub(".*Train: [^,]+, ", "", tString);
   tInt = sub(" secs.*", "", tString);
   secs = tString + 0.0;
-  if (plot_idx < 0) {
+  if (available_plot_count == 0) {
     # Skip the update of the totgc numbers, that was handled above.
     recordStatsInternal(gen1i_idx, secs);
     recordStatsInternal(gen1i_idx + last_idx, secs);
-  } else if (plot_idx == gen1i_idx) {
+  } else if (gen1i_idx in plot_idx) {
     recordStats(gen1i_idx, secs);
   }
   recordGen0Kb($0, 1);
@@ -879,11 +1009,11 @@ $0 ~ "\\[GC " timestamp_re "\\[" fw_yng_gen_re ": " heap_report_re "\\] " heap_r
   secs = substr($0, RSTART, RLENGTH - 5) + 0;
   tString = substr($0, RSTART + RLENGTH);
 
-  if (plot_idx < 0) {
+  if (available_plot_count == 0) {
     # Skip the update of the totgc numbers, that will be handled below.
     recordStatsInternal(gen0c_idx, secs);
     recordStatsInternal(gen0c_idx + last_idx, secs);
-  } else if (plot_idx == gen0c_idx) {
+  } else if (gen0c_idx in plot_idx) {
     recordStats(gen0c_idx, secs);
   }
 
@@ -1257,7 +1387,7 @@ function recordGCPauseEVM(idx) {
 
 END {
   # No summary stats if plotting.
-  if (plot_idx >= 0) exit(0);
+  if (available_plot_count > 0) exit(0);
 
   if (interval >= 0) print "";
 
