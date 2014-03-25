@@ -271,7 +271,10 @@ class Diff(object):
     Check whether the SLA has passed or failed
     """
     try:
-      diff_val = float(diff_metric['absolute_diff'])
+      if sla.display is '%':
+        diff_val = float(diff_metric['percent_diff'])
+      else:
+        diff_val = float(diff_metric['absolute_diff'])
     except ValueError:
       return False
     if not (sla.check_sla_passed(diff_val)):
