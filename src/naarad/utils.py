@@ -27,31 +27,6 @@ import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.utils')
 
-def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, sla_failures):
-  metric.graph_timezone = graph_timezone
-  if metric.outdir is None:
-    metric.outdir = os.path.normpath(outdir_default)
-
-  # handling both cases of local file or http download.
-  if not metric.infile.startswith('http://') \
-    and not metric.infile.startswith('https://'):
-    metric.infile = os.path.join(indir_default, metric.infile)
-
-  if not metric.ignore:
-    if metric.collect():
-      if metric.parse():
-        metric.calc()
-        metric.calculate_stats()
-        sla_failures = sla_failures + check_slas(metric)
-        graph_lock.acquire()
-        metric.graph(graphing_library)
-        graph_lock.release()
-      else:
-        logger.error('Parsing failed for metric: ' + metric.label)
-    else:
-      logger.error('Fetch/Collect failed for metric: ' + metric.label)
-
-
 def is_valid_url(url):
   """
   Check if a given string is in the correct URL format or not
