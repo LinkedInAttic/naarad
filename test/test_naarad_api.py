@@ -15,10 +15,13 @@ def test_naarad_start_stop():
   :return: None
   """
   global naarad_obj
-  naarad_obj.start()
+  naarad_obj.signal_start()
   time.sleep(5)
-  naarad_obj.stop('/tmp/config', '/tmp')
-  naarad_obj.start()
+  diff_time = naarad_obj.signal_stop('/tmp/config', '/tmp')
+  assert diff_time == 5000.0
+  naarad_obj.signal_start()
   time.sleep(3)
-  naarad_obj.stop('/tmp/config', '/tmp')
+  diff_time = naarad_obj.signal_stop('/tmp/config', '/tmp')
+  assert diff_time == 3000.0
+
 
