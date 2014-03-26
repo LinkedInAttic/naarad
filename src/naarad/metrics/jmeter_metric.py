@@ -165,14 +165,26 @@ class JmeterMetric(Metric):
     percentiles_to_calculate = range(5,101,5) # TODO: get input from user
     percentiles_to_calculate.append(99)
     for transaction in metric_store['t'].keys():
-      self.calculated_stats[transaction + '.' + 'ResponseTime'], self.calculated_percentiles[transaction + '.' + 'ResponseTime'] = naarad.utils.calculate_stats(list(heapq.merge(*metric_store['t'][transaction].values())), stats_to_calculate, percentiles_to_calculate)
-      self.update_summary_stats(transaction + '.' + 'ResponseTime')
-      self.calculated_stats[transaction + '.' + 'qps'], self.calculated_percentiles[transaction + '.' + 'qps'] = naarad.utils.calculate_stats(metric_store['qps'][transaction].values(), stats_to_calculate, percentiles_to_calculate)
-      self.update_summary_stats(transaction + '.' + 'qps')
-      self.calculated_stats[transaction + '.' + 'ResponseSize'], self.calculated_percentiles[transaction + '.' + 'ResponseSize'] = naarad.utils.calculate_stats(list(heapq.merge(*metric_store['by'][transaction].values())), stats_to_calculate, percentiles_to_calculate)
-      self.update_summary_stats(transaction + '.' + 'ResponseSize')
+      transaction_key = transaction + '.' + 'ResponseTime'
+      self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
+        naarad.utils.calculate_stats(list(heapq.merge(*metric_store['t'][transaction].values())),
+                                     stats_to_calculate, percentiles_to_calculate)
+      self.update_summary_stats(transaction_key)
+      transaction_key = transaction + '.' + 'qps'
+      self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
+        naarad.utils.calculate_stats(metric_store['qps'][transaction].values(),
+                                     stats_to_calculate, percentiles_to_calculate)
+      self.update_summary_stats(transaction_key)
+      transaction_key = transaction + '.' + 'ResponseSize'
+      self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
+        naarad.utils.calculate_stats(list(heapq.merge(*metric_store['by'][transaction].values())),
+                                     stats_to_calculate, percentiles_to_calculate)
+      self.update_summary_stats(transaction_key)
       if 'eqps' in metric_store.keys():
-        self.calculated_stats[transaction + '.' + 'ErrorsPerSecond'], self.calculated_percentiles[transaction + '.' + 'ErrorsPerSecond'] = naarad.utils.calculate_stats(metric_store['eqps'][transaction].values(), stats_to_calculate, percentiles_to_calculate)
+        transaction_key = transaction + '.' + 'ErrorsPerSecond'
+        self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
+          naarad.utils.calculate_stats(metric_store['eqps'][transaction].values(),
+                                       stats_to_calculate, percentiles_to_calculate)
         self.update_summary_stats(transaction + '.' + 'ErrorsPerSecond')
     return None
 
