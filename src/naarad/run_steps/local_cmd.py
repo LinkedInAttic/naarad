@@ -38,7 +38,7 @@ class Local_Cmd(Run_Step):
 
     #TODO: Add try catch blocks. Kill process on CTRL-C
     # Infer time period for analysis. Assume same timezone between client and servers.
-    self.ts_start = naarad.utils.get_now_in_naarad_format()
+    self.ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
     try:
       self.process = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
       if self.kill_after_seconds:
@@ -54,7 +54,7 @@ class Local_Cmd(Run_Step):
       self.kill()
     if self.timer:
       self.timer.cancel()
-    self.ts_end = naarad.utils.get_now_in_naarad_format()
+    self.ts_end = time.strftime("%Y-%m-%d %H:%M:%S")
     logger.info('subprocess finished')
     logger.info('run_step started at ' + self.ts_start + ' and ended at ' + self.ts_end)
 

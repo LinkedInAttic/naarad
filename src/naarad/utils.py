@@ -525,9 +525,6 @@ def is_valid_file(filename):
     return False
   return True
 
-def get_now_in_naarad_format():
-  return time.strftime("%Y-%m-%d %H:%M:%S")
-
 def detect_timestamp_format(timestamp):
   """
   Given an input timestamp string, determine what format is it likely in.
