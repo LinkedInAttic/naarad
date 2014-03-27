@@ -13,7 +13,6 @@ import time
 from threading import Timer
 from naarad.run_steps.run_step import Run_Step
 import naarad.naarad_constants as CONSTANTS
-import naarad.utils
 
 logger = logging.getLogger('naarad.run_steps.local_cmd')
 
