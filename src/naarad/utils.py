@@ -643,7 +643,8 @@ def check_slas(metric):
           FH.write('%s\n' % (sla.get_csv_repr()))
   return ret
 
-def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, skip_plots, sla_failures):
+def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock,
+                                  skip_plots):
   metric.graph_timezone = graph_timezone
   if metric.outdir is None:
     metric.outdir = os.path.normpath(outdir_default)
@@ -658,7 +659,7 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
       if metric.parse():
         metric.calc()
         metric.calculate_stats()
-        sla_failures[0] = sla_failures[0] + check_slas(metric)
+        check_slas(metric)
         if not skip_plots:
           graph_lock.acquire()
           metric.graph(graphing_library)

@@ -156,10 +156,6 @@ def main():
   ts_end = None
   bin_path = os.path.dirname( __file__ )
   skip_plots = False
-  # Workaround since Thread.threading doesn't return values. See the following:
-  # http://stackoverflow.com/questions/986006/python-how-do-i-pass-a-variable-by-reference
-  # http://stackoverflow.com/questions/6893968/how-to-get-the-return-value-from-a-thread-in-python
-  sla_failures = [0]
 
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument('-c', '--config', help="file with specifications for each metric and graphs")
@@ -299,7 +295,10 @@ def main():
         metric.ts_start = ts_start
       if ts_end and not metric.ts_start:
         metric.ts_end = ts_end
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, skip_plots, sla_failures))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone,
+                                                                                         outdir_default, indir_default,
+                                                                                         graphing_library, graph_lock,
+                                                                                         skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
@@ -307,7 +306,10 @@ def main():
       
     # handling CLUSTER metric and other aggregate metrics, which has to wait for all regular metric threads to complete.   
     for metric in aggregate_metrics:
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, skip_plots, sla_failures))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone,
+                                                                                         outdir_default, indir_default,
+                                                                                         graphing_library, graph_lock,
+                                                                                         skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
@@ -324,8 +326,9 @@ def main():
       run_step.run()
 
   if args.exit_code:
-    if sla_failures[0] > 0:
-      sys.exit(CONSTANTS.SLA_FAILURE)
+    for metric in metrics + aggregate_metrics:
+      if metric.status == CONSTANTS.SLA_FAILED:
+        sys.exit(CONSTANTS.SLA_FAILURE)
 
 if __name__ == '__main__':
   main()
