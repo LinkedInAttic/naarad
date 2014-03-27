@@ -98,17 +98,17 @@ class Metric(object):
     if column in self.column_csv_map.keys():
       return self.column_csv_map[column]    
     col = naarad.utils.sanitize_string(column)
-    csv = os.path.join(self.resource_directory, self.metric_type + '.' + col + '.csv')
+    csv = os.path.join(self.resource_directory, self.label + '.' + col + '.csv')
     self.csv_column_map[csv] = column
     self.column_csv_map[column] = csv
     return csv
   
   def get_important_sub_metrics_csv(self):
-    csv = os.path.join(self.resource_directory, self.metric_type + '.important_sub_metrics.csv')
+    csv = os.path.join(self.resource_directory, self.label + '.important_sub_metrics.csv')
     return csv
 
   def get_stats_csv(self):
-    csv = os.path.join(self.resource_directory, self.metric_type + '.stats.csv')
+    csv = os.path.join(self.resource_directory, self.label + '.stats.csv')
     return csv
 
   def get_percentiles_csv_from_data_csv(self, data_csv):
@@ -116,7 +116,7 @@ class Metric(object):
     return percentile_csv_file
 
   def get_sla_csv(self):
-    csv = os.path.join(self.resource_directory, self.metric_type + '.sla.csv')
+    csv = os.path.join(self.resource_directory, self.label + '.sla.csv')
     return csv
 
   def update_summary_stats(self, column):

@@ -72,7 +72,7 @@ class JmeterMetric(Metric):
 
     if transaction_name == '__overall_summary__':
       transaction_name = 'Overall_Summary'
-    csv = os.path.join(self.resource_directory, self.metric_type + '.' + transaction_name + '.' + col + '.csv')
+    csv = os.path.join(self.resource_directory, self.label + '.' + transaction_name + '.' + col + '.csv')
     self.csv_column_map[csv] = transaction_name + '.' + col
     return csv
 
@@ -233,7 +233,7 @@ class JmeterMetric(Metric):
     return True
 
   def calculate_stats(self):
-    stats_csv = os.path.join(self.resource_directory, self.metric_type + '.stats.csv')
+    stats_csv = os.path.join(self.resource_directory, self.label + '.stats.csv')
     csv_header = 'sub_metric,mean,std. deviation,median,min,max,90%,95%,99%\n'
 
     with open(stats_csv,'w') as FH:
@@ -262,8 +262,6 @@ class JmeterMetric(Metric):
     if graphing_library != 'matplotlib':
      return Metric.graph(self, graphing_library)
     else:
-      html_string = []
-      html_string.append('<h2>Metric: {0}</h2>\n'.format(self.metric_type))
       logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
       plot_data = {}
       # plot time series data for submetrics
@@ -278,7 +276,7 @@ class JmeterMetric(Metric):
         else:
           plot_data[transaction_name] = [plot]
       for transaction in plot_data:
-        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.resource_directory, self.resource_path, self.metric_type + '.' + transaction )
+        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.resource_directory, self.resource_path, self.label + '.' + transaction )
         if graphed:
           self.plot_files.append(div_file)
       return True
