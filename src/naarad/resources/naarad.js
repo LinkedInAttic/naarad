@@ -15,14 +15,14 @@ var colorSets = [
 ["#993399", "#B3CDE3", "#CCEBC5"],
 null
 ]
-function plot(selector_id, div_id, colorset_id, advanced_source)
+function plot(selector_id, div_id, colorset_id, advanced_source, url_div)
 {
   var chart_data_selector = document.getElementById(selector_id);
   var chart_data_source = "";
   var chart_data_title = "" ;
   chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
   chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
-
+  document.getElementById(url_div).innerHTML = "<a href=" + chart_data_source + " target=\"_blank\">[csv]</a>"
   var div_width = document.getElementById(div_id).clientWidth;
   var div_height = document.getElementById(div_id).clientHeight;
   chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,
@@ -49,14 +49,14 @@ function plot(selector_id, div_id, colorset_id, advanced_source)
   chart_1.resize(div_width, window.screen.height*0.75/2);
 }
 
-function plot_cdf(selector_id, div_id, colorset_id, advanced_source)
+function plot_cdf(selector_id, div_id, colorset_id, advanced_source, url_div)
 {
   var chart_data_selector = document.getElementById(selector_id);
   var chart_data_source = "";
   var chart_data_title = "" ;
   chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
   chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
-
+  document.getElementById(url_div).innerHTML = "<a href=" + chart_data_source + " target=\"_blank\">[csv]</a>"
   var div_width = document.getElementById(div_id).clientWidth;
   var div_height = document.getElementById(div_id).clientHeight;
   chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,

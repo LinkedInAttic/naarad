@@ -565,21 +565,23 @@ def get_standardized_timestamp(timestamp, ts_format):
     timestamp = str(datetime.datetime.now())
   if not ts_format:
     ts_format = detect_timestamp_format(timestamp)
-
-  if ts_format == '%Y-%m-%d %H:%M:%S.%f':
-    return timestamp
-  elif ts_format == 'unknown':
-    logger.error('Unable to determine timestamp format for : %s', timestamp)
-    return -1
-  elif ts_format == 'epoch':
-    ts = datetime.datetime.utcfromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S.%f')
-  elif ts_format == 'epoch_ms':
-    ts = datetime.datetime.utcfromtimestamp(float(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')
-  elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
-    date_today = str(datetime.date.today())
-    ts = datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
-  else:
-    ts = datetime.datetime.strptime(timestamp,ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
+  try:
+    if ts_format == '%Y-%m-%d %H:%M:%S.%f':
+      return timestamp
+    elif ts_format == 'unknown':
+      logger.error('Unable to determine timestamp format for : %s', timestamp)
+      return -1
+    elif ts_format == 'epoch':
+      ts = datetime.datetime.utcfromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S.%f')
+    elif ts_format == 'epoch_ms':
+      ts = datetime.datetime.utcfromtimestamp(float(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')
+    elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
+      date_today = str(datetime.date.today())
+      ts = datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
+    else:
+      ts = datetime.datetime.strptime(timestamp,ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
+  except ValueError:
+    return -1    
   return ts
 
 def set_sla(obj, sub_metric, rules):
@@ -592,10 +594,10 @@ def set_sla(obj, sub_metric, rules):
   for rule in rules_list:
     if '<' in rule:
       stat, threshold = rule.split('<')
-      sla = SLA(sub_metric, stat, float(threshold), 'lt')
+      sla = SLA(sub_metric, stat, threshold, 'lt')
     elif '>' in rule:
       stat, threshold = rule.split('>')
-      sla = SLA(sub_metric, stat, float(threshold), 'gt')
+      sla = SLA(sub_metric, stat, threshold, 'gt')
     else:
       if hasattr(obj, 'logger'):
         obj.logger.error('Unsupported SLA type defined : ' + rule)

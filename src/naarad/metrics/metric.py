@@ -98,17 +98,17 @@ class Metric(object):
     if column in self.column_csv_map.keys():
       return self.column_csv_map[column]    
     col = naarad.utils.sanitize_string(column)
-    csv = os.path.join(self.resource_directory, self.metric_type + '.' + col + '.csv')
+    csv = os.path.join(self.resource_directory, self.label + '.' + col + '.csv')
     self.csv_column_map[csv] = column
     self.column_csv_map[column] = csv
     return csv
   
   def get_important_sub_metrics_csv(self):
-    csv = os.path.join(self.resource_directory, self.metric_type + '.important_sub_metrics.csv')
+    csv = os.path.join(self.resource_directory, self.label + '.important_sub_metrics.csv')
     return csv
 
   def get_stats_csv(self):
-    csv = os.path.join(self.resource_directory, self.metric_type + '.stats.csv')
+    csv = os.path.join(self.resource_directory, self.label + '.stats.csv')
     return csv
 
   def get_percentiles_csv_from_data_csv(self, data_csv):
@@ -116,7 +116,7 @@ class Metric(object):
     return percentile_csv_file
 
   def get_sla_csv(self):
-    csv = os.path.join(self.resource_directory, self.metric_type + '.sla.csv')
+    csv = os.path.join(self.resource_directory, self.label + '.sla.csv')
     return csv
 
   def update_summary_stats(self, column):
@@ -139,9 +139,9 @@ class Metric(object):
           words = line.strip().split(self.sep)
         if len(words) == 0:
           continue
-        if len(words) < len(self.columns):
-          logger.error("ERROR: Number of columns given in config is more than number of columns present in file {0}\n".format(self.infile))
-          return False
+        if len(words) <= len(self.columns): #NOTE: len(self.columns) is always one less than len(words) since we assume the very first column is timestamp
+          logger.warning("WARNING: Number of columns given in config is more than number of columns present in line {0}\n", line)
+          continue
         if not timestamp_format or timestamp_format == 'unknown':
           timestamp_format = naarad.utils.detect_timestamp_format(words[0])
         if timestamp_format == 'unknown':
@@ -290,6 +290,17 @@ class Metric(object):
       if graphed:
         self.plot_files.append(div_file)
     return True
+  
+  def check_important_sub_metrics(self, sub_metric):
+    """
+    check whether the given sub metric is in important_sub_metrics list 
+    """
+    if sub_metric in self.important_sub_metrics:
+      return True
+    items = sub_metric.split('.')
+    if items[-1] in self.important_sub_metrics:
+      return True
+    return False
 
   def plot_cdf(self, graphing_library = 'matplotlib'):
     """
@@ -300,9 +311,9 @@ class Metric(object):
       csv_filename = os.path.basename(percentile_csv)
       # The last element is .csv, don't need that in the name of the chart
       column = self.csv_column_map[percentile_csv.replace(".percentiles.", ".")]
-      column = naarad.utils.sanitize_string(column)
-      if column not in self.important_sub_metrics:
+      if not self.check_important_sub_metrics(column):
         continue
+      column = naarad.utils.sanitize_string(column)
       graph_title = '.'.join(csv_filename.split('.')[0:-1])
       if self.sub_metric_description and column in self.sub_metric_description.keys():
         graph_title += ' ('+self.sub_metric_description[column]+')'

@@ -46,7 +46,7 @@ class Local_Cmd(Run_Step):
       #Using 2nd method here to stream output:
       # http://stackoverflow.com/questions/2715847/python-read-streaming-input-from-subprocess-communicate
       for line in iter(self.process.stdout.readline, b''):
-        logger.info(line)
+        logger.info(line.strip())
       self.process.communicate()
     except KeyboardInterrupt:
       logger.warning('Handling keyboard interrupt (Ctrl-C)')

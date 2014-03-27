@@ -20,14 +20,21 @@ class SLA(object):
       return None
     self.sub_metric = sub_metric
     self.stat_name = stat_name
-    self.threshold = threshold
     self.sla_type = sla_type
     self.is_processed = False
+    self.threshold = None
+    self.display = None
+    if '%' in threshold:
+      self.threshold = float(threshold.translate(None, '%'))
+      self.display = '%'
+    else:
+      self.threshold = float(threshold)
+      self.display = ''
     self.sla_passed = None
     self.stat_value = None
 
   def __str__(self):
-    return "{0} of {1}, threshold: {2}, sla_type: {3}, sla_passed: {4}".format(self.stat_name, self.sub_metric, self.threshold, self.sla_type, self.sla_passed)
+    return "{0} of {1}, threshold: {2}, sla_type: {3}, sla_passed: {4}, display: {5}".format(self.stat_name, self.sub_metric, self.threshold, self.sla_type, self.sla_passed, self.display)
 
   def get_csv_repr(self):
     return "{0},{1},{2},{3},{4},{5}".format(self.sub_metric, self.stat_name, self.threshold, self.sla_type, self.stat_value, self.sla_passed)
