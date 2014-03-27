@@ -160,7 +160,6 @@ class Metric(object):
           else:
             data[out_csv] = []
             data[out_csv].append( ts + ',' + words[i+1] )
-
     # Post processing, putting data in csv files
     data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]),sorted(qps.items())) 
     for csv in data.keys():
