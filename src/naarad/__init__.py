@@ -14,31 +14,64 @@ import naarad.utils
 logger = logging.getLogger('naarad')
 
 
+class Analysis(object):
+  """
+  Class that saves state for analysis to be conducted
+  """
+  def __init__(self, ts_start, config_file_location, test_id=None):
+    self.ts_start = ts_start
+    self.ts_end = None
+    self.test_id = test_id
+    self.config_file_location = config_file_location
+
+
 class Naarad(object):
+  """
+  Naarad base class that will let the caller run multiple naarad analysis
+  """
+
   def __init__(self):
-    self.ts_start = defaultdict(str)
-    self.ts_end = defaultdict(str)
     self.default_test_id = -1
+    self.analyses = {}
 
-  def signal_start(self, test_id=None):
-    if test_id:
-      self.ts_start[test_id] = naarad.utils.get_now_in_naarad_format()
-      return test_id
-    else:
+  def signal_start(self, config_file_location, test_id=None):
+    """
+    Initialize an analysis object and set ts_start for the analysis represented by test_id
+    :param test_id: integer that represents the analysis
+    :param config_file_location: local or http location of the naarad config used for this analysis
+    :return: test_id
+    """
+    if not test_id:
       self.default_test_id += 1
-      self.ts_start[self.default_test_id] = naarad.utils.get_now_in_naarad_format()
-      return self.default_test_id
+      test_id = self.default_test_id
+    self.analyses[test_id] = Analysis(naarad.utils.get_standardized_timestamp('now', None), config_file_location,
+                                      test_id=test_id)
+    return test_id
 
-  def signal_stop(self, config_file_location, output_dir, input_dir=None, test_id=None):
-    if test_id:
-      self.ts_end[test_id] = naarad.utils.get_now_in_naarad_format()
-      return self.run(config_file_location, self.ts_start[test_id], self.ts_end[test_id], output_dir, input_dir=input_dir)
-    else:
-      self.ts_end[self.default_test_id] = naarad.utils.get_now_in_naarad_format()
-      return self.run(config_file_location, self.ts_start[self.default_test_id], self.ts_end[self.default_test_id], output_dir, input_dir=input_dir)
+  def signal_stop(self, test_id=None):
+    """
+    Set ts_end for the analysis represented by test_id
+    :param test_id: integer that represents the analysis
+    :return: test_id
+    """
+    if not test_id:
+      test_id = self.default_test_id
+    self.analyses[test_id].ts_end = naarad.utils.get_standardized_timestamp('now', None)
+    return naarad.utils.convert_to_unixts(self.analyses[test_id].ts_end) - \
+           naarad.utils.convert_to_unixts(self.analyses[test_id].ts_start)
 
-  def run(self, config_file_location, ts_start, ts_end, output_dir, input_dir=None):
-    return naarad.utils.convert_to_unixts(ts_end) - naarad.utils.convert_to_unixts(ts_start)
+  def analyze(self):
+    """
+    Run all the analysis saved in self.analyses, sorted by test_id
+    :return:
+    """
+    for test_id in sorted(self.analyses.keys()):
+      self.run(self.analyses[test_id])
 
-
-
+  def run(self, test_id):
+    """
+    Placeholder for actually running the analysis
+    :param test_id:
+    :return:
+    """
+    return
