@@ -139,9 +139,9 @@ class Metric(object):
           words = line.strip().split(self.sep)
         if len(words) == 0:
           continue
-        if len(words) < len(self.columns):
-          logger.error("ERROR: Number of columns given in config is more than number of columns present in file {0}\n".format(self.infile))
-          return False
+        if len(words) <= len(self.columns): #NOTE: len(self.columns) is always one less than len(words) since we assume the very first column is timestamp
+          logger.warning("WARNING: Number of columns given in config is more than number of columns present in line {0}\n", line)
+          continue
         if not timestamp_format or timestamp_format == 'unknown':
           timestamp_format = naarad.utils.detect_timestamp_format(words[0])
         if timestamp_format == 'unknown':
@@ -160,6 +160,7 @@ class Metric(object):
           else:
             data[out_csv] = []
             data[out_csv].append( ts + ',' + words[i+1] )
+
     # Post processing, putting data in csv files
     data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]),sorted(qps.items())) 
     for csv in data.keys():
