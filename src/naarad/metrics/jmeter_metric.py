@@ -166,6 +166,8 @@ class JmeterMetric(Metric):
     percentiles_to_calculate.append(99)
     for transaction in metric_store['t'].keys():
       transaction_key = transaction + '.' + 'ResponseTime'
+      #For ResponseTime and ResponseSize, each timestamp has a list of values associated with it.
+      #Using heapq.merge to merge all the lists into a single list to be passed to numpy.
       self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
         naarad.utils.calculate_stats(list(heapq.merge(*metric_store['t'][transaction].values())),
                                      stats_to_calculate, percentiles_to_calculate)
