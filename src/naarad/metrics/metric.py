@@ -170,8 +170,7 @@ class Metric(object):
 
   def calculate_stats(self):
     stats_to_calculate = ['mean', 'std', 'min', 'max']  # TODO: get input from user
-    percentiles_to_calculate = range(5, 101, 5)  # TODO: get input from user
-    percentiles_to_calculate.append(99)
+    percentiles_to_calculate = range(0, 100, 1)  # TODO: get input from user
     headers = CONSTANTS.SUBMETRIC_HEADER + ',mean,std,p50,p75,p90,p95,p99,min,max\n'  # TODO: This will be built from user input later on
     metric_stats_csv_file = self.get_stats_csv()
     imp_metric_stats_csv_file = self.get_important_sub_metrics_csv()

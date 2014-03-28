@@ -178,8 +178,8 @@
             <h2 class="content-title">
                 <span class="text">Source Files Locations</span>
             </h2>
-            <tr><td>Report 1: {{ reports[0].location }}</td></tr>
-            <tr><td>Report 2: {{ reports[1].location }}</td></tr>
+            <tr><td><a href={{ reports[0].location }}>Baseline Report: {{ reports[0].location }}</a></td></tr>
+            <tr><td><a href={{ reports[1].location }}>Current Report: {{ reports[1].location }}</a></td></tr>
         </table>
       </div>
     </div>
