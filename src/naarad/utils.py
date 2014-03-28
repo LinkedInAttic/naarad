@@ -110,7 +110,7 @@ def get_rule_strings(config_obj, section):
       del kwargs[key]
   return rule_strings, kwargs
 
-def extract_sla_from_config_file(obj, options_file):
+def extract_diff_sla_from_config_file(obj, options_file):
   """
   Helper function to parse diff config file, which contains SLA rules for diff comparisons
   """
@@ -118,10 +118,12 @@ def extract_sla_from_config_file(obj, options_file):
   config_obj = ConfigParser.ConfigParser()
   config_obj.optionxform = str
   config_obj.read(options_file)
+  #*******************************************************************
   for section in config_obj.sections():
     if section == 'DIFF':
       rule_strings, kwargs = get_rule_strings(config_obj, section)
       break
+  #*******************************************************************
   for (key, val) in rule_strings.iteritems():
     set_sla(obj, key, val)
 
