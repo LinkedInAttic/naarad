@@ -71,7 +71,7 @@ class Local_Cmd(Run_Step):
         time_waited_seconds += 0.5
       if self.process.poll() is None:
         self.process.kill()
-        logger.warning('Waited %d seconds for run_step to terminate. Killing now....', CONSTANTS.SECONDS_TO_KILL_AFTER_SIGTERM )
+        logger.warning('Waited %d seconds for run_step to terminate. Killing now....', CONSTANTS.SECONDS_TO_KILL_AFTER_SIGTERM)
     except OSError, e:
       logger.error('Error while trying to kill the subprocess: %s', e)
 

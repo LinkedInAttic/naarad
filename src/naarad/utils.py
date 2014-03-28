@@ -624,11 +624,13 @@ def check_slas(metric):
           if isinstance(percentile_num, float) or isinstance(percentile_num, int):
             if percentile_num in metric.calculated_percentiles[sub_metric].keys():
               if not sla.check_sla_passed(metric.calculated_percentiles[sub_metric][percentile_num]):
+                logger.info("Failed SLA for " + sub_metric)
                 ret += 1
                 metric.status = CONSTANTS.SLA_FAILED
       if sub_metric in metric.calculated_stats.keys() and hasattr(metric, 'calculated_stats'):
         if stat_name in metric.calculated_stats[sub_metric].keys():
           if not sla.check_sla_passed(metric.calculated_stats[sub_metric][stat_name]):
+            logger.info("Failed SLA for " + sub_metric)
             ret += 1
             metric.status = CONSTANTS.SLA_FAILED
   # Save SLA results in a file
@@ -639,3 +641,29 @@ def check_slas(metric):
         for stat, sla in metric.sla_map[sub_metric].items():
           FH.write('%s\n' % (sla.get_csv_repr()))
   return ret
+
+def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock,
+                                  skip_plots):
+  metric.graph_timezone = graph_timezone
+  if metric.outdir is None:
+    metric.outdir = os.path.normpath(outdir_default)
+
+  # handling both cases of local file or http download.
+  if not metric.infile.startswith('http://') \
+    and not metric.infile.startswith('https://'):
+    metric.infile = os.path.join(indir_default, metric.infile)
+
+  if not metric.ignore:
+    if metric.collect():
+      if metric.parse():
+        metric.calc()
+        metric.calculate_stats()
+        check_slas(metric)
+        if not skip_plots:
+          graph_lock.acquire()
+          metric.graph(graphing_library)
+          graph_lock.release()
+      else:
+        logger.error('Parsing failed for metric: '  + metric.label)
+    else:
+      logger.error('Fetch/Collect failed for metric: ' + metric.label)

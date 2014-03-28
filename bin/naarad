@@ -67,9 +67,6 @@ template_urls = {
 
 logger = logging.getLogger('naarad')
 
-# tracks the number of SLA failures
-sla_failures = 0
-
 def init_logging(log_level):
   log_file = 'naarad.log'
   # clear the log file
@@ -113,31 +110,6 @@ def read_naarad_templates():
         logger.info('Adding template ' + template) 
         template_urls[template] = url
 
-def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, skip_plots):
-  metric.graph_timezone = graph_timezone
-  if metric.outdir is None:
-    metric.outdir = os.path.normpath(outdir_default)
-    
-  # handling both cases of local file or http download. 
-  if not metric.infile.startswith('http://')  \
-    and not metric.infile.startswith('https://'): 
-    metric.infile = os.path.join(indir_default, metric.infile)
-    
-  if not metric.ignore:
-    if metric.collect():
-      if metric.parse():
-        metric.calc()
-        metric.calculate_stats()
-        global sla_failures
-        sla_failures = sla_failures + naarad.utils.check_slas(metric)
-        if not skip_plots:
-          graph_lock.acquire()
-          metric.graph(graphing_library)
-          graph_lock.release()
-      else:
-        logger.error('Parsing failed for metric: '  + metric.label)
-    else:
-      logger.error('Fetch/Collect failed for metric: ' + metric.label)
 
 def print_usage():
   print ("Usage: "
@@ -184,6 +156,7 @@ def main():
   ts_end = None
   bin_path = os.path.dirname( __file__ )
   skip_plots = False
+
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument('-c', '--config', help="file with specifications for each metric and graphs")
   arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
@@ -322,7 +295,10 @@ def main():
         metric.ts_start = ts_start
       if ts_end and not metric.ts_start:
         metric.ts_end = ts_end
-      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone,
+                                                                                         outdir_default, indir_default,
+                                                                                         graphing_library, graph_lock,
+                                                                                         skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
@@ -330,7 +306,10 @@ def main():
       
     # handling CLUSTER metric and other aggregate metrics, which has to wait for all regular metric threads to complete.   
     for metric in aggregate_metrics:
-      thread = threading.Thread(target=parse_and_plot_single_metrics, args=(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock, skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone,
+                                                                                         outdir_default, indir_default,
+                                                                                         graphing_library, graph_lock,
+                                                                                         skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
@@ -346,10 +325,10 @@ def main():
     for run_step in sorted(post_run_steps, key=lambda step: step.run_rank):
       run_step.run()
 
-  global sla_failures  
   if args.exit_code:
-    if sla_failures > 0: 
-      sys.exit(CONSTANTS.SLA_FAILURE)
+    for metric in metrics + aggregate_metrics:
+      if metric.status == CONSTANTS.SLA_FAILED:
+        sys.exit(CONSTANTS.SLA_FAILURE)
 
 if __name__ == '__main__':
   main()
