@@ -48,7 +48,7 @@ class Diff(object):
     self.javascript_includes = CONSTANTS.JAVASCRIPT_INCLUDES
     self.diff_data = defaultdict(lambda : defaultdict(lambda : defaultdict(dict)))
     self.plot_files = []
-    self.sla_map = defaultdict(lambda: defaultdict(None))
+    self.sla_map = defaultdict(lambda :defaultdict(lambda: defaultdict(None)))
     self.sla_failures = 0
     self.sla_failure_list = []
 
@@ -289,6 +289,7 @@ class Diff(object):
     """
     if self.discover(CONSTANTS.STATS_CSV_LIST_FILE) and self.discover(CONSTANTS.PLOTS_CSV_LIST_FILE) and self.discover(CONSTANTS.CDF_PLOTS_CSV_LIST_FILE) and self.collect() and self.collect_datasources() and self.collect_cdf_datasources():
       for stats in self.reports[0].stats:
+        metric_label = stats.replace('.stats.csv', '')
         stats_0 = os.path.join(self.reports[0].local_location, stats)
         stats_1 = os.path.join(self.reports[1].local_location, stats)
         report0_stats = {}
@@ -320,8 +321,8 @@ class Diff(object):
                   else:
                     diff_metric['percent_diff'] = naarad.utils.normalize_float_for_display((diff_metric[1] - diff_metric[0]) * 100 / diff_metric[0])                        
                   # check whether there is a SLA failure
-                  if (submetric in self.sla_map.keys()) & (stat in self.sla_map[submetric].keys()):
-                    self.check_sla(self.sla_map[submetric][stat], diff_metric)
+                  if (metric_label in self.sla_map.keys()) and (submetric in self.sla_map[metric_label].keys()) and (stat in self.sla_map[metric_label][submetric].keys()):
+                    self.check_sla(self.sla_map[metric_label][submetric][stat], diff_metric)
     else:
       return False
     self.plot_diff()
@@ -334,6 +335,7 @@ class Diff(object):
         diff_file.write(diff_html)
       with open(os.path.join(self.output_directory,CONSTANTS.CLIENT_CHARTING_FILE),'w') as client_file:
         client_file.write(client_html)
+    import pdb; pdb.set_trace() #*****************
     return True
 
 class DiffSLAFailure:

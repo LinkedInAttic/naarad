@@ -45,7 +45,7 @@ class Metric(object):
     self.sub_metric_unit = defaultdict(lambda: 'None')      # the unit of the submetrics.  The plot will have the Y-axis being: Metric name (Unit)
     self.important_sub_metrics = ()
     self.sla_list = []  # TODO : remove this once report has grading done in the metric tables
-    self.sla_map = defaultdict(lambda: defaultdict(None))
+    self.sla_map = defaultdict(lambda :defaultdict(lambda: defaultdict(None)))
     self.calculated_stats = {}
     self.calculated_percentiles = {}
     self.summary_stats_list = CONSTANTS.DEFAULT_SUMMARY_STATS
@@ -56,7 +56,7 @@ class Metric(object):
     self.options = None
     self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
     for (key, val) in rule_strings.iteritems():
-      naarad.utils.set_sla(self, key, val)
+      naarad.utils.set_sla(self, self.label, key, val)
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)

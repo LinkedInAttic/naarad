@@ -14,10 +14,11 @@ class SLA(object):
 
   supported_sla_types = ('lt', '<', 'gt', '>', 'eq', '=')
 
-  def __init__(self, sub_metric, stat_name, threshold, sla_type):
+  def __init__(self, metric, sub_metric, stat_name, threshold, sla_type):
     if sla_type not in self.supported_sla_types:
       logger.error('Unsupported sla type passed : ' + sla_type)
       return None
+    self.metric = metric
     self.sub_metric = sub_metric
     self.stat_name = stat_name
     self.sla_type = sla_type
