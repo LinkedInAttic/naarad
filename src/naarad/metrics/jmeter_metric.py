@@ -12,6 +12,7 @@ import logging
 import os
 import re
 import numpy
+import heapq
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
@@ -135,20 +136,6 @@ class JmeterMetric(Metric):
             data[self.get_csv(transaction, metric)].append(','.join([time_stamp, str(metric_data/float(averaging_factor))]))
     return None
 
-  def get_all_response_times(self, metric_store):
-    """
-    Return a list of all the response time values by transaction.
-
-    :param dict metric_store: The metric store used to store all the parsed jmeter log data
-    :return: dict {transaction : response time values list}
-    """
-    response_store = metric_store['t']
-    response_list = defaultdict(list)
-    for transaction, time_store in response_store.items():
-      for time_stamp in time_store:
-        response_list[transaction].extend(time_store[time_stamp])
-    return response_list
-
   def get_aggregation_timestamp(self, timestamp, granularity='minute'):
     """
     Return a timestamp from the raw epoch time based on the granularity preferences passed in.
@@ -174,13 +161,33 @@ class JmeterMetric(Metric):
     :param dict metric_store: The metric store used to store all the parsed jmeter log data
     :return: none
     """
-    raw_response_times = self.get_all_response_times(metric_store)
     stats_to_calculate = ['mean', 'std', 'median', 'min', 'max'] # TODO: get input from user
     percentiles_to_calculate = range(5,101,5) # TODO: get input from user
     percentiles_to_calculate.append(99)
-    for transaction in raw_response_times:
-      self.calculated_stats[transaction + '.' + 'ResponseTime'], self.calculated_percentiles[transaction + '.' + 'ResponseTime'] = naarad.utils.calculate_stats(raw_response_times[transaction], stats_to_calculate, percentiles_to_calculate)
-      self.update_summary_stats(transaction + '.' + 'ResponseTime')
+    for transaction in metric_store['t'].keys():
+      transaction_key = transaction + '.' + 'ResponseTime'
+      #For ResponseTime and ResponseSize, each timestamp has a list of values associated with it.
+      #Using heapq.merge to merge all the lists into a single list to be passed to numpy.
+      self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
+        naarad.utils.calculate_stats(list(heapq.merge(*metric_store['t'][transaction].values())),
+                                     stats_to_calculate, percentiles_to_calculate)
+      self.update_summary_stats(transaction_key)
+      transaction_key = transaction + '.' + 'qps'
+      self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
+        naarad.utils.calculate_stats(metric_store['qps'][transaction].values(),
+                                     stats_to_calculate, percentiles_to_calculate)
+      self.update_summary_stats(transaction_key)
+      transaction_key = transaction + '.' + 'ResponseSize'
+      self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
+        naarad.utils.calculate_stats(list(heapq.merge(*metric_store['by'][transaction].values())),
+                                     stats_to_calculate, percentiles_to_calculate)
+      self.update_summary_stats(transaction_key)
+      if 'eqps' in metric_store.keys():
+        transaction_key = transaction + '.' + 'ErrorsPerSecond'
+        self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
+          naarad.utils.calculate_stats(metric_store['eqps'][transaction].values(),
+                                       stats_to_calculate, percentiles_to_calculate)
+        self.update_summary_stats(transaction + '.' + 'ErrorsPerSecond')
     return None
 
   def parse(self):
@@ -211,7 +218,7 @@ class JmeterMetric(Metric):
 
       line_regex = re.compile(r' (lb|ts|t|by|s)="([^"]+)"')
       for line in infile:
-        if '<httpSample' not in line:
+        if '<httpSample' not in line and '<sample' not in line:
           continue
         line_data = dict(re.findall(line_regex, line))
         aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(line_data['ts'], granularity)

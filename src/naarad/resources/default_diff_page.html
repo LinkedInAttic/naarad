@@ -51,7 +51,11 @@
                 <td>{{sla_failure.sla.stat_name}} {{sla_failure.sla.sla_type}} {{sla_failure.sla.threshold}}{{sla_failure.sla.display}}</td>
                 <td>{{sla_failure.diff_metric[0]}}</td>
                 <td>{{sla_failure.diff_metric[1]}}</td>
-                <td>{{sla_failure.diff_metric['absolute_diff']}}{{sla_failure.sla.display}}</td>
+                {%- if sla_failure.sla.display == '' %}
+                  <td>{{sla_failure.diff_metric['absolute_diff']}}{{sla_failure.sla.display}}</td>
+                {%- else %}
+                  <td>{{sla_failure.diff_metric['percent_diff']}}{{sla_failure.sla.display}}</td>
+                {%- endif %}
               </tr>
              {%- endfor %}
             </tbody>
@@ -174,8 +178,8 @@
             <h2 class="content-title">
                 <span class="text">Source Files Locations</span>
             </h2>
-            <tr><td>Report 1: {{ reports[0].location }}</td></tr>
-            <tr><td>Report 2: {{ reports[1].location }}</td></tr>
+            <tr><td><a href={{ reports[0].location }}>Baseline Report: {{ reports[0].location }}</a></td></tr>
+            <tr><td><a href={{ reports[1].location }}>Current Report: {{ reports[1].location }}</a></td></tr>
         </table>
       </div>
     </div>
