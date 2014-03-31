@@ -120,7 +120,7 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   plt.close()
   #Create html fragment to be used for creation of the report
   with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
-    div_file.write('<img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/>')
+    div_file.write('<div class="span12"><img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/></div><div class="span12"><p align=center>' + os.path.basename(plot_file_name) + '<br/></p></div>')
   return True, os.path.join(output_directory, output_filename + '.div')
 
 def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path, output_filename):
@@ -163,5 +163,5 @@ def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path,
   plt.close()
   # Create html fragment to be used for creation of the report
   with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
-    div_file.write('<img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/>')
+    div_file.write('<div class="span12"><img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/></div><div class="span12"><p align=center>' + os.path.basename(plot_file_name) + '<br/></p></div>')
   return True, os.path.join(output_directory, output_filename + '.div')
