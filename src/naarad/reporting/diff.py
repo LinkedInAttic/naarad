@@ -335,7 +335,6 @@ class Diff(object):
         diff_file.write(diff_html)
       with open(os.path.join(self.output_directory,CONSTANTS.CLIENT_CHARTING_FILE),'w') as client_file:
         client_file.write(client_html)
-    import pdb; pdb.set_trace() #*****************
     return True
 
 class DiffSLAFailure:

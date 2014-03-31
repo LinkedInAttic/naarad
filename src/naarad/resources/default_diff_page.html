@@ -31,6 +31,7 @@
             <caption>Summary of SLA Failures</caption>
             <thead>
               <tr>
+                <th>metric</th>
                 <th>sub_metric</th>
                 <th>sla_rule</th>
                 <th>Baseline Value</th>
@@ -47,6 +48,7 @@
               {%- else %}
               <tr>
               {%- endif %}
+                <td>{{sla_failure.sla.metric}}</td>
                 <td>{{sla_failure.sla.sub_metric}}</td>
                 <td>{{sla_failure.sla.stat_name}} {{sla_failure.sla.sla_type}} {{sla_failure.sla.threshold}}{{sla_failure.sla.display}}</td>
                 <td>{{sla_failure.diff_metric[0]}}</td>

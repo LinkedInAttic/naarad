@@ -119,7 +119,6 @@ def extract_diff_sla_from_config_file(obj, options_file):
   config_obj.optionxform = str
   config_obj.read(options_file) 
   for section in config_obj.sections():
-    import pdb; pdb.set_trace() #*****************
     rule_strings, kwargs = get_rule_strings(config_obj, section)
     for (key, val) in rule_strings.iteritems():
       set_sla(obj, section, key, val)
@@ -604,7 +603,6 @@ def set_sla(obj, metric, sub_metric, rules):
     obj.sla_map[metric][sub_metric][stat] = sla
     if hasattr(obj, 'sla_list'):
       obj.sla_list.append(sla)  # TODO : remove this once report has grading done in the metric tables
-  import pdb; pdb.set_trace() #*****************
   return True
 
 def check_slas(metric):
