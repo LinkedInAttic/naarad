@@ -11,24 +11,22 @@ import sys
 import uuid
 import shutil
 import time
+import sys
+
 # add the path of ~/naarad/src;   the testing py is under ~/naarad/test 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')))
+import naarad.utils
+from naarad.metrics.sar_metric import SARMetric
+from naarad.metrics.cluster_metric import ClusterMetric
 
 #the temporary directory for testing, will remove it after done. 
 tmp_dir = ''
-naarad_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # ~/naarad/
-config_dir = 'examples/conf'
-config_file = 'config-cluster'
-input_dir = 'examples/logs'
-
-files_to_check = ["CLUSTER-1.sda.await.raw.png", 'CLUSTER-1.sda.await.sum.png', 'CLUSTER-1.sda.await.count.png', 'CLUSTER-1.all.percent-sys.raw.png']
 
 def setup():
   create_tmp_dir()
 
 def teardown():
   delete_tmp_dir() 
-  #print 'tear down' 
  
 def create_tmp_dir():
   '''create a unique tmp dir to hold the downloaded local files'''
@@ -47,15 +45,50 @@ def delete_tmp_dir():
   global tmp_dir
   shutil.rmtree(tmp_dir)
   
-def test_cluster():
-  ''' list of abosulute urls with no output file name'''
-  naarad_cmd = os.path.join(naarad_dir, 'bin/naarad')
-  naarad_conf = os.path.join(naarad_dir, config_dir, config_file)
-  naarad_input_dir = os.path.join(naarad_dir, input_dir)
+def test_clustermetric():
+  #construct 2 SARMetric
+  metric1 = SARMetric('SAR-cpuusage-host1', 'sar.cpuusage.out', 'host1', '.', 'logs', 'SAR-cpuusage-host1', None, None, {});
+  metric1.csv_column_map['logs/SAR-cpuusage-host1.all.percent-sys.csv'] = 'all.%sys'
+  metric1.column_csv_map['all.%sys'] = 'logs/SAR-cpuusage-host1.all.percent-sys.csv'
   
-  command = naarad_cmd + ' -c ' + naarad_conf + ' -i ' + naarad_input_dir + ' -o ' + tmp_dir
-  os.system(command)
+  metric2 = SARMetric('SAR-cpuusage-host2', 'sar.cpuusage.out', 'host2', '.', 'logs', 'SAR-cpuusage-host2', None, None, {});
+  metric2.csv_column_map['logs/SAR-cpuusage-host2.all.percent-sys.csv'] = 'all.%sys'
+  metric2.column_csv_map['all.%sys'] = 'logs/SAR-cpuusage-host2.all.percent-sys.csv'
   
-  for fc in files_to_check:
-    file_path = os.path.join(tmp_dir, 'resources' , fc)
-    assert os.path.exists(file_path),  "File of %s does not exist! " % file_path  
+  #construct a ClusterMetric
+  aggregate_metrics = 'SAR-cpuusage.all.percent-sys:raw,avg,sum,count'
+  section = 'CLUSTER-cpuusage-1'
+  label = 'CLUSTER-cpuusage-1'
+  resource_path = 'resources'
+  rule_strings = {}
+  output_directory = tmp_dir
+  aggregate_hosts = 'host1 host2'
+  other_options = {}
+  ts_start = None
+  ts_end = None
+  metrics = [metric1, metric2]
+  
+  cur_metric = ClusterMetric(section, aggregate_hosts, aggregate_metrics, metrics, output_directory, resource_path, label, ts_start, ts_end, rule_strings)
+  
+  # create sub-directory of resource_path
+  sub_dir = os.path.join(output_directory, resource_path)
+  if not os.path.exists(sub_dir):
+    os.makedirs(sub_dir)
+  
+  # the only method to test; it will write to the directory the final csv files;   
+  cur_metric.collect() 
+
+  #check the existance of the output files
+  functions = aggregate_metrics.split(':')
+  prefix = functions[0].split('.') #'SAR-cpuusage.all.percent-sys'
+  prefix[0] = section
+  prefix = '.'.join(prefix)  #CLUSTER-cpuusage-1.all.percent-sys
+  
+  for func in functions[1].split(','): #'raw,avg,sum,count'
+    file_name = prefix + '.' + func + '.csv'
+    file_path = os.path.join(sub_dir, file_name)
+    # print 'file to check = ' + file_path  #resources/CLUSTER-cpuusage-1.all.percent-sys.raw.csv
+    assert os.path.exists(file_path)
+
+if __name__ == '__main__':
+  test_clustermetric()

@@ -14,6 +14,7 @@ from naarad.metrics.procmeminfo_metric import ProcMeminfoMetric
 from naarad.metrics.proczoneinfo_metric import ProcZoneinfoMetric
 from naarad.reporting.report import Report
 from naarad.metrics.cluster_metric import ClusterMetric
+from naarad.metrics.top_metric import TopMetric
 
 #Custom metrics
 metric_classes = {
@@ -22,7 +23,8 @@ metric_classes = {
     'LINKEDINANDROIDRUM' : LinkedInAndroidRumMetric,
     'PROCVMSTAT' : ProcVmstatMetric,
     'PROCMEMINFO' : ProcMeminfoMetric, 
-    'PROCZONEINFO' : ProcZoneinfoMetric
+    'PROCZONEINFO' : ProcZoneinfoMetric,
+    'TOP' : TopMetric,
     }
 
 #Custom metrics;  aggregate_metric can only processed after regular metrics are done

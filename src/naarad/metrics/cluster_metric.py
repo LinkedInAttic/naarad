@@ -16,7 +16,6 @@ from naarad.metrics.metric import Metric
 import naarad.utils
 import sys
 
-
 logger = logging.getLogger('naarad.metrics.cluster_metric')
 
 class ClusterMetric(Metric):
@@ -39,14 +38,7 @@ class ClusterMetric(Metric):
     
     # in particular, Section can specify a subset of all rows (default has 43 rows):  "sub_metrics=nr_free_pages nr_inactive_anon"
     for (key, val) in other_options.iteritems():
-      setattr(self, key, val.split())        
-    
-    self.sub_metric_description = {
-      'raw': 'Raw event values',
-      'sum': 'Sum of all values',
-      'count': 'The number of events',
-      'avg': 'The average value',
-     }    
+      setattr(self, key, val.split())
       
   def collect(self):
     """
@@ -54,13 +46,12 @@ class ClusterMetric(Metric):
     for each metric, merge the corresponding csv files into one, and output to disk
     update corresponding properties such as csv_column_map. 
     by default, each aggr_metric only gets "raw" function (the simply merged data points)
-    users can specify other functions:  count (qps), sum (aggregated value), aver (averaged value)
+    users can specify other functions:  count (qps), sum (aggregated value), avg (averaged value)
+    The timestamp granularity of aggregated submetrics is in seconds (sub-second is not supported)
     """
     
-    for aggr_metric in self.aggr_metrics:   # e.g., SAR-device.sda.await:count,sum,aver
-      functions = set()
-      functions.add('raw')  #raw merging is always supported
-      
+    for aggr_metric in self.aggr_metrics:   # e.g., SAR-device.sda.await:count,sum,avg
+      functions = set()      
       fields = aggr_metric.split(":")   
       cur_metric_type = fields[0].split(".")[0]  # e.g. SAR-device
       
@@ -72,31 +63,24 @@ class ClusterMetric(Metric):
       cur_column = cur_column.replace('percent-','%')  # to handle the case when user specify "percent-" rather than '%'; we expect "%"
     
       merged_raw = []      #store all the raw values
-      merged_sum = dict()       #store the sum values for each timestamp   
-      merged_count = dict()     #store the count of each timestamp (i.e. qps)
+      merged_sum = defaultdict(float)       #store the sum values for each timestamp   
+      merged_count = defaultdict(float)     #store the count of each timestamp (i.e. qps)
       
       for metric in self.metrics:   # loop the list to find from all metrics to merge       
         file_csv = ""
         if metric.hostname in self.aggr_hosts and \
           cur_column in metric.csv_column_map.values():  
-          file_csv = metric.get_csv(cur_column)   
-                             
+          file_csv = metric.get_csv(cur_column)
+
           with open(file_csv) as fh:
             for line in fh:
-              # handle the last line from each file gracefully by adding "\n"
-              if "\n" in line:
-                merged_raw.append(line)
-              else:
-                merged_raw.append(line + "\n")      
-              
-              # generate "sum" and "aver" sub-metric
+              merged_raw.append(line.rstrip())              
+              # generate "sum" and "avg" sub-metric
               words = line.split(",")  
               value = words[1]                     
-              ts = words[0]  
-              ts_tail_index = words[0].find('.') #in case of sub-seconds, then we only want seconds
-              if ts_tail_index > -1:
-                ts = ts[:ts_tail_index]  #excluding the last '.' to extract only "second"-time
-              
+              ts = words[0]  # timestamp in "2014-03-03 01:02:11.2334" format or "2014-03-03 01:02:11"
+              ts = ts.split('.')[0] #in case of sub-seconds; we only want seconds; 
+               
               if ts in merged_sum.keys():
                 merged_sum[ts] += float(value)
                 merged_count[ts] += 1
@@ -105,10 +89,11 @@ class ClusterMetric(Metric):
                 merged_count[ts] = 1      
 
       #"raw" csv file
-      out_csv = self.get_csv(cur_column + ".raw")
-      with open(out_csv, 'w') as fh:
+      if 'raw' in functions:
+        out_csv = self.get_csv(cur_column + ".raw")
         self.csv_files.append(out_csv)
-        fh.write("".join(sorted(merged_raw)) )        
+        with open(out_csv, 'w') as fh:
+          fh.write("\n".join(sorted(merged_raw)) )
       
       #"sum"  csv file
       if 'sum' in functions:
@@ -135,8 +120,7 @@ class ClusterMetric(Metric):
             fh.write(k + "," + str(v)+"\n")
           
       gc.collect()
-    return True    
- 
+    return True 
           
   def parse(self):
     """
@@ -145,4 +129,3 @@ class ClusterMetric(Metric):
     """
     
     return True
-    
