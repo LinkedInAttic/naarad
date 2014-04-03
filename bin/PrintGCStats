@@ -755,7 +755,7 @@ function printInterval() {
 }
 
 $0 ~ ".*\\[GC[^ ]+ .*" {
-  sub(/GC[^ ]+/, "[GC", $0)
+  sub(/GC[^ ]+/, "GC", $0)
 }
 
 $0 ~ ".* age .*" {
