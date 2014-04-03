@@ -754,7 +754,7 @@ function printInterval() {
   }
 }
 
-$0 ~ ".*GC[^ ]+ .*" {
+$0 ~ ".*\\[GC[^ ]+ .*" {
   sub(/GC[^ ]+/, "[GC", $0)
 }
 
