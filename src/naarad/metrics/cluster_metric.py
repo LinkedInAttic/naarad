@@ -59,7 +59,6 @@ class ClusterMetric(Metric):
         return True
 
       cur_column = '.'.join(fields[0].split('.')[1:])    #e.g. sda.await or all.percent-sys
-      cur_column = cur_column.replace('percent-','%')  # to handle the case when user specify "percent-" rather than '%'; we expect "%"
     
       #store data points of various aggregation functions
       aggr_data = {}
