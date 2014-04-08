@@ -95,7 +95,7 @@ class ClusterMetric(Metric):
         self.csv_files.append(out_csv)
         with open(out_csv, 'w') as fh:
           for k,v in sorted(aggr_data['sum'].items()):
-            fh.write(k + "," + str(v)+"\n")
+            fh.write(k + "," + str(v) + '\n')
       
       # "avg" csv file  
       if 'avg' in functions_aggr: 
@@ -103,7 +103,7 @@ class ClusterMetric(Metric):
         self.csv_files.append(out_csv)
         with open(out_csv, 'w') as fh:
           for k,v in sorted(aggr_data['sum'].items()):
-            fh.write(k + "," + str(v/aggr_data['count'][k])+"\n")
+            fh.write(k + "," + str(v/aggr_data['count'][k]) + '\n')
           
       # "count" csv file (qps)
       if 'count' in functions_aggr:
@@ -111,7 +111,7 @@ class ClusterMetric(Metric):
         self.csv_files.append(out_csv)
         with open(out_csv, 'w') as fh:
           for k,v in sorted(aggr_data['count'].items()):
-            fh.write(k + "," + str(v)+"\n")
+            fh.write(k + "," + str(v) + '\n')
           
       gc.collect()
     return True 
