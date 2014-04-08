@@ -15,6 +15,7 @@ from naarad.metrics.proczoneinfo_metric import ProcZoneinfoMetric
 from naarad.reporting.report import Report
 from naarad.metrics.cluster_metric import ClusterMetric
 from naarad.metrics.top_metric import TopMetric
+from naarad.metrics.netstat_metric import NetstatMetric
 
 #Custom metrics
 metric_classes = {
@@ -24,7 +25,6 @@ metric_classes = {
     'PROCVMSTAT' : ProcVmstatMetric,
     'PROCMEMINFO' : ProcMeminfoMetric, 
     'PROCZONEINFO' : ProcZoneinfoMetric,
-    'TOP' : TopMetric,
     }
 
 #Custom metrics;  aggregate_metric can only processed after regular metrics are done

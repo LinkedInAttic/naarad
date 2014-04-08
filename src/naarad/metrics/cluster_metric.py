@@ -51,77 +51,75 @@ class ClusterMetric(Metric):
     """
     
     for aggr_metric in self.aggr_metrics:   # e.g., SAR-device.sda.await:count,sum,avg
-      functions = set()      
+      functions_aggr = []
       fields = aggr_metric.split(":")   
       cur_metric_type = fields[0].split(".")[0]  # e.g. SAR-device
       
-      if len(fields) > 1:  # if config file has ":sum,count"
-        for func in fields[1].split(","):
-          functions.add(func)
+      if len(fields) > 1:  # The user has to specify the aggregate functions (i.e., :raw,count,sum,avg)
+        func_user = ''.join(fields[1].split())
+        functions_aggr.extend(func_user.split(","))
+      else:  # no user input of aggregate functions
+        return True
 
       cur_column = '.'.join(fields[0].split('.')[1:])    #e.g. sda.await or all.percent-sys
       cur_column = cur_column.replace('percent-','%')  # to handle the case when user specify "percent-" rather than '%'; we expect "%"
     
-      merged_raw = []      #store all the raw values
-      merged_sum = defaultdict(float)       #store the sum values for each timestamp   
-      merged_count = defaultdict(float)     #store the count of each timestamp (i.e. qps)
+      #store data points of various aggregation functions
+      aggr_data = {}
+      aggr_data['raw'] = []   #store all the raw values
+      aggr_data['sum'] = defaultdict(float)   #store the sum values for each timestamp   
+      aggr_data['count'] = defaultdict(float) #store the count of each timestamp (i.e. qps)
       
-      for metric in self.metrics:   # loop the list to find from all metrics to merge       
-        file_csv = ""
+      for metric in self.metrics:   # loop the list to find from all metrics to merge
         if metric.hostname in self.aggr_hosts and \
           cur_column in metric.csv_column_map.values():  
           file_csv = metric.get_csv(cur_column)
-
           with open(file_csv) as fh:
             for line in fh:
-              merged_raw.append(line.rstrip())              
-              # generate "sum" and "avg" sub-metric
-              words = line.split(",")  
-              value = words[1]                     
-              ts = words[0]  # timestamp in "2014-03-03 01:02:11.2334" format or "2014-03-03 01:02:11"
-              ts = ts.split('.')[0] #in case of sub-seconds; we only want seconds; 
-               
-              if ts in merged_sum.keys():
-                merged_sum[ts] += float(value)
-                merged_count[ts] += 1
-              else:
-                merged_sum[ts] = float(value)
-                merged_count[ts] = 1      
+              aggr_data['raw'].append(line.rstrip())
+              words = line.split(",")
+              ts = words[0].split('.')[0]   #in case of sub-seconds; we only want the value of seconds; 
+              aggr_data['sum'][ts] += float(words[1])
+              aggr_data['count'][ts] += 1
 
       #"raw" csv file
-      if 'raw' in functions:
-        out_csv = self.get_csv(cur_column + ".raw")
+      if 'raw' in functions_aggr:
+        out_csv = self.get_csv(cur_column, 'raw')
         self.csv_files.append(out_csv)
         with open(out_csv, 'w') as fh:
-          fh.write("\n".join(sorted(merged_raw)) )
+          fh.write("\n".join(sorted(aggr_data['raw'])))
       
       #"sum"  csv file
-      if 'sum' in functions:
-        out_csv = self.get_csv(cur_column + '.sum')
+      if 'sum' in functions_aggr:
+        out_csv = self.get_csv(cur_column, 'sum')
         self.csv_files.append(out_csv)
         with open(out_csv, 'w') as fh:
-          for k,v in sorted(merged_sum.items()):
+          for k,v in sorted(aggr_data['sum'].items()):
             fh.write(k + "," + str(v)+"\n")
       
       # "avg" csv file  
-      if 'avg' in functions: 
-        out_csv = self.get_csv(cur_column + '.avg')
+      if 'avg' in functions_aggr: 
+        out_csv = self.get_csv(cur_column, 'avg')
         self.csv_files.append(out_csv)
         with open(out_csv, 'w') as fh:
-          for k,v in sorted(merged_sum.items()):
-            fh.write(k + "," + str(v/merged_count[k])+"\n")
+          for k,v in sorted(aggr_data['sum'].items()):
+            fh.write(k + "," + str(v/aggr_data['count'][k])+"\n")
           
       # "count" csv file (qps)
-      if 'count' in functions:
-        out_csv = self.get_csv(cur_column + '.count')
+      if 'count' in functions_aggr:
+        out_csv = self.get_csv(cur_column, 'count')
         self.csv_files.append(out_csv)
         with open(out_csv, 'w') as fh:
-          for k,v in sorted(merged_count.items()):
+          for k,v in sorted(aggr_data['count'].items()):
             fh.write(k + "," + str(v)+"\n")
           
       gc.collect()
     return True 
-          
+  
+  def get_csv(self, column, func):
+    csv_file = Metric.get_csv(self, column + '.' + func)
+    return csv_file
+    
   def parse(self):
     """
     merge multiple hosts' csv into one csv file. This approach has the benefit of reusing calculate_stats(), but with the penalty of reading the single csv later for calculate_stats()
