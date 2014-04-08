@@ -42,11 +42,9 @@ class ClusterMetric(Metric):
       
   def collect(self):
     """
-    take metrics, filter all metrics based on hostname, and metric_type (which comes from section)
-    for each metric, merge the corresponding csv files into one, and output to disk
-    update corresponding properties such as csv_column_map. 
-    by default, each aggr_metric only gets "raw" function (the simply merged data points)
-    users can specify other functions:  count (qps), sum (aggregated value), avg (averaged value)
+    Take a list of metrics, filter all metrics based on hostname, and metric_type 
+    For each metric, merge the corresponding csv files into one,update corresponding properties such as csv_column_map. 
+    Users can specify functions: raw, count (qps), sum (aggregated value), avg (averaged value)
     The timestamp granularity of aggregated submetrics is in seconds (sub-second is not supported)
     """
     
@@ -68,7 +66,7 @@ class ClusterMetric(Metric):
       aggr_data = {}
       aggr_data['raw'] = []   #store all the raw values
       aggr_data['sum'] = defaultdict(float)   #store the sum values for each timestamp   
-      aggr_data['count'] = defaultdict(float) #store the count of each timestamp (i.e. qps)
+      aggr_data['count'] = defaultdict(int) #store the count of each timestamp (i.e. qps)
       
       for metric in self.metrics:   # loop the list to find from all metrics to merge
         if metric.hostname in self.aggr_hosts and \
