@@ -33,10 +33,9 @@ class ClusterMetric(Metric):
     self.aggr_metrics = aggregate_metrics.split()
     self.aggr_hosts = aggregate_hosts.split()
                   
-    #Metric arguments take 'infile' and 'hostname', for ClusterMetric, they are invalid, so just provide empty strings.     
+    #Metric arguments take 'infile' and 'hostname', for ClusterMetric, they are invalid, so just provide empty strings.
     Metric.__init__(self, section, '', '', output_directory, resource_path, label, ts_start, ts_end, rule_strings)
-    
-    # in particular, Section can specify a subset of all rows (default has 43 rows):  "sub_metrics=nr_free_pages nr_inactive_anon"
+        
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
       
