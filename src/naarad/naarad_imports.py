@@ -22,7 +22,7 @@ metric_classes = {
     'LINKEDINANDROIDRUM' : LinkedInAndroidRumMetric,
     'PROCVMSTAT' : ProcVmstatMetric,
     'PROCMEMINFO' : ProcMeminfoMetric, 
-    'PROCZONEINFO' : ProcZoneinfoMetric
+    'PROCZONEINFO' : ProcZoneinfoMetric,
     }
 
 #Custom metrics;  aggregate_metric can only processed after regular metrics are done
