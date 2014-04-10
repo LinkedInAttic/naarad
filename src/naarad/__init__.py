@@ -98,12 +98,12 @@ class Naarad(object):
 
   def set_sla_data(self, analysis, metrics):
     for metric in metrics:
-      analysis.sla_data += {metric: metric.sla_map}
+      analysis.sla_data[metric.label] = metric.sla_map
     return CONSTANTS.OK
 
   def set_stats_data(self, analysis, metrics):
     for metric in metrics:
-      analysis.stats_data += {metric: metric.summary_stats}
+      analysis.stats_data[metric.label] = metric.summary_stats
     return CONSTANTS.OK
 
   def get_stats_data(self, test_id):
