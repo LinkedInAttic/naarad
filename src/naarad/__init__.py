@@ -87,6 +87,10 @@ class Naarad(object):
     return CONSTANTS.OK
 
   def get_failed_analyses(self):
+    """
+    Returns a list of test_id for which naarad analysis failed
+    :return: list of test_ids
+    """
     failed_analyses = []
     for test_id in self.analyses.keys():
       if self.analyses[test_id].status != CONSTANTS.OK:
@@ -94,22 +98,42 @@ class Naarad(object):
     return failed_analyses
 
   def get_sla_data(self, test_id):
+    """
+    Returns sla data for all the metrics associated with a test_id
+    :return: dict of form { metric.label:metric.sla_map}
+    """
     return self.analyses[test_id].sla_data
 
   def set_sla_data(self, analysis, metrics):
+    """
+    Get sla data from each metric and set it in the Analysis object to make it available for retrieval
+    :return: currently always returns CONSTANTS.OK. Maybe enhanced in future to return additional status
+    """
     for metric in metrics:
       analysis.sla_data[metric.label] = metric.sla_map
     return CONSTANTS.OK
 
   def set_stats_data(self, analysis, metrics):
+    """
+    Get summary stats data from each metric and set it in the Analysis object to make it available for retrieval
+    :return: currently always returns CONSTANTS.OK. Maybe enhanced in future to return additional status
+    """
     for metric in metrics:
       analysis.stats_data[metric.label] = metric.summary_stats
     return CONSTANTS.OK
 
   def get_stats_data(self, test_id):
+    """
+    Returns summary stats data for all the metrics associated with a test_id
+    :return: dict of form { metric.label:metric.summary_stats}
+    """
     return self.analyses[test_id].stats_data
 
   def create_output_directories(self, analysis):
+    """
+    Create the necessary output and resource directories for the specified analysis
+    :param: analysis: analysis associated with a given test_id
+    """
     try:
       os.makedirs(analysis.output_directory)
     except OSError as exception:
@@ -125,7 +149,10 @@ class Naarad(object):
   def analyze(self, input_directory, output_directory, **kwargs):
     """
     Run all the analysis saved in self.analyses, sorted by test_id
-    :return:
+    :param: input_directory: location of log files
+    :param: output_directory: root directory for analysis output
+    :param: **kwargs: Optional keyword args
+    :return: int: status code.
     """
     if len(self.analyses) == 0:
       self.analyses[0] = Analysis(None, kwargs['config_file_location'])
@@ -151,7 +178,8 @@ class Naarad(object):
 
   def run(self, analysis, **kwargs):
     """
-    :param analysis:
+    :param analysis: Run naarad analysis for the specified analysis object
+    :param **kwargs: Additional keyword args can be passed in here for future enhancements
     :return:
     """
     threads = []
@@ -193,6 +221,9 @@ class Naarad(object):
     return CONSTANTS.OK
 
   def process_naarad_config(self, config, analysis):
+    """
+    Process the config file associated with a particular analysis and return metrics, run_steps and crossplots. Also sets output directory and resource_path for an anlaysis
+    """
     output_directory = analysis.output_directory
     resource_path = analysis.resource_path
     run_steps = defaultdict(list)
