@@ -18,7 +18,7 @@ infile=sar.cpuusage.out
 
 [CLUSTER-1]
 aggr_hosts=host1 host2
-aggr_metrics=SAR-device.sda.await SAR-device.sdb.await SAR-cpuusage.all.percent-sys SAR-cpuusage.all.percent-idle
+aggr_metrics=SAR-device.sda.await:raw,sum,avg,count SAR-cpuusage.all.%sys:avg
 
 [GRAPH]
 graphing_library=matplotlib
