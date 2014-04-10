@@ -8,21 +8,27 @@ Unless required by applicable law or agreed to in writing, software distribute
 from naarad.graphing import matplotlib_naarad
 from naarad.graphing import pygal_naarad
 from naarad.metrics.linkedin_android_rum_metric import LinkedInAndroidRumMetric
+from naarad.metrics.gc_metric import GCMetric
+from naarad.metrics.innotop_metric import INNOMetric
 from naarad.metrics.jmeter_metric import JmeterMetric
 from naarad.metrics.procvmstat_metric import ProcVmstatMetric
 from naarad.metrics.procmeminfo_metric import ProcMeminfoMetric
 from naarad.metrics.proczoneinfo_metric import ProcZoneinfoMetric
+from naarad.metrics.sar_metric import SARMetric
 from naarad.reporting.report import Report
 from naarad.metrics.cluster_metric import ClusterMetric
 
 #Custom metrics
 metric_classes = {
     #'MyMetric' : MyMetricParserClass
+    'GC' : GCMetric,
+    'INNOTOP' : INNOMetric,
     'JMETER' : JmeterMetric,
     'LINKEDINANDROIDRUM' : LinkedInAndroidRumMetric,
     'PROCVMSTAT' : ProcVmstatMetric,
     'PROCMEMINFO' : ProcMeminfoMetric, 
-    'PROCZONEINFO' : ProcZoneinfoMetric
+    'PROCZONEINFO' : ProcZoneinfoMetric,
+    'SAR' : SARMetric
     }
 
 #Custom metrics;  aggregate_metric can only processed after regular metrics are done
@@ -38,13 +44,3 @@ graphing_modules = {
 reporting_modules = {
     'report': Report
 }
-
-important_sub_metrics_import = {
-    'GC': ('GCPause', 'used'),
-    'LINKEDINANDROIDRUM': ('launch_time', 'nus_update_time'),
-    'SAR-cpuusage': ('%sys', '%usr'),
-    'SAR-device': ('%util', 'await'),
-    'JMETER': ('Overall_Summary.ResponseTime', 'Overall_Summary.DataThroughput', 'Overall_Summary.qps')
-}
-
-device_type_metrics = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-dev', 'SAR-edev')
