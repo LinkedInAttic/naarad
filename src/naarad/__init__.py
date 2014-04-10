@@ -36,8 +36,8 @@ class Analysis(object):
     self.output_directory = None
     self.resource_path = 'resources'
     self.status = CONSTANTS.OK
-    self.sla_data = defaultdict(dict)
-    self.stats_data = defaultdict(dict)
+    self.sla_data = {}
+    self.stats_data = {}
 
 
 class Naarad(object):
