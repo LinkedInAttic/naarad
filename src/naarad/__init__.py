@@ -18,7 +18,8 @@ from naarad_imports import metric_classes
 from naarad_imports import aggregate_metric_classes
 from naarad_imports import graphing_modules
 from naarad_imports import reporting_modules
-
+from naarad.reporting.diff import Diff
+from naarad.reporting.diff import NaaradReport
 
 logger = logging.getLogger('naarad')
 
@@ -48,8 +49,12 @@ class Naarad(object):
   def __init__(self):
     self.default_test_id = -1
     self.analyses = {}
+    self.resource_path = 'resources'
+    self.input_directory = None
+    self.output_directory = None
     naarad.metrics.metric.Metric.graphing_modules = graphing_modules
     naarad.metrics.metric.Metric.device_types = CONSTANTS.device_type_metrics
+    naarad.reporting.diff.Diff.graphing_modules = graphing_modules
 
 
   def signal_start(self, config_file_location, test_id=None, **kwargs):
@@ -157,6 +162,8 @@ class Naarad(object):
     if len(self.analyses) == 0:
       self.analyses[0] = Analysis(None, kwargs['config_file_location'])
     error_count = 0
+    self.input_directory = input_directory
+    self.output_directory = output_directory
     for test_id in sorted(self.analyses.keys()):
       if not self.analyses[test_id].input_directory:
         self.analyses[test_id].input_directory = input_directory
@@ -218,6 +225,28 @@ class Naarad(object):
     rpt = reporting_modules['report'](None, analysis.output_directory, os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path, metrics['metrics'] + metrics['aggregate_metrics'], correlated_plots=correlated_plots)
     rpt.generate()
 
+    return CONSTANTS.OK
+
+  def diff(self, test_id_1, test_id_2, config=None, **kwargs):
+    """
+    Create a diff report using test_id_1 as a baseline
+    :param: test_id_1: test id to be used as baseline
+    :param: test_id_2: test id to compare against baseline
+    :param: config file for diff (optional)
+    :param: **kwargs: keyword arguments
+    """
+    output_directory = os.path.join(self.output_directory,'diff_' + str(test_id_1) + '_' + str(test_id_2))
+    if kwargs:
+      if 'output_directory' in kwargs.keys():
+        output_directory = kwargs['output_directory']
+    diff_report = Diff([NaaradReport(self.analyses[test_id_1].output_directory, None), NaaradReport(self.analyses[test_id_2].output_directory, None)], 'diff', output_directory, os.path.join(output_directory, self.resource_path), self.resource_path)
+    if config:
+      naarad.utils.extract_sla_from_config_file(diff_report, config)
+    diff_report.generate()
+    if diff_report.sla_failures > 0:
+      return CONSTANTS.SLA_FAILURE
+    if diff_report.status != 'OK':
+      return CONSTANTS.ERROR
     return CONSTANTS.OK
 
   def process_naarad_config(self, config, analysis):
