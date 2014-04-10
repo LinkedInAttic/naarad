@@ -98,12 +98,12 @@ class Naarad(object):
 
   def set_sla_data(self, analysis, metrics):
     for metric in metrics:
-      analysis.sla_data += {metric: metrics[metric].sla_map}
+      analysis.sla_data += {metric: metric.sla_map}
     return CONSTANTS.OK
 
   def set_stats_data(self, analysis, metrics):
     for metric in metrics:
-      analysis.stats_data += {metric: metrics[metric].summary_stats}
+      analysis.stats_data += {metric: metric.summary_stats}
     return CONSTANTS.OK
 
   def get_stats_data(self, test_id):
@@ -180,8 +180,8 @@ class Naarad(object):
     for t in threads:
       t.join()
 
-    self.set_sla_data(analysis, ['metrics'] + metrics['aggregate_metrics'])
-    self.set_stats_data(analysis, ['metrics'] + metrics['aggregate_metrics'])
+    self.set_sla_data(analysis, metrics['metrics'] + metrics['aggregate_metrics'])
+    self.set_stats_data(analysis, metrics['metrics'] + metrics['aggregate_metrics'])
 
     if len(crossplots) > 0:
       correlated_plots = naarad.utils.nway_plotting(crossplots, metrics['metrics'] + metrics['aggregate_metrics'], os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path)
