@@ -52,11 +52,12 @@ LIA_TIMING_NAME = 'timingName'
 LIA_TIMING_VALUE = 'timingValue'
 LIA_START = 'start'
 LIA_APP_ON_CREATE = 'linkedin_android_app_oncreate_time'
+LIA_LAUNCH_ACTIVITY = 'linkedin_android_app_launch_activity_time'
+LIA_NUS_ON_CREATE = 'linkedin_android_app_nus_oncreate_time'
 LIA_NUS_UPDATE = 'linkedin_android_nus_update_time'
 LIA_LONG = 'long'
 LIA_NATIVE_TIMINGS = 'nativeTimings'
 LIA_ARRAY = 'array'
-
 
 # Narrad Exit Code
 SLA_FAILURE = 1

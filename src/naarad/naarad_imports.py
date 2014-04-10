@@ -41,7 +41,7 @@ reporting_modules = {
 
 important_sub_metrics_import = {
     'GC': ('GCPause', 'used'),
-    'LINKEDINANDROIDRUM': ('launch_time', 'nus_update_time'),
+    'LINKEDINANDROIDRUM': ('launch_time', 'launch_time_stg1', 'launch_time_stg2', 'launch_time_stg3', 'nus_update_time'),
     'SAR-cpuusage': ('%sys', '%usr'),
     'SAR-device': ('%util', 'await'),
     'JMETER': ('Overall_Summary.ResponseTime', 'Overall_Summary.DataThroughput', 'Overall_Summary.qps')
