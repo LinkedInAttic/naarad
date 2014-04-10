@@ -37,6 +37,8 @@ def test_naarad_start_stop():
   naarad_obj.get_stats_data(test_id_2)
   if naarad_obj.diff(test_id_1, test_id_2, None) != CONSTANTS.OK:
     print 'Error encountered during diff'
+  if naarad_obj.diff_reports_by_location('test_api_temp/0', 'test_api_temp/1', 'test_api_temp/diff_location', None):
+    print 'Error encountered during diff'
   print 'Please inspect the generated reports manually'
 
 setup_module()
