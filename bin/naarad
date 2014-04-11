@@ -154,8 +154,6 @@ def main():
   variables_dict = {}
   ts_start = None
   ts_end = None
-  ts_global_start = None
-  ts_global_end = None
   bin_path = os.path.dirname( __file__ )
   skip_plots = False
 
@@ -240,7 +238,7 @@ def main():
         else:
           logger.error('Unknown RUN-STEP run_order specified')
       elif section == 'GLOBAL':
-        ts_global_start, ts_global_end = naarad.utils.parse_global_section(config_obj, section)
+        ts_start, ts_end = naarad.utils.parse_global_section(config_obj, section)
       else:
         # section name is used to create sub-directories, so enforce it. 
         if not naarad.utils.is_valid_metric_name(section):
@@ -298,10 +296,6 @@ def main():
     # ts_start in global section is overwritten by ts_start in RUN-step section
     # ts_start in RUN-step section is overwritten by ts_start in metric section
     for metric in metrics:
-      if ts_global_start and not ts_start and not metric.ts_start:
-        metric.ts_start = ts_global_start
-      if ts_global_end and not ts_end and not metric.ts_end:
-        metric.ts_end = ts_global_end
       if ts_start and not metric.ts_start:
         metric.ts_start = ts_start
       if ts_end and not metric.ts_end:
