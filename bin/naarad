@@ -159,8 +159,8 @@ def main():
 
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument('-c', '--config', help="file with specifications for each metric and graphs")
-  arg_parser.add_argument('-b', '--begin', help="Start time in the format of HH:MM:SS or YYYYmmdd_HH:MM:SS")
-  arg_parser.add_argument('-f', '--finish', help="Finish time in the format of HH:MM:SS or YYYYmmdd_HH:MM:SS")
+  arg_parser.add_argument('-b', '--begin', help="Start time in the format of HH:MM:SS or YYYY-mm-dd_HH:MM:SS")
+  arg_parser.add_argument('-f', '--finish', help="Finish time in the format of HH:MM:SS or YYYY-mm-dd_HH:MM:SS")
   arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
   arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
   arg_parser.add_argument('-r', '--resource_path', help="output sub-directory where resources such as images/svg/csv etc will be stored", default='resources')
@@ -180,10 +180,6 @@ def main():
   if args:
     if args.no_plots:
       skip_plots = True
-    if args.begin:
-        ts_start = args.begin
-    if args.finish:
-        ts_end = args.finish
     if args.diff:
       if not args.output_dir:
         logger.error('No Output location specified')
@@ -268,7 +264,10 @@ def main():
             aggregate_metrics.append(new_metric)
           else:
             metrics.append(new_metric)
-
+    if args and args.begin:
+      ts_start = args.begin
+    if args and args.finish:
+      ts_end = args.finish
     if outdir_default:
       try:
         os.makedirs(outdir_default)
@@ -299,7 +298,8 @@ def main():
     threads = []
     graph_lock = threading.Lock()
 
-    # ts_start in global section is overwritten by ts_start in RUN-step section
+    # ts_start in global section is overwritten by CLI -b option
+    # CLI -b option is overwritten by ts_start in RUN-step section
     # ts_start in RUN-step section is overwritten by ts_start in metric section
     for metric in metrics:
       if ts_start and not metric.ts_start:
