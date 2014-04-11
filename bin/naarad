@@ -159,6 +159,8 @@ def main():
 
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument('-c', '--config', help="file with specifications for each metric and graphs")
+  arg_parser.add_argument('-b', '--begin', help="Start time in the format of HH:MM:SS or YYYYmmdd_HH:MM:SS")
+  arg_parser.add_argument('-f', '--finish', help="Finish time in the format of HH:MM:SS or YYYYmmdd_HH:MM:SS")
   arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
   arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
   arg_parser.add_argument('-r', '--resource_path', help="output sub-directory where resources such as images/svg/csv etc will be stored", default='resources')
@@ -178,6 +180,10 @@ def main():
   if args:
     if args.no_plots:
       skip_plots = True
+    if args.begin:
+        ts_start = args.begin
+    if args.finish:
+        ts_end = args.finish
     if args.diff:
       if not args.output_dir:
         logger.error('No Output location specified')
