@@ -110,20 +110,18 @@ def get_rule_strings(config_obj, section):
       del kwargs[key]
   return rule_strings, kwargs
 
-def extract_sla_from_config_file(obj, options_file):
+def extract_diff_sla_from_config_file(obj, options_file):
   """
   Helper function to parse diff config file, which contains SLA rules for diff comparisons
   """
   rule_strings = {}
   config_obj = ConfigParser.ConfigParser()
   config_obj.optionxform = str
-  config_obj.read(options_file)
+  config_obj.read(options_file) 
   for section in config_obj.sections():
-    if section == 'DIFF':
-      rule_strings, kwargs = get_rule_strings(config_obj, section)
-      break
-  for (key, val) in rule_strings.iteritems():
-    set_sla(obj, key, val)
+    rule_strings, kwargs = get_rule_strings(config_obj, section)
+    for (key, val) in rule_strings.iteritems():
+      set_sla(obj, section, key, val)
 
 def parse_basic_metric_options(config_obj, section):
   """
@@ -584,7 +582,7 @@ def get_standardized_timestamp(timestamp, ts_format):
     return -1    
   return ts
 
-def set_sla(obj, sub_metric, rules):
+def set_sla(obj, metric, sub_metric, rules):
   """
   Extract SLAs from a set of rules
   """
@@ -594,15 +592,15 @@ def set_sla(obj, sub_metric, rules):
   for rule in rules_list:
     if '<' in rule:
       stat, threshold = rule.split('<')
-      sla = SLA(sub_metric, stat, threshold, 'lt')
+      sla = SLA(metric, sub_metric, stat, threshold, 'lt')
     elif '>' in rule:
       stat, threshold = rule.split('>')
-      sla = SLA(sub_metric, stat, threshold, 'gt')
+      sla = SLA(metric, sub_metric, stat, threshold, 'gt')
     else:
       if hasattr(obj, 'logger'):
         obj.logger.error('Unsupported SLA type defined : ' + rule)
       sla = None
-    obj.sla_map[sub_metric][stat] = sla
+    obj.sla_map[metric][sub_metric][stat] = sla
     if hasattr(obj, 'sla_list'):
       obj.sla_list.append(sla)  # TODO : remove this once report has grading done in the metric tables
   return True
@@ -613,34 +611,32 @@ def check_slas(metric):
   :return: 0 (if all SLAs pass) or the number of SLAs failures
   """
   if not hasattr(metric, 'sla_map'):
-    return 0
-  ret = 0
-  for sub_metric in metric.sla_map.keys():
-    for stat_name in metric.sla_map[sub_metric].keys():
-      sla = metric.sla_map[sub_metric][stat_name]
-      if stat_name[0] == 'p' and hasattr(metric, 'calculated_percentiles'):
-        if sub_metric in metric.calculated_percentiles.keys():
-          percentile_num = int(stat_name[1:])
-          if isinstance(percentile_num, float) or isinstance(percentile_num, int):
-            if percentile_num in metric.calculated_percentiles[sub_metric].keys():
-              if not sla.check_sla_passed(metric.calculated_percentiles[sub_metric][percentile_num]):
-                logger.info("Failed SLA for " + sub_metric)
-                ret += 1
-                metric.status = CONSTANTS.SLA_FAILED
-      if sub_metric in metric.calculated_stats.keys() and hasattr(metric, 'calculated_stats'):
-        if stat_name in metric.calculated_stats[sub_metric].keys():
-          if not sla.check_sla_passed(metric.calculated_stats[sub_metric][stat_name]):
-            logger.info("Failed SLA for " + sub_metric)
-            ret += 1
-            metric.status = CONSTANTS.SLA_FAILED
+    return
+  for metric_label in metric.sla_map.keys():
+    for sub_metric in metric.sla_map[metric_label].keys():
+      for stat_name in metric.sla_map[metric_label][sub_metric].keys():
+        sla = metric.sla_map[metric_label][sub_metric][stat_name]
+        if stat_name[0] == 'p' and hasattr(metric, 'calculated_percentiles'):
+          if sub_metric in metric.calculated_percentiles.keys():
+            percentile_num = int(stat_name[1:])
+            if isinstance(percentile_num, float) or isinstance(percentile_num, int):
+              if percentile_num in metric.calculated_percentiles[sub_metric].keys():
+                if not sla.check_sla_passed(metric.calculated_percentiles[sub_metric][percentile_num]):
+                  logger.info("Failed SLA for " + sub_metric)
+                  metric.status = CONSTANTS.SLA_FAILED
+        if sub_metric in metric.calculated_stats.keys() and hasattr(metric, 'calculated_stats'):
+          if stat_name in metric.calculated_stats[sub_metric].keys():
+            if not sla.check_sla_passed(metric.calculated_stats[sub_metric][stat_name]):
+              logger.info("Failed SLA for " + sub_metric)
+              metric.status = CONSTANTS.SLA_FAILED
   # Save SLA results in a file
   if len(metric.sla_map.keys()) > 0 and hasattr(metric, 'get_sla_csv'):
     sla_csv_file = metric.get_sla_csv()
     with open(sla_csv_file, 'w') as FH:
-      for sub_metric in metric.sla_map.keys():
-        for stat, sla in metric.sla_map[sub_metric].items():
-          FH.write('%s\n' % (sla.get_csv_repr()))
-  return ret
+      for metric_label in metric.sla_map.keys():
+        for sub_metric in metric.sla_map[metric_label].keys():
+          for stat, sla in metric.sla_map[metric_label][sub_metric].items():
+            FH.write('%s\n' % (sla.get_csv_repr()))
 
 def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock,
                                   skip_plots):
