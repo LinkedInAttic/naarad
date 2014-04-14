@@ -611,8 +611,7 @@ def check_slas(metric):
   :return: 0 (if all SLAs pass) or the number of SLAs failures
   """
   if not hasattr(metric, 'sla_map'):
-    return 0
-  ret = 0
+    return
   for metric_label in metric.sla_map.keys():
     for sub_metric in metric.sla_map[metric_label].keys():
       for stat_name in metric.sla_map[metric_label][sub_metric].keys():
@@ -624,13 +623,11 @@ def check_slas(metric):
               if percentile_num in metric.calculated_percentiles[sub_metric].keys():
                 if not sla.check_sla_passed(metric.calculated_percentiles[sub_metric][percentile_num]):
                   logger.info("Failed SLA for " + sub_metric)
-                  ret += 1
                   metric.status = CONSTANTS.SLA_FAILED
         if sub_metric in metric.calculated_stats.keys() and hasattr(metric, 'calculated_stats'):
           if stat_name in metric.calculated_stats[sub_metric].keys():
             if not sla.check_sla_passed(metric.calculated_stats[sub_metric][stat_name]):
               logger.info("Failed SLA for " + sub_metric)
-              ret += 1
               metric.status = CONSTANTS.SLA_FAILED
   # Save SLA results in a file
   if len(metric.sla_map.keys()) > 0 and hasattr(metric, 'get_sla_csv'):
@@ -640,7 +637,6 @@ def check_slas(metric):
         for sub_metric in metric.sla_map[metric_label].keys():
           for stat, sla in metric.sla_map[metric_label][sub_metric].items():
             FH.write('%s\n' % (sla.get_csv_repr()))
-  return ret
 
 def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock,
                                   skip_plots):
