@@ -301,6 +301,8 @@ class Naarad(object):
           run_steps['post'].append(run_step)
         else:
           logger.error('Unknown RUN-STEP run_order specified')
+      elif section == 'GLOBAL':
+        ts_start, ts_end = naarad.utils.parse_global_section(config, section)
       else:
         # section name is used to create sub-directories, so enforce it.
         if not naarad.utils.is_valid_metric_name(section):
