@@ -23,7 +23,7 @@ from naarad.reporting.diff import NaaradReport
 
 logger = logging.getLogger('naarad')
 
-class Analysis(object):
+class _Analysis(object):
   """
   Class that saves state for analysis to be conducted
   """
@@ -40,18 +40,17 @@ class Analysis(object):
     self.sla_data = {}
     self.stats_data = {}
 
-
 class Naarad(object):
   """
   Naarad base class that will let the caller run multiple naarad analysis
   """
 
   def __init__(self):
-    self.default_test_id = -1
-    self.analyses = {}
-    self.resource_path = 'resources'
-    self.input_directory = None
-    self.output_directory = None
+    self._default_test_id = -1
+    self._analyses = {}
+    self._resource_path = 'resources'
+    self._input_directory = None
+    self._output_directory = None
     naarad.metrics.metric.Metric.graphing_modules = graphing_modules
     naarad.metrics.metric.Metric.device_types = CONSTANTS.device_type_metrics
     naarad.reporting.diff.Diff.graphing_modules = graphing_modules
@@ -65,17 +64,17 @@ class Naarad(object):
     :return: test_id
     """
     if not test_id:
-      self.default_test_id += 1
-      test_id = self.default_test_id
-    self.analyses[test_id] = Analysis(naarad.utils.get_standardized_timestamp('now', None), config_file_location,
+      self._default_test_id += 1
+      test_id = self._default_test_id
+    self._analyses[test_id] = _Analysis(naarad.utils.get_standardized_timestamp('now', None), config_file_location,
                                       test_id=test_id)
     if kwargs:
       if 'description' in kwargs.keys():
-        self.analyses[test_id].description = kwargs['description']
+        self._analyses[test_id].description = kwargs['description']
       if 'input_directory' in kwargs.keys():
-        self.analyses[test_id].input_directory = kwargs['input_directory']
+        self._analyses[test_id].input_directory = kwargs['input_directory']
       if 'output_directory' in kwargs.keys():
-        self.analyses[test_id].output_directory = kwargs['output_directory']
+        self._analyses[test_id].output_directory = kwargs['output_directory']
     return test_id
 
   def signal_stop(self, test_id=None):
@@ -85,10 +84,10 @@ class Naarad(object):
     :return: test_id
     """
     if not test_id:
-      test_id = self.default_test_id
-    if self.analyses[test_id].ts_end:
+      test_id = self._default_test_id
+    if self._analyses[test_id].ts_end:
       return CONSTANTS.OK
-    self.analyses[test_id].ts_end = naarad.utils.get_standardized_timestamp('now', None)
+    self._analyses[test_id].ts_end = naarad.utils.get_standardized_timestamp('now', None)
     return CONSTANTS.OK
 
   def get_failed_analyses(self):
@@ -97,8 +96,8 @@ class Naarad(object):
     :return: list of test_ids
     """
     failed_analyses = []
-    for test_id in self.analyses.keys():
-      if self.analyses[test_id].status != CONSTANTS.OK:
+    for test_id in self._analyses.keys():
+      if self._analyses[test_id].status != CONSTANTS.OK:
         failed_analyses.append(test_id)
     return failed_analyses
 
@@ -107,24 +106,15 @@ class Naarad(object):
     Returns sla data for all the metrics associated with a test_id
     :return: dict of form { metric.label:metric.sla_map}
     """
-    return self.analyses[test_id].sla_data
+    return self._analyses[test_id].sla_data
 
-  def set_sla_data(self, analysis, metrics):
+  def _set_sla_data(self, test_id, metrics):
     """
-    Get sla data from each metric and set it in the Analysis object to make it available for retrieval
+    Get sla data from each metric and set it in the _Analysis object specified by test_id to make it available for retrieval
     :return: currently always returns CONSTANTS.OK. Maybe enhanced in future to return additional status
     """
     for metric in metrics:
-      analysis.sla_data[metric.label] = metric.sla_map
-    return CONSTANTS.OK
-
-  def set_stats_data(self, analysis, metrics):
-    """
-    Get summary stats data from each metric and set it in the Analysis object to make it available for retrieval
-    :return: currently always returns CONSTANTS.OK. Maybe enhanced in future to return additional status
-    """
-    for metric in metrics:
-      analysis.stats_data[metric.label] = metric.summary_stats
+      self._analyses[test_id].sla_data[metric.label] = metric.sla_map
     return CONSTANTS.OK
 
   def get_stats_data(self, test_id):
@@ -132,9 +122,18 @@ class Naarad(object):
     Returns summary stats data for all the metrics associated with a test_id
     :return: dict of form { metric.label:metric.summary_stats}
     """
-    return self.analyses[test_id].stats_data
+    return self._analyses[test_id].stats_data
 
-  def create_output_directories(self, analysis):
+  def _set_stats_data(self, test_id, metrics):
+    """
+    Get summary stats data from each metric and set it in the _Analysis object specified by test_id to make it available for retrieval
+    :return: currently always returns CONSTANTS.OK. Maybe enhanced in future to return additional status
+    """
+    for metric in metrics:
+      self._analyses[test_id].stats_data[metric.label] = metric.summary_stats
+    return CONSTANTS.OK
+
+  def _create_output_directories(self, analysis):
     """
     Create the necessary output and resource directories for the specified analysis
     :param: analysis: analysis associated with a given test_id
@@ -153,30 +152,32 @@ class Naarad(object):
 
   def analyze(self, input_directory, output_directory, **kwargs):
     """
-    Run all the analysis saved in self.analyses, sorted by test_id
+    Run all the analysis saved in self._analyses, sorted by test_id
     :param: input_directory: location of log files
     :param: output_directory: root directory for analysis output
     :param: **kwargs: Optional keyword args
     :return: int: status code.
     """
-    if len(self.analyses) == 0:
-      self.analyses[0] = Analysis(None, kwargs['config_file_location'])
+    if len(self._analyses) == 0:
+      if 'config_file_location' not in kwargs:
+        return CONSTANTS.ERROR
+      self._analyses[0] = _Analysis(None, kwargs['config_file_location'])
     error_count = 0
-    self.input_directory = input_directory
-    self.output_directory = output_directory
-    for test_id in sorted(self.analyses.keys()):
-      if not self.analyses[test_id].input_directory:
-        self.analyses[test_id].input_directory = input_directory
-      if not self.analyses[test_id].output_directory:
-        if len(self.analyses) > 1:
-          self.analyses[test_id].output_directory = os.path.join(output_directory, str(test_id))
+    self._input_directory = input_directory
+    self._output_directory = output_directory
+    for test_id in sorted(self._analyses.keys()):
+      if not self._analyses[test_id].input_directory:
+        self._analyses[test_id].input_directory = input_directory
+      if not self._analyses[test_id].output_directory:
+        if len(self._analyses) > 1:
+          self._analyses[test_id].output_directory = os.path.join(output_directory, str(test_id))
         else:
-          self.analyses[test_id].output_directory = output_directory
-      if('config_file_location' in kwargs.keys()) and (not self.analyses[test_id].config_file_location):
-        self.analyses[test_id].config_file_location = kwargs['config_file_location']
-      self.create_output_directories(self.analyses[test_id])
-      self.analyses[test_id].status = self.run(self.analyses[test_id], **kwargs)
-      if self.analyses[test_id].status != CONSTANTS.OK:
+          self._analyses[test_id].output_directory = output_directory
+      if('config_file_location' in kwargs.keys()) and (not self._analyses[test_id].config_file_location):
+        self._analyses[test_id].config_file_location = kwargs['config_file_location']
+      self._create_output_directories(self._analyses[test_id])
+      self._analyses[test_id].status = self.run(self._analyses[test_id], **kwargs)
+      if self._analyses[test_id].status != CONSTANTS.OK:
         error_count += 1
     if error_count > 0:
       return CONSTANTS.ERROR
@@ -195,7 +196,7 @@ class Naarad(object):
     config_object = ConfigParser.ConfigParser(kwargs)
     config_object.optionxform = str
     config_object.read(analysis.config_file_location)
-    metrics, run_steps, crossplots = self.process_naarad_config(config_object, analysis)
+    metrics, run_steps, crossplots = self._process_naarad_config(config_object, analysis)
     graph_lock = threading.Lock()
 
     for metric in metrics['metrics']:
@@ -215,8 +216,8 @@ class Naarad(object):
     for t in threads:
       t.join()
 
-    self.set_sla_data(analysis, metrics['metrics'] + metrics['aggregate_metrics'])
-    self.set_stats_data(analysis, metrics['metrics'] + metrics['aggregate_metrics'])
+    self._set_sla_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
+    self._set_stats_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
 
     if len(crossplots) > 0:
       correlated_plots = naarad.utils.nway_plotting(crossplots, metrics['metrics'] + metrics['aggregate_metrics'], os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path)
@@ -235,11 +236,11 @@ class Naarad(object):
     :param: config file for diff (optional)
     :param: **kwargs: keyword arguments
     """
-    output_directory = os.path.join(self.output_directory,'diff_' + str(test_id_1) + '_' + str(test_id_2))
+    output_directory = os.path.join(self._output_directory,'diff_' + str(test_id_1) + '_' + str(test_id_2))
     if kwargs:
       if 'output_directory' in kwargs.keys():
         output_directory = kwargs['output_directory']
-    diff_report = Diff([NaaradReport(self.analyses[test_id_1].output_directory, None), NaaradReport(self.analyses[test_id_2].output_directory, None)], 'diff', output_directory, os.path.join(output_directory, self.resource_path), self.resource_path)
+    diff_report = Diff([NaaradReport(self._analyses[test_id_1].output_directory, None), NaaradReport(self._analyses[test_id_2].output_directory, None)], 'diff', output_directory, os.path.join(output_directory, self._resource_path), self._resource_path)
     if config:
       naarad.utils.extract_sla_from_config_file(diff_report, config)
     diff_report.generate()
@@ -261,7 +262,7 @@ class Naarad(object):
     if kwargs:
       if 'output_directory' in kwargs.keys():
         output_directory = kwargs['output_directory']
-    diff_report = Diff([NaaradReport(report1_location, None), NaaradReport(report2_location, None)], 'diff', output_directory, os.path.join(output_directory, self.resource_path), self.resource_path)
+    diff_report = Diff([NaaradReport(report1_location, None), NaaradReport(report2_location, None)], 'diff', output_directory, os.path.join(output_directory, self._resource_path), self._resource_path)
     if config:
       naarad.utils.extract_sla_from_config_file(diff_report, config)
     diff_report.generate()
@@ -272,7 +273,7 @@ class Naarad(object):
     return CONSTANTS.OK
 
 
-  def process_naarad_config(self, config, analysis):
+  def _process_naarad_config(self, config, analysis):
     """
     Process the config file associated with a particular analysis and return metrics, run_steps and crossplots. Also sets output directory and resource_path for an anlaysis
     """
