@@ -143,11 +143,6 @@ def get_config_file(arg):
   return options_file  
 
 def main():
-  """
-
-
-  :raise:
-  """
   metrics = []
   aggregate_metrics = [] 
   crossplots = []
