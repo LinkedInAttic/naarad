@@ -6,12 +6,22 @@ Unless required by applicable law or agreed to in writing, software distribute
 """
 # Metric Constants
 DEFAULT_SUMMARY_STATS = ['mean', 'std', 'p50', 'p75', 'p90', 'p95', 'p99', 'min', 'max']
+important_sub_metrics_import = {
+    'GC': ('GCPause', 'used'),
+    'LINKEDINANDROIDRUM': ('launch_time', 'nus_update_time'),
+    'SAR-cpuusage': ('%sys', '%usr'),
+    'SAR-device': ('%util', 'await'),
+    'JMETER': ('Overall_Summary.ResponseTime', 'Overall_Summary.DataThroughput', 'Overall_Summary.qps')
+}
+device_type_metrics = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-dev', 'SAR-edev')
+# Status CODES
 OK = 0
 SLA_FAILED = 1
 COLLECT_FAILED = 2
 PARSE_FAILED = 3
 GRAPH_FAILED = 4
 REPORT_FAILED = 5
+ERROR = 6
 
 # Report Constants
 DEFAULT_REPORT_TITLE = 'naarad analysis report'

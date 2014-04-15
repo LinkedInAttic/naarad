@@ -18,7 +18,7 @@ import threading
 
 from naarad.metrics.metric import Metric
 import naarad.utils
-from naarad.naarad_imports import important_sub_metrics_import
+from naarad.naarad_constants import important_sub_metrics_import
 
 logger = logging.getLogger('naarad.metrics.GCMetric')
 
