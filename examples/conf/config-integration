@@ -48,4 +48,4 @@ zones=Node.0.zone.DMA
 
 [GRAPH]
 graphing_library=matplotlib
-graphs=GC.appstop,all GC.alloc,GC.alloc-rate GC.promo,GC.gen0t,GC.gen0sys JMETER.Overall_Summary.ResponseTime,JMETER.Overall_Summary.qps,JMETER.Overall_Summary.ErrorsPerSecond
+graphs=GC.GCPause,GC.alloc,GC.promo GC.GCPause,GC.gen0t,GC.gen0sys JMETER.Overall_Summary.ResponseTime,JMETER.Overall_Summary.qps,JMETER.Overall_Summary.ErrorsPerSecond
