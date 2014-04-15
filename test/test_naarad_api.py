@@ -40,7 +40,3 @@ def test_naarad_apis():
   if naarad_obj.diff_reports_by_location('test_api_temp/0', 'test_api_temp/1', 'test_api_temp/diff_location', None):
     print 'Error encountered during diff'
   print 'Please inspect the generated reports manually'
-
-setup_module()
-test_naarad_apis()
-
