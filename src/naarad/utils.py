@@ -8,6 +8,7 @@ Unless required by applicable law or agreed to in writing, software distribute
 import calendar
 import ConfigParser
 import datetime
+import imp
 import logging
 import numpy
 import os
@@ -26,6 +27,19 @@ from naarad.run_steps.local_cmd import Local_Cmd
 import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.utils')
+
+
+def parse_user_defined_metric_classes(user_imports, metric_classes):
+  user_defined_metric_classes = user_imports.metric_classes
+  user_defined_metric_files = user_imports.metric_files
+  for metric_name, metric_class in user_defined_metric_classes.items():
+    try:
+      new_module = imp.load_source(metric_class, user_defined_metric_files[metric_name])
+      new_class = getattr(new_module, metric_class)
+      metric_classes[metric_name] = new_class
+    except ImportError:
+      logger.error('Something wrong with importing a user defined metric class. Skipping metric: ', metric_name)
+      continue
 
 def is_valid_url(url):
   """
