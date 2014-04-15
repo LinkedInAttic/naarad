@@ -22,14 +22,20 @@ def test_naarad_apis():
   :return: None
   """
   examples_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'examples')
+  config_file = os.path.join(os.path.join(examples_directory, 'conf'),'config-gc')
+  input_directory = os.path.join(examples_directory,'logs')
+  output_directory = 'test_api_temp' 
+  diff_output_directory = 'test_api_temp/diff_location'
+  report1_location = 'test_api_temp/0'
+  report2_location = 'test_api_temp/1'
   global naarad_obj
-  test_id_1 = naarad_obj.signal_start(os.path.join(os.path.join(examples_directory, 'conf'),'config-gc'))
+  test_id_1 = naarad_obj.signal_start(config_file)
   time.sleep(60)
   naarad_obj.signal_stop(test_id_1)
-  test_id_2 = naarad_obj.signal_start(os.path.join(os.path.join(examples_directory, 'conf'),'config-gc'))
+  test_id_2 = naarad_obj.signal_start(config_file)
   time.sleep(60)
   naarad_obj.signal_stop(test_id_2)
-  if naarad_obj.analyze(os.path.join(examples_directory,'logs'), 'test_api_temp') != CONSTANTS.OK :
+  if naarad_obj.analyze(input_directory, output_directory) != CONSTANTS.OK :
     print naarad_obj.get_failed_analyses()
   naarad_obj.get_sla_data(test_id_1)
   naarad_obj.get_stats_data(test_id_1)
@@ -37,6 +43,6 @@ def test_naarad_apis():
   naarad_obj.get_stats_data(test_id_2)
   if naarad_obj.diff(test_id_1, test_id_2, None) != CONSTANTS.OK:
     print 'Error encountered during diff'
-  if naarad_obj.diff_reports_by_location('test_api_temp/0', 'test_api_temp/1', 'test_api_temp/diff_location', None):
+  if naarad_obj.diff_reports_by_location(report1_location, report2_location, diff_output_directory, None):
     print 'Error encountered during diff'
   print 'Please inspect the generated reports manually'
