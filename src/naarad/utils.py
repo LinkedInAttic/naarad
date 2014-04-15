@@ -206,6 +206,21 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
   new_metric.precision = precision
   return new_metric
 
+def parse_global_section(config_obj, section):
+  """
+  Parse GLOBAL section in the config to return global settings
+  :param config_obj: ConfigParser object
+  :param section: Section name
+  :return: ts_start and ts_end time
+  """
+  if config_obj.has_option(section, 'ts_start'):
+    ts_start = config_obj.get(section, 'ts_start')
+    config_obj.remove_option(section, 'ts_start')
+  if config_obj.has_option(section, 'ts_end'):
+    ts_end = config_obj.get(section, 'ts_end')
+    config_obj.remove_option(section, 'ts_end')
+  return ts_start, ts_end
+
 def parse_run_step_section(config_obj, section):
   """
   Parse a RUN-STEP section in the config to return a Run_Step object
