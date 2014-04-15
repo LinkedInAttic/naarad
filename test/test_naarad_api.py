@@ -17,7 +17,7 @@ def setup_module():
   global naarad_obj
   naarad_obj = Naarad()
 
-def test_naarad_start_stop():
+def test_naarad_apis():
   """
   :return: None
   """
@@ -30,7 +30,7 @@ def test_naarad_start_stop():
   time.sleep(60)
   naarad_obj.signal_stop(test_id_2)
   if naarad_obj.analyze(os.path.join(examples_directory,'logs'), 'test_api_temp') != CONSTANTS.OK :
-    naarad_obj.get_failed_analyses()
+    print naarad_obj.get_failed_analyses()
   naarad_obj.get_sla_data(test_id_1)
   naarad_obj.get_stats_data(test_id_1)
   naarad_obj.get_sla_data(test_id_2)
@@ -42,5 +42,5 @@ def test_naarad_start_stop():
   print 'Please inspect the generated reports manually'
 
 setup_module()
-test_naarad_start_stop()
+test_naarad_apis()
 
