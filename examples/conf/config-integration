@@ -1,0 +1,51 @@
+[GC]
+infile=gc.log
+sub_metrics=alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GCPause cmsCM cmsCP cmsCS cmsCR safept apptime
+GCPause.sla=mean<0.05 p50<0.05 p99<0.05
+
+[SAR-device]
+infile=sar.device.out
+devices=sda sdb
+options=tps rd_sec/s %util
+
+[SAR-cpuusage-host1]
+hostname=host1
+infile=sar.cpuusage.out
+
+[SAR-memory]
+infile=sar.memory.out
+
+[SAR-cpuusage-host2]
+hostname=host2
+infile=sar.cpuusage.out
+
+[CLUSTER-1]
+aggr_hosts=host1 host2
+aggr_metrics=SAR-cpuusage.all.%sys:raw,sum,avg,count
+
+[JMETER]
+infile=perf-result.xml
+aggregation_granularity=minute
+Overall_Summary.ResponseTime.sla=mean<100000 p95<20000
+
+[PROCMEMINFO]
+hostname=localhost
+infile=procmeminfo.out
+sub_metrics=MemTotal MemFree Active Inactive
+ts_start=2013-12-05 12:04:58
+ts_end=2013-12-05 12:14:58
+
+[PROCVMSTAT]
+hostname=localhost
+infile=procvmstat.out
+sub_metrics=nr_free_pages nr_inactive_anon
+
+[PROCZONEINFO]
+hostname=localhost
+infile=proczoneinfo.out
+sub_metrics=pages.min nr_free_pages
+zones=Node.0.zone.DMA
+
+[GRAPH]
+graphing_library=matplotlib
+graphs=GC.GCPause,GC.alloc,GC.promo GC.GCPause,GC.gen0t,GC.gen0sys JMETER.Overall_Summary.ResponseTime,JMETER.Overall_Summary.qps,JMETER.Overall_Summary.ErrorsPerSecond
