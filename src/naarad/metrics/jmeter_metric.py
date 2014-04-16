@@ -17,6 +17,7 @@ from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
 import naarad.naarad_imports
+from naarad.naarad_constants import important_sub_metrics_import
 
 
 logger = logging.getLogger('naarad.metrics.JmeterMetric')
@@ -53,7 +54,7 @@ class JmeterMetric(Metric):
     self.aggregation_granularity = 'minute'
     self.calculated_percentiles = {}
     self.summary_stats = defaultdict(dict)
-    self.important_sub_metrics = naarad.naarad_imports.important_sub_metrics_import['JMETER']
+    self.important_sub_metrics = important_sub_metrics_import['JMETER']
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
