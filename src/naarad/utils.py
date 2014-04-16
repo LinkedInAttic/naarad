@@ -30,6 +30,12 @@ logger = logging.getLogger('naarad.utils')
 
 
 def parse_user_defined_metric_classes(user_imports, metric_classes):
+  """
+  Parse the user defined metric class information
+  :param user_imports: Module that contains user defined metric information
+  :param metric_classes: list of metric classes to be updated
+  :return:
+  """
   user_defined_metric_classes = user_imports.metric_classes
   user_defined_metric_files = user_imports.metric_files
   for metric_name, metric_class in user_defined_metric_classes.items():
