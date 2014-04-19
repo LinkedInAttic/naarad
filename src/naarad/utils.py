@@ -29,19 +29,24 @@ import naarad.naarad_constants as CONSTANTS
 logger = logging.getLogger('naarad.utils')
 
 
-def parse_user_defined_metric_classes(user_imports, metric_classes):
+def parse_user_defined_metric_classes(config_obj, metric_classes):
   """
   Parse the user defined metric class information
-  :param user_imports: Module that contains user defined metric information
+  :param config_obj: ConfigParser object
   :param metric_classes: list of metric classes to be updated
   :return:
   """
-  user_defined_metric_classes = user_imports.metric_classes
-  user_defined_metric_files = user_imports.metric_files
-  for metric_name, metric_class in user_defined_metric_classes.items():
+  user_defined_metric_list = config_obj.get('GLOBAL', 'user_defined_metrics').split()
+  for udm_string in user_defined_metric_list:
     try:
-      new_module = imp.load_source(metric_class, user_defined_metric_files[metric_name])
-      new_class = getattr(new_module, metric_class)
+      metric_name, metric_class_name, metric_file = udm_string.split(':')
+    except ValueError:
+      logger.error('Bad user defined metric specified')
+      continue
+    module_name = os.path.splitext(os.path.basename(metric_file))[0]
+    try:
+      new_module = imp.load_source(module_name, metric_file)
+      new_class = getattr(new_module, metric_class_name)
       metric_classes[metric_name] = new_class
     except ImportError:
       logger.error('Something wrong with importing a user defined metric class. Skipping metric: ', metric_name)
@@ -233,6 +238,8 @@ def parse_global_section(config_obj, section):
   :param section: Section name
   :return: ts_start and ts_end time
   """
+  ts_start = None
+  ts_end = None
   if config_obj.has_option(section, 'ts_start'):
     ts_start = config_obj.get(section, 'ts_start')
     config_obj.remove_option(section, 'ts_start')
