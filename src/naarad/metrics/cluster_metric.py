@@ -27,14 +27,15 @@ class ClusterMetric(Metric):
   aggr_metrics = []  # metrics to be aggregated   
   aggr_hosts = [] # hosts to be aggregated    
 
-  def __init__ (self, section, aggregate_hosts, aggregate_metrics, metrics, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, **other_options):
+  def __init__ (self, section, aggregate_hosts, aggregate_metrics, metrics, output_directory, resource_path, label,
+                ts_start, ts_end, rule_strings, important_sub_metrics, **other_options):
     self.metrics = metrics
     self.aggr_metrics = aggregate_metrics.split()
     self.aggr_hosts = aggregate_hosts.split()
                   
     #Metric arguments take 'infile' and 'hostname', for ClusterMetric, they are invalid, so just provide empty strings.
-    Metric.__init__(self, section, '', '', output_directory, resource_path, label, ts_start, ts_end, rule_strings)
+    Metric.__init__(self, section, '', '', output_directory, resource_path, label, ts_start, ts_end, rule_strings,
+                    important_sub_metrics)
         
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())

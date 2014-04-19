@@ -24,9 +24,9 @@ logger = logging.getLogger('naarad.metrics.JmeterMetric')
 
 class JmeterMetric(Metric):
   def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, **other_options):
+                rule_strings, important_sub_metrics, **other_options):
     Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                    rule_strings)
+                    rule_strings, important_sub_metrics)
     self.sub_metric_description = {
       'lb': 'Transaction Name',
       'lt': 'Time to First byte',
@@ -54,7 +54,8 @@ class JmeterMetric(Metric):
     self.aggregation_granularity = 'minute'
     self.calculated_percentiles = {}
     self.summary_stats = defaultdict(dict)
-    self.important_sub_metrics = important_sub_metrics_import['JMETER']
+    if not self.important_sub_metrics:
+      self.important_sub_metrics = important_sub_metrics_import['JMETER']
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
