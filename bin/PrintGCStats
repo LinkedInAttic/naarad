@@ -517,9 +517,9 @@ function writePlotData(tstamp, value, widx) {
     #printf("%9.7f %9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value, value);
     if (splitfiles == 1) {
       if (datestamps == 1) {
-        printf("%s,%9.7f,%s,%9.7f\n", tstamp, value, tstamp, value) >> splitfileprefix"."name_v[widx]".csv";
+        printf("%s,%9.7f,%s,%9.7f\n", tstamp, value, tstamp, value) >> (splitfileprefix "." name_v[widx] ".csv");
       } else {
-        printf("%9.3f,%9.7f,%9.3f,%9.7f\n", tstamp, value, tstamp + value, value) >> splitfileprefix"."name_v[widx]".csv";
+        printf("%9.3f,%9.7f,%9.3f,%9.7f\n", tstamp, value, tstamp + value, value) >> (splitfileprefix "." name_v[widx] ".csv");
       }
     } else {
       if (datestamps == 1) {
@@ -535,9 +535,9 @@ function writePlotData(tstamp, value, widx) {
     # printf("%9.7f %9.7f\n", tstamp, value);
     if (splitfiles == 1) {
       if (datestamps == 1) {
-        printf("%s,%9.7f\n", tstamp, value) >> splitfileprefix"."name_v[widx]".csv";
+        printf("%s,%9.7f\n", tstamp, value) >> (splitfileprefix "." name_v[widx] ".csv");
       } else {
-        printf("%9.3f,%9.7f\n", tstamp, value) >> splitfileprefix"."name_v[widx]".csv";
+        printf("%9.3f,%9.7f\n", tstamp, value) >> (splitfileprefix "." name_v[widx] ".csv");
       }
     } else {
       if (datestamps == 1) {
@@ -553,9 +553,9 @@ function writePlotData(tstamp, value, widx) {
     # printf("%9.7f\n", tstamp);
     if (splitfiles == 1) {
       if (datestamps == 1) {
-        printf("%s\n", tstamp) >> splitfileprefix"."name_v[widx]".csv";
+        printf("%s\n", tstamp) >> (splitfileprefix "." name_v[widx] ".csv");
       } else {
-        printf("%9.3f\n", tstamp) >> splitfileprefix"."name_v[widx]".csv";
+        printf("%9.3f\n", tstamp) >> (splitfileprefix "." name_v[widx] ".csv");
       }
     } else {
       if (datestamps == 1) {
@@ -571,9 +571,9 @@ function writePlotData(tstamp, value, widx) {
     # printf("%9.7f %9.7f %9.7f\n", tstamp, value, tstamp + value);
     if (splitfiles == 1) {
       if (datestamps == 1) {
-        printf("%s,%9.7f,%s\n", tstamp, value, tstamp) >> splitfileprefix"."name_v[widx]".csv";
+        printf("%s,%9.7f,%s\n", tstamp, value, tstamp) >> (splitfileprefix "." name_v[widx] ".csv");
       } else {
-        printf("%9.3f,%9.7f,%9.3f\n", tstamp, value, tstamp + value) >> splitfileprefix"."name_v[widx]".csv";
+        printf("%9.3f,%9.7f,%9.3f\n", tstamp, value, tstamp + value) >> (splitfileprefix "." name_v[widx] ".csv");
       }
     } else {
       if (datestamps == 1) {
