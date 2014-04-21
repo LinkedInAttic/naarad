@@ -86,15 +86,19 @@ class Metric(object):
     for infile in self.infile_list:
       if infile.startswith("http://") or infile.startswith("https://"):
         if naarad.utils.is_valid_url(infile):
-          # reassign self.infile, so that it points to the local (downloaded) file
           http_download_dir = os.path.join(self.outdir, self.label)
-          collected_files.append(naarad.httpdownload.download_url_single(self.infile, http_download_dir))
-          return True
+          output_file = naarad.httpdownload.download_url_single(infile, http_download_dir)
+          if output_file:
+            collected_files.append(output_file)
+          else:
+            return False
         else:
-          logger.error("The given url of {0} is invalid.\n".format(self.infile))
+          logger.error("The given url of {0} is invalid.\n".format(infile))
           return False
       else:
         file_matches = glob.glob(infile)
+        if len(file_matches) == 0:
+          return False
         for file_name in file_matches:
           if self.collect_local(file_name):
             collected_files.append(file_name)
