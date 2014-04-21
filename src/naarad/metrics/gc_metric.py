@@ -18,7 +18,7 @@ import threading
 
 from naarad.metrics.metric import Metric
 import naarad.utils
-from naarad.naarad_imports import important_sub_metrics_import
+from naarad.naarad_constants import important_sub_metrics_import
 
 logger = logging.getLogger('naarad.metrics.GCMetric')
 
@@ -28,9 +28,9 @@ class GCMetric(Metric):
   rate_types = ()
   val_types = ('alloc', 'promo', 'used0', 'used1', 'used', 'commit0', 'commit1', 'commit', 'gen0', 'gen0t', 'gen0usr', 'gen0sys', 'gen0real',
       'cmsIM', 'cmsRM', 'cmsRS', 'GCPause', 'cmsCM', 'cmsCP', 'cmsCS', 'cmsCR', 'safept', 'apptime', 'used0AfterGC', 'used1AfterGC', 'usedAfterGC')
-  def __init__ (self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+  def __init__ (self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                 **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings)
+    Metric.__init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings)
     # TODO: Make this list configurable
     self.important_sub_metrics = important_sub_metrics_import['GC']
     self.sub_metrics = self.val_types
@@ -80,7 +80,7 @@ class GCMetric(Metric):
       awk_cmd += ' -v ts_start="' + naarad.utils.get_standardized_timestamp(self.ts_start, None) + '"'
     if self.ts_end:
       awk_cmd += ' -v ts_end="' + naarad.utils.get_standardized_timestamp(self.ts_end, None) + '"'
-    cmd = awk_cmd + ' -v plot=' + ','.join(gc_metrics) + ' -v splitfiles=1 -v datestamps=1 -v plotcolumns=2 -v splitfileprefix=' + prefix + ' ' + self.infile
+    cmd = awk_cmd + ' -v plot=' + ','.join(gc_metrics) + ' -v splitfiles=1 -v datestamps=1 -v plotcolumns=2 -v splitfileprefix=' + prefix + ' ' + ' '.join(self.infile_list)
     logger.info("Parsing GC metric with cmd: %s", cmd)
     os.system(cmd)
     for gc_sub_metric in gc_metrics:

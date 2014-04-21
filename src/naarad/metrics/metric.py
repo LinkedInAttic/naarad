@@ -6,6 +6,7 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 from collections import defaultdict
+import glob
 import logging
 import os
 import sys
@@ -19,10 +20,10 @@ logger = logging.getLogger('naarad.metrics.metric')
 
 class Metric(object):
 
-  def __init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+  def __init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, **other_options):
     self.metric_type = metric_type
-    self.infile = infile
+    self.infile_list = infile_list
     self.hostname = hostname
     self.outdir = output_directory
     self.resource_path = resource_path
@@ -46,7 +47,7 @@ class Metric(object):
     self.sub_metric_unit = defaultdict(lambda: 'None')      # the unit of the submetrics.  The plot will have the Y-axis being: Metric name (Unit)
     self.important_sub_metrics = ()
     self.sla_list = []  # TODO : remove this once report has grading done in the metric tables
-    self.sla_map = defaultdict(lambda: defaultdict(None))
+    self.sla_map = defaultdict(lambda :defaultdict(lambda: defaultdict(None)))
     self.calculated_stats = {}
     self.calculated_percentiles = {}
     self.summary_stats_list = CONSTANTS.DEFAULT_SUMMARY_STATS
@@ -58,7 +59,7 @@ class Metric(object):
     self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
     self.groupby = None
     for (key, val) in rule_strings.iteritems():
-      naarad.utils.set_sla(self, key, val)
+      naarad.utils.set_sla(self, self.label, key, val)
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -94,25 +95,37 @@ class Metric(object):
       return True
     return False
 
-  def collect_local(self):
-    return os.path.exists(self.infile)
+  def collect_local(self, infile):
+    return os.path.exists(infile)
 
   def collect(self):
-    # self.infile can be of several formats: for instance a local dir (e.g., /path/a.log) or an http url;  
-    # decide the case based on self.infile; 
-    # self.access is optional, can be removed. 
-    
-    if self.infile.startswith("http://") or self.infile.startswith("https://"):     
-      if naarad.utils.is_valid_url(self.infile):      
-        # reassign self.infile, so that it points to the local (downloaded) file
-        http_download_dir = os.path.join(self.outdir, self.label)
-        self.infile = naarad.httpdownload.download_url_single(self.infile, http_download_dir)
-        return True
+    # self.infile_list can be of several formats: for instance a local dir (e.g., /path/a.log) or an http url;
+    # decide the case based on self.infile_list;
+    # self.access is optional, can be removed.
+    collected_files = []
+    for infile in self.infile_list:
+      if infile.startswith("http://") or infile.startswith("https://"):
+        if naarad.utils.is_valid_url(infile):
+          http_download_dir = os.path.join(self.outdir, self.label)
+          output_file = naarad.httpdownload.download_url_single(infile, http_download_dir)
+          if output_file:
+            collected_files.append(output_file)
+          else:
+            return False
+        else:
+          logger.error("The given url of {0} is invalid.\n".format(infile))
+          return False
       else:
-        logger.error("The given url of {0} is invalid.\n".format(self.infile))
-        return False
-    else:   
-      return self.collect_local()
+        file_matches = glob.glob(infile)
+        if len(file_matches) == 0:
+          return False
+        for file_name in file_matches:
+          if self.collect_local(file_name):
+            collected_files.append(file_name)
+          else:
+            return False
+    self.infile_list = collected_files
+    return True
 
   def get_csv(self, grpby, column):
     if not grpby:
@@ -158,74 +171,76 @@ class Metric(object):
 
   @property
   def parse(self):
-    logger.info("Working on" + self.infile)
-    timestamp_format = None
     qps = defaultdict(int)
     groupby_idxes = self.get_groupby_indexes(self.groupby)
+    data = {}
 
-    with open(self.infile, 'r') as infile:
-      data = {}
-      for line in infile:
+    for input_file in self.infile_list:
+      logger.info("Working on " + input_file)
+      timestamp_format = None
 
-        if self.sep is None or self.sep =='':
-          words = line.strip().split()
-        else:
-          words = line.strip().split(self.sep)
-        if len(words) == 0 or (len(words)==1 and words[0] == ''): #cond after or is to handle Newline
-          continue
+      with open(input_file, 'r') as infile:
+        for line in infile:
 
-        if len(words) <= len(self.columns): #NOTE: len(self.columns) is always one less than len(words) since we assume the very first column is timestamp
-          logger.warning("WARNING: Number of columns given in config is more than number of columns present in line {0}\n", line)
-          continue
+          if self.sep is None or self.sep =='':
+            words = line.strip().split()
+          else:
+            words = line.strip().split(self.sep)
+          if len(words) == 0 or (len(words)==1 and words[0] == ''): #cond after or is to handle Newline
+            continue
 
-        if not timestamp_format or timestamp_format == 'unknown':
-          timestamp_format = naarad.utils.detect_timestamp_format(words[0])
+          if len(words) <= len(self.columns): #NOTE: len(self.columns) is always one less than len(words) since we assume the very first column is timestamp
+            logger.warning("WARNING: Number of columns given in config is more than number of columns present in line {0}\n", line)
+            continue
 
-        if timestamp_format == 'unknown':
-          continue
-        ts = naarad.utils.get_standardized_timestamp(words[0], timestamp_format)
+          if not timestamp_format or timestamp_format == 'unknown':
+            timestamp_format = naarad.utils.detect_timestamp_format(words[0])
 
-        if ts == -1:
-          continue
-        ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
+          if timestamp_format == 'unknown':
+            continue
+          ts = naarad.utils.get_standardized_timestamp(words[0], timestamp_format)
 
-        if self.ts_out_of_range(ts):
-          continue
+          if ts == -1:
+            continue
+          ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
+
+          if self.ts_out_of_range(ts):
+            continue
 
 
-        qps[ts.split('.')[0]] += 1
+          qps[ts.split('.')[0]] += 1
 
-        if self.groupby:
-          groupby_names = None
-          for i in range(len(groupby_idxes)):
-            if not groupby_names:
-              groupby_names = words[groupby_idxes[i]].rstrip(':')
-            else:
-              groupby_names = groupby_names + '.' + words[groupby_idxes[i]].rstrip(':')
-          for i in range(len(self.columns)):
-            if i+1 in groupby_idxes:
-              continue
-            else:
-              out_csv = self.get_csv(groupby_names, self.columns[i])
+          if self.groupby:
+            groupby_names = None
+            for i in range(len(groupby_idxes)):
+              if not groupby_names:
+                groupby_names = words[groupby_idxes[i]].rstrip(':')
+              else:
+                groupby_names = groupby_names + '.' + words[groupby_idxes[i]].rstrip(':')
+            for i in range(len(self.columns)):
+              if i+1 in groupby_idxes:
+                continue
+              else:
+                out_csv = self.get_csv(groupby_names, self.columns[i])
+                if out_csv in data:
+                  data[out_csv].append( ts + ',' + words[i+1] )
+                else:
+                  data[out_csv] = []
+                  data[out_csv].append( ts + ',' + words[i+1] )
+          else:
+            for i in range(len(self.columns)):
+              out_csv = self.get_csv(None, self.columns[i])
               if out_csv in data:
                 data[out_csv].append( ts + ',' + words[i+1] )
               else:
                 data[out_csv] = []
                 data[out_csv].append( ts + ',' + words[i+1] )
-        else:
-          for i in range(len(self.columns)):
-            out_csv = self.get_csv(None, self.columns[i])
-            if out_csv in data:
-              data[out_csv].append( ts + ',' + words[i+1] )
-            else:
-              data[out_csv] = []
-              data[out_csv].append( ts + ',' + words[i+1] )
     # Post processing, putting data in csv files
     data[self.get_csv(None, 'qps')] = map(lambda x: x[0] + ',' + str(x[1]),sorted(qps.items()))
     for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
-        fh.write('\n'.join(data[csv]) )
+        fh.write('\n'.join(sorted(data[csv])))
     return True
 
   def calculate_stats(self):

@@ -52,6 +52,7 @@
                 <table class="table table-hover table-striped table-bordered sortable">
                     <thead>
                         <tr>
+                            <th>metric</th>
                             <th>sub_metric</th>
                             <th>sla rule</th>
                             <th>value</th>
@@ -66,6 +67,7 @@
                         {%- else %}
                         <tr>
                         {%- endif %}
+                            <td>{{ sla.metric }}</td>
                             <td>{{ sla.sub_metric }}</td>
                             <td>{{ sla.stat_name }} {{ sla.sla_type }} {{ sla.threshold}}</td>
                             <td>{{ sla.stat_value }}</td>

@@ -36,13 +36,12 @@ from naarad.run_steps.local_cmd import Local_Cmd
 import naarad.naarad_constants as CONSTANTS
 
 try:
-  from naarad.naarad_imports import metric_classes, aggregate_metric_classes, graphing_modules, device_type_metrics
+  from naarad.naarad_imports import metric_classes, aggregate_metric_classes, graphing_modules
 except ImportError:
   metric_classes = {}
   graphing_modules = {}
   aggregate_metric_classes = {}
-  device_type_metrics = {}
-
+device_type_metrics = CONSTANTS.device_type_metrics
 #Naarad pre-defined
 metric_classes['GC'] = GCMetric
 metric_classes['SAR'] = SARMetric
@@ -188,7 +187,7 @@ def main():
         diff_report = Diff([NaaradReport(args.diff[0], None), NaaradReport(args.diff[1], None)], 'diff', args.output_dir, os.path.join(args.output_dir, args.resource_path), args.resource_path)
         if args.config:
           diff_opt_file = get_config_file(args.config)
-          naarad.utils.extract_sla_from_config_file(diff_report, diff_opt_file)
+          naarad.utils.extract_diff_sla_from_config_file(diff_report, diff_opt_file)
         diff_report.generate()
       if args.exit_code & (diff_report.sla_failures > 0):
         sys.exit(CONSTANTS.SLA_FAILURE)
