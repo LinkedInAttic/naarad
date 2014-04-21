@@ -142,7 +142,7 @@ def parse_basic_metric_options(config_obj, section):
 
   try:
     if config_obj.has_option(section, 'important_sub_metrics'):
-      important_sub_metrics = config_obj.get(section, 'important_sub_metrics')
+      important_sub_metrics = config_obj.get(section, 'important_sub_metrics').split()
       config_obj.remove_option(section, 'important_sub_metrics')
 
     if config_obj.has_option(section, 'hostname'):
