@@ -158,6 +158,7 @@ def parse_basic_metric_options(config_obj, section):
       config_obj.remove_option(section, 'ts_start')
     if config_obj.has_option(section, 'ts_end'):
       ts_end = config_obj.get(section, 'ts_end')
+
       config_obj.remove_option(section, 'ts_end')
     if config_obj.has_option(section, 'precision'):
       precision = config_obj.get(section, 'precision')
@@ -177,6 +178,7 @@ def parse_basic_metric_options(config_obj, section):
   except ConfigParser.NoOptionError:
     logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
     sys.exit()
+
   return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, kwargs, rule_strings
 
 def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregate_metric_classes, outdir_default, resource_path):
@@ -192,6 +194,7 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
   :return: An initialized Metric object
   """
   hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, kwargs, rule_strings = parse_basic_metric_options(config_obj, section)
+
   #TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
   if metric_type in metric_classes: # regular metrics
@@ -206,6 +209,7 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
   if config_obj.has_option(section, 'calc_metrics'):
     new_metric.calc_metrics = config_obj.get(section, 'calc_metrics')
   new_metric.precision = precision
+
   return new_metric
 
 def parse_global_section(config_obj, section):
@@ -580,6 +584,7 @@ def get_standardized_timestamp(timestamp, ts_format):
     timestamp = str(datetime.datetime.now())
   if not ts_format:
     ts_format = detect_timestamp_format(timestamp)
+
   try:
     if ts_format == '%Y-%m-%d %H:%M:%S.%f':
       return timestamp
@@ -669,8 +674,9 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
     metric.infile = os.path.join(indir_default, metric.infile)
 
   if not metric.ignore:
+
     if metric.collect():
-      if metric.parse():
+      if metric.parse:
         metric.calc()
         metric.calculate_stats()
         check_slas(metric)
