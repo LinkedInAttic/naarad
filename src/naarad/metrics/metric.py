@@ -94,7 +94,7 @@ class Metric(object):
           logger.error("The given url of {0} is invalid.\n".format(self.infile))
           return False
       else:
-        file_matches = glob.glob(os.path.join(infile))
+        file_matches = glob.glob(infile)
         for file_name in file_matches:
           if self.collect_local(file_name):
             collected_files.append(file_name)
