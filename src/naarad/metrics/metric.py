@@ -6,6 +6,7 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 from collections import defaultdict
+import glob
 import logging
 import os
 import re
@@ -93,11 +94,13 @@ class Metric(object):
           logger.error("The given url of {0} is invalid.\n".format(self.infile))
           return False
       else:
-        if self.collect_local(infile):
-          collected_files.append(infile)
-        else:
-          return False
-    if len(collected_files) != len(self.infile_list):
+        file_matches = glob.glob(os.path.join(infile))
+        for file_name in file_matches:
+          if self.collect_local(file_name):
+            collected_files.append(file_name)
+          else:
+            return False
+    if len(collected_files) < len(self.infile_list):
       return False
     else:
       self.infile_list = collected_files
