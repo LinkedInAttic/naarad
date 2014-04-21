@@ -37,13 +37,12 @@ from naarad.run_steps.local_cmd import Local_Cmd
 import naarad.naarad_constants as CONSTANTS
 
 try:
-  from naarad.naarad_imports import metric_classes, aggregate_metric_classes, graphing_modules, device_type_metrics
+  from naarad.naarad_imports import metric_classes, aggregate_metric_classes, graphing_modules
 except ImportError:
   metric_classes = {}
   graphing_modules = {}
   aggregate_metric_classes = {}
-  device_type_metrics = {}
-
+device_type_metrics = CONSTANTS.device_type_metrics
 #Naarad pre-defined
 metric_classes['GC'] = GCMetric
 metric_classes['SAR'] = SARMetric

@@ -11,7 +11,7 @@ import os
 
 from naarad.metrics.metric import Metric
 import naarad.utils
-from naarad.naarad_imports import important_sub_metrics_import
+from naarad.naarad_constants import important_sub_metrics_import
 
 logger = logging.getLogger('naarad.metrics.SARMetric')
 
@@ -29,6 +29,8 @@ class SARMetric(Metric):
     self.devices = None
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
+    if metric_type in important_sub_metrics_import:
+      self.important_sub_metrics = important_sub_metrics_import[metric_type]
 
   def extract_metric_name(self, metric_name):
     """
