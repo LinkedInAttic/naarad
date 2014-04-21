@@ -33,9 +33,9 @@ class LinkedInAndroidRumMetric(Metric):
   val_types = ('launch_time', 'nus_update_time')
 
 
-  def __init__ (self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+  def __init__ (self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                 important_sub_metrics, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+    Metric.__init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                     important_sub_metrics)
     self.sub_metrics = self.val_types
     if not self.important_sub_metrics:
@@ -90,20 +90,19 @@ class LinkedInAndroidRumMetric(Metric):
     # set output csv
     launch_time_file = self.get_csv('launch_time')
     nus_update_time_file = self.get_csv('nus_update_time')
-
-    # get Android RUM input data: for each line, generate (timestamp, launch_time, nus_update_time)
-    with open(self.infile, 'r') as inf:
-      for line in inf:
-        try:
-          data = json.loads(line)
-        except ValueError:
-          logger.warn("Invalid JSON Object at line: %s", line)          
-        if data[CONSTANTS.LIA_NATIVE_TIMINGS] is not None:
-          native = data[CONSTANTS.LIA_NATIVE_TIMINGS][CONSTANTS.LIA_ARRAY]
-          time_stamp, launch_time, nus_update_time = self.get_times(native)
-          if launch_time != 0 and nus_update_time != 0: 
-            results[time_stamp] = (str(launch_time), str(nus_update_time))
-
+    for input_file in self.infile_list:
+      # get Android RUM input data: for each line, generate (timestamp, launch_time, nus_update_time)
+      with open(input_file, 'r') as inf:
+        for line in inf:
+          try:
+            data = json.loads(line)
+          except ValueError:
+            logger.warn("Invalid JSON Object at line: %s", line)
+          if data[CONSTANTS.LIA_NATIVE_TIMINGS] is not None:
+            native = data[CONSTANTS.LIA_NATIVE_TIMINGS][CONSTANTS.LIA_ARRAY]
+            time_stamp, launch_time, nus_update_time = self.get_times(native)
+            if launch_time != 0 and nus_update_time != 0:
+              results[time_stamp] = (str(launch_time), str(nus_update_time))
     # Writing launch time and nus update time stats
     with open(launch_time_file, 'w') as launchtimef:
       with open(nus_update_time_file, 'w') as nusupdatetimef:

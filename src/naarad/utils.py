@@ -130,7 +130,7 @@ def parse_basic_metric_options(config_obj, section):
   :param section: Section name
   :return: all the parsed options
   """
-  infile = None
+  infile = {}
   aggr_hosts = None
   aggr_metrics = None
   ts_start = None
@@ -151,7 +151,7 @@ def parse_basic_metric_options(config_obj, section):
     
     #'infile' is not mandatory for aggregate metrics
     if config_obj.has_option(section,'infile'):
-      infile = config_obj.get(section, 'infile')
+      infile = config_obj.get(section, 'infile').split()
       config_obj.remove_option(section, 'infile')
 
     label = sanitize_string_section_name(section)
@@ -666,10 +666,14 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
   if metric.outdir is None:
     metric.outdir = os.path.normpath(outdir_default)
 
-  # handling both cases of local file or http download.
-  if not metric.infile.startswith('http://') \
-    and not metric.infile.startswith('https://'):
-    metric.infile = os.path.join(indir_default, metric.infile)
+  updated_infile_list = []
+  for infile in metric.infile_list:
+    # handling both cases of local file or http download.
+    if not infile.startswith('http://') and not infile.startswith('https://'):
+      updated_infile_list.append(os.path.join(indir_default, infile))
+    else:
+      updated_infile_list.append(infile)
+  metric.infile_list = updated_infile_list
 
   if not metric.ignore:
     if metric.collect():

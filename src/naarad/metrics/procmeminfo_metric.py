@@ -26,11 +26,11 @@ class ProcMeminfoMetric(Metric):
 
   sub_metrics = None
   
-  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+  def __init__ (self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, important_sub_metrics, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+    Metric.__init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings, important_sub_metrics)
-    
+
     # in particular, Section can specify a subset of all rows (default has 43 rows):  "sub_metrics=nr_free_pages nr_inactive_anon"
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())   
@@ -48,51 +48,45 @@ class ProcMeminfoMetric(Metric):
     Parse the vmstat file
     :return: status of the metric parse
     """
-    logger.info('Processing : %s',self.infile)
-    file_status = naarad.utils.is_valid_file(self.infile)
-    if not file_status:
-      return False
-      
+    file_status = True
+    for input_file in self.infile_list:
+      file_status = file_status and naarad.utils.is_valid_file(input_file)
+      if not file_status:
+        return False
     status = True
-
-    with open(self.infile) as fh:
-      data = {}  # stores the data of each column
-      for line in fh:
-        words = line.split()        # [0] is day; [1] is seconds; [2] is field name:; [3] is value  [4] is unit
-                
-        if len(words) < 3:
-          continue         
-
-        ts = words[0] + " " + words[1]      
-        if self.ts_out_of_range(ts):
-          continue
-          
-        col = words[2].strip(':')        
-        # only process sub_metrics specified in config. 
-        if self.sub_metrics and col not in self.sub_metrics:
-          continue
-        
-        # add unit to metric description; most of the metrics have 'KB'; a few others do not have unit, they are in number of pages
-        if len(words) > 4 and words[4]:
-          unit = words[4]
-        else:
-          unit = 'pages'
-        self.sub_metric_unit[col] = unit
-
-        # stores the values in data[] before finally writing out
-        if col in self.column_csv_map: 
-          out_csv = self.column_csv_map[col] 
-        else:
-          out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
-          data[out_csv] = []        
-
-        data[out_csv].append(ts + "," + words[3])
-    
+    data = {}  # stores the data of each column
+    for input_file in self.infile_list:
+      logger.info('Processing : %s',input_file)
+      with open(input_file) as fh:
+        for line in fh:
+          words = line.split()        # [0] is day; [1] is seconds; [2] is field name:; [3] is value  [4] is unit
+          if len(words) < 3:
+            continue
+          ts = words[0] + " " + words[1]
+          if self.ts_out_of_range(ts):
+            continue
+          col = words[2].strip(':')
+          # only process sub_metrics specified in config.
+          if self.sub_metrics and col not in self.sub_metrics:
+            continue
+          # add unit to metric description; most of the metrics have 'KB'; a few others do not have unit, they are in number of pages
+          if len(words) > 4 and words[4]:
+            unit = words[4]
+          else:
+            unit = 'pages'
+          self.sub_metric_unit[col] = unit
+          # stores the values in data[] before finally writing out
+          if col in self.column_csv_map:
+            out_csv = self.column_csv_map[col]
+          else:
+            out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
+            data[out_csv] = []
+          logger.info(out_csv)
+          logger.info(data.keys())
+          data[out_csv].append(ts + "," + words[3])
     #post processing, putting data in csv files;   
     for csv in data.keys():      
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
-        fh.write('\n'.join(data[csv]))
-
-    gc.collect()
+        fh.write('\n'.join(sorted(data[csv])))
     return status
