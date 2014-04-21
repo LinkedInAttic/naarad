@@ -49,6 +49,9 @@ def handle_single_url(url, outdir, outfile=None):
     except urllib2.HTTPError:
       logger.error("got HTTPError when retrieving %s" % url)
       return
+    except urllib2.URLError:
+      logger.error("got URLError when retrieving %s" % url)
+      return
 
   return output_file
 
