@@ -100,11 +100,8 @@ class Metric(object):
             collected_files.append(file_name)
           else:
             return False
-    if len(collected_files) < len(self.infile_list):
-      return False
-    else:
-      self.infile_list = collected_files
-      return True
+    self.infile_list = collected_files
+    return True
 
   def get_csv(self, column):
     if column in self.column_csv_map.keys():
