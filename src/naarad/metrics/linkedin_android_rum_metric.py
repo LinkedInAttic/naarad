@@ -34,9 +34,12 @@ class LinkedInAndroidRumMetric(Metric):
 
 
   def __init__ (self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
-                **other_options):
-    Metric.__init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings)
+                important_sub_metrics, **other_options):
+    Metric.__init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+                    important_sub_metrics)
     self.sub_metrics = self.val_types
+    if not self.important_sub_metrics:
+      self.important_sub_metrics = CONSTANTS.important_sub_metrics_import['LINKEDINANDROIDRUM']
     self.sub_metric_description = {
       "launch_time" :"the time taken to launch the client application",
       "nus_update_time" :"the time taken to update NUS list after launch"

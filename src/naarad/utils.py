@@ -138,12 +138,16 @@ def parse_basic_metric_options(config_obj, section):
   precision = None
   hostname = "localhost"
   rule_strings = {}
+  important_sub_metrics = None
+
   try:
+    if config_obj.has_option(section, 'important_sub_metrics'):
+      important_sub_metrics = config_obj.get(section, 'important_sub_metrics').split()
+      config_obj.remove_option(section, 'important_sub_metrics')
+
     if config_obj.has_option(section, 'hostname'):
       hostname = config_obj.get(section, 'hostname')
       config_obj.remove_option(section, 'hostname')
-    else:
-      logger.info('No hostname is found in section %s ' % section)
     
     #'infile' is not mandatory for aggregate metrics
     if config_obj.has_option(section,'infile'):
@@ -164,18 +168,15 @@ def parse_basic_metric_options(config_obj, section):
     if config_obj.has_option(section, 'aggr_hosts'):
       aggr_hosts = config_obj.get(section, 'aggr_hosts')
       config_obj.remove_option(section, 'aggr_hosts')
-    else: 
-      logger.info('No aggr_hosts is found in section %s ' % section)
     if config_obj.has_option(section, 'aggr_metrics'):
       aggr_metrics = config_obj.get(section, 'aggr_metrics')
       config_obj.remove_option(section, 'aggr_metrics')
-    else: 
-      logger.info('No aggr_metrics is found in section %s ' % section)
-    rule_strings, kwargs = get_rule_strings(config_obj, section)
+    rule_strings, other_options = get_rule_strings(config_obj, section)
   except ConfigParser.NoOptionError:
     logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
     sys.exit()
-  return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, kwargs, rule_strings
+  return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
+         important_sub_metrics
 
 def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregate_metric_classes, outdir_default, resource_path):
   """
@@ -189,15 +190,21 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
   :param resource_path: Default resource directory
   :return: An initialized Metric object
   """
-  hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, kwargs, rule_strings = parse_basic_metric_options(config_obj, section)
+  hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
+    important_sub_metrics = parse_basic_metric_options(config_obj, section)
+
   #TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
   if metric_type in metric_classes: # regular metrics
-    new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
-  elif metric_type in aggregate_metric_classes:       #aggregate metrics     
-    new_metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+    new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start,
+                                             ts_end, rule_strings, important_sub_metrics, **other_options)
+  elif metric_type in aggregate_metric_classes:       #aggregate metrics
+    new_metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default,
+                                                       resource_path, label, ts_start, ts_end, rule_strings,
+                                                       important_sub_metrics, **other_options)
   else:            # new metrics. 
-    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings,
+                        important_sub_metrics, **other_options)
 
   if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
     new_metric.ignore = True
