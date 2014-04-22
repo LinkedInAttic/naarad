@@ -37,15 +37,13 @@ class NetstatMetric(Metric):
   # used internally, contains a list of pid/processes
   input_processes = []
   
-  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+  def __init__ (self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+    Metric.__init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings)
-
     self.sub_metrics = None
     for (key, val) in other_options.iteritems():
-      print key, val
-      setattr(self, key, val.split()) 
+      setattr(self, key, val.split())
 
     self.extract_input_connections()
     self.extract_input_processes()
@@ -108,7 +106,12 @@ class NetstatMetric(Metric):
       host_match = True
       
     # if port is '', true;  if not '', it should exactly match cur_port
-    port_match = (cur_port == port)
+    port_match = False
+    if not port:
+      port_match = True
+    elif port == cur_port:
+      port_match = True
+
     return host_match and port_match
 
   def match_processes(self, pid, name, cur_process):
@@ -120,8 +123,19 @@ class NetstatMetric(Metric):
     :return: True or Not; (if both pid/process are given, then both of them need to match)
     """
     cur_pid, cur_name = self.get_tuple(cur_process.split('/'))
-    pid_match = (pid == cur_pid)
-    name_match = (name == cur_name)
+
+    pid_match = False
+    if not pid:
+      pid_match = True
+    elif pid == cur_pid:
+      pid_match = True
+
+    name_match = False
+    if not name:
+      name_match = True
+    elif name == cur_name:
+      name_match = True
+
     return pid_match and name_match
 
   def check_connection(self, local_end, remote_end, process):
@@ -163,7 +177,6 @@ class NetstatMetric(Metric):
     :param value: integer
     :param ts: timestamp
     :return: None
-
     """
     if col in self.column_csv_map:
       out_csv = self.column_csv_map[col]
@@ -177,39 +190,35 @@ class NetstatMetric(Metric):
     Parse the netstat output file
     :return: status of the metric parse
     """
-    logger.info('Processing : %s',self.infile)
-    file_status = naarad.utils.is_valid_file(self.infile)
-    if not file_status:
-      return False
-      
     status = True
     #sample netstat output: 2014-04-02 15:44:02.86612	tcp     9600      0 host1.localdomain.com.:21567 remote.remotedomain.com:51168 ESTABLISH pid/process
-    with open(self.infile) as fh:
-      data = {}  # stores the data of each sub-metric
-      for line in fh:
-        if 'ESTABLISHED' not in line:
-          continue
+    for infile in self.infile_list:
+      logger.info('Processing : %s',infile)
+      with open(infile) as fh:
+        data = {}  # stores the data of each sub-metric
+        for line in fh:
+          if 'ESTABLISHED' not in line:
+            continue
           
-        words = line.split()       
-        if len(words) < 8 or words[2] != 'tcp':
-          continue
+          words = line.split()
+          if len(words) < 8 or words[2] != 'tcp':
+            continue
           
-        ts = words[0] + " " + words[1]
-        if self.ts_out_of_range(ts):
-          continue
+          ts = words[0] + " " + words[1]
+          if self.ts_out_of_range(ts):
+            continue
           
-        # filtering based on user input; (local socket, remote socket, pid/process)
-        local_end, remote_end, interested = self.check_connection(words[5], words[6], words[8])
+          # filtering based on user input; (local socket, remote socket, pid/process)
+          local_end, remote_end, interested = self.check_connection(words[5], words[6], words[8])
+          if interested:
+            self.add_data_line(data, local_end + '.' + remote_end + '.RecvQ', words[3], ts)
+            self.add_data_line(data, local_end + '.' + remote_end + '.SendQ', words[4], ts)
 
-        if interested:
-          self.add_data_line(data, local_end + '.' + remote_end + '.RecvQ', words[3], ts)
-          self.add_data_line(data, local_end + '.' + remote_end + '.SendQ', words[4], ts)        
-   
-    #post processing, putting data in csv files;   
-    for csv in data.keys():      
+    #post processing, putting data in csv files;
+    for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
-        fh.write('\n'.join(data[csv]))
+        fh.write('\n'.join(sorted(data[csv])))
 
     gc.collect()
     return status
