@@ -14,7 +14,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 import argparse
 import ConfigParser
 import errno
-import imp
 import logging
 import os
 import sys

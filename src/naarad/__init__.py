@@ -282,6 +282,11 @@ class Naarad(object):
     run_steps = defaultdict(list)
     metrics = defaultdict(list)
     indir_default = ''
+
+    if config.has_section('GLOBAL') and config.has_option('GLOBAL', 'user_defined_metrics'):
+      naarad.utils.parse_user_defined_metric_classes(config, metric_classes)
+      config.remove_option('GLOBAL', 'user_defined_metrics')
+
     for section in config.sections():
       # GRAPH section is optional
       if section == 'GRAPH':
