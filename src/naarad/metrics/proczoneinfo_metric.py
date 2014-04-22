@@ -30,10 +30,10 @@ class ProcZoneinfoMetric(Metric):
     
   zones = None   # Users can specify which zones to process/plot, e.g. zones= Node.0.zone.DMA
   
-  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                    rule_strings)
+  def __init__ (self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                rule_strings, important_sub_metrics, **other_options):
+    Metric.__init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                    rule_strings, important_sub_metrics)
     
     self.sub_metrics = None
     # in particular, Section can specify a subset of all metrics: sub_metrics=pages.min nr_free_pages
@@ -56,69 +56,59 @@ class ProcZoneinfoMetric(Metric):
     Parse the vmstat file
     :return: status of the metric parse
     """
-    logger.info('Processing : %s',self.infile)
-    file_status = naarad.utils.is_valid_file(self.infile)
-    if not file_status:
-      return False      
+    file_status = True
+    for input_file in self.infile_list:
+      file_status = file_status and naarad.utils.is_valid_file(input_file)
+      if not file_status:
+        return False
    
     status = True    
     cur_zone = None
     cur_submetric = None
     cur_value = None
-    
-    with open(self.infile) as fh:
-      data = {}  # stores the data of each column
-      for line in fh:
-        words = line.replace(',',' ').split()           # [0] is day; [1] is seconds; [2...] is field names:;        
-        
-        if len(words) < 3:
-          continue
-          
-        ts = words[0] + " " + words[1]
-        if self.ts_out_of_range(ts):
-          continue
-          
-        if words[2] == 'Node':  # Node 0 zone      DMA
-          cols = words[2:]
-          cur_zone = '.'.join(cols) 
-          continue 
-        elif words[2] == 'pages':  # pages free     3936
-          cur_submetric = words[2] + '.' + words[3]  # pages.free          
-          cur_value = words[4]
-        elif words[2] in self.processed_sub_metrics:
-          cur_submetric = 'pages' + '.' + words[2] # pages.min
-          cur_value = words[3]
-        elif words[2] in self.skipped_sub_metrics:
-          continue   
-        else:   #other useful submetrics
-          cur_submetric = words[2]
-          cur_value = words[3]
-      
-        col = cur_zone + '.' + cur_submetric  # prefix with 'Node.0.zone.DMA.
-        
-        #only process zones specified in config
-        if cur_zone and self.zones and cur_zone not in self.zones:
-          continue
-        
-        self.sub_metric_unit[col] = 'pages'  # The unit of the sub metric. For /proc/zoneinfo, they are all in pages
-          
-        # only process sub_metrics specified in config. 
-        if self.sub_metrics and cur_submetric and cur_submetric not in self.sub_metrics:
-          continue        
-         
-        if col in self.column_csv_map: 
-          out_csv = self.column_csv_map[col] 
-        else:
-          out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
-          data[out_csv] = []        
-         
-        data[out_csv].append(ts + "," + cur_value)
-    
+    data = {}  # stores the data of each column
+    for input_file in self.infile_list:
+      logger.info('Processing : %s',input_file)
+      with open(input_file) as fh:
+        for line in fh:
+          words = line.replace(',',' ').split()           # [0] is day; [1] is seconds; [2...] is field names:;
+          if len(words) < 3:
+            continue
+          ts = words[0] + " " + words[1]
+          if self.ts_out_of_range(ts):
+            continue
+          if words[2] == 'Node':  # Node 0 zone      DMA
+            cols = words[2:]
+            cur_zone = '.'.join(cols)
+            continue
+          elif words[2] == 'pages':  # pages free     3936
+            cur_submetric = words[2] + '.' + words[3]  # pages.free
+            cur_value = words[4]
+          elif words[2] in self.processed_sub_metrics:
+            cur_submetric = 'pages' + '.' + words[2] # pages.min
+            cur_value = words[3]
+          elif words[2] in self.skipped_sub_metrics:
+            continue
+          else:   #other useful submetrics
+            cur_submetric = words[2]
+            cur_value = words[3]
+          col = cur_zone + '.' + cur_submetric  # prefix with 'Node.0.zone.DMA.
+          #only process zones specified in config
+          if cur_zone and self.zones and cur_zone not in self.zones:
+            continue
+          self.sub_metric_unit[col] = 'pages'  # The unit of the sub metric. For /proc/zoneinfo, they are all in pages
+          # only process sub_metrics specified in config.
+          if self.sub_metrics and cur_submetric and cur_submetric not in self.sub_metrics:
+            continue
+          if col in self.column_csv_map:
+            out_csv = self.column_csv_map[col]
+          else:
+            out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
+            data[out_csv] = []
+          data[out_csv].append(ts + "," + cur_value)
     #post processing, putting data in csv files;   
     for csv in data.keys():      
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
-        fh.write('\n'.join(data[csv]))
-
-    gc.collect()
+        fh.write('\n'.join(sorted(data[csv])))
     return status

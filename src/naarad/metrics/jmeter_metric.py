@@ -23,10 +23,10 @@ from naarad.naarad_constants import important_sub_metrics_import
 logger = logging.getLogger('naarad.metrics.JmeterMetric')
 
 class JmeterMetric(Metric):
-  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, **other_options):
-    Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                    rule_strings)
+  def __init__ (self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                rule_strings, important_sub_metrics, **other_options):
+    Metric.__init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                    rule_strings, important_sub_metrics)
     self.sub_metric_description = {
       'lb': 'Transaction Name',
       'lt': 'Time to First byte',
@@ -54,7 +54,8 @@ class JmeterMetric(Metric):
     self.aggregation_granularity = 'minute'
     self.calculated_percentiles = {}
     self.summary_stats = defaultdict(dict)
-    self.important_sub_metrics = important_sub_metrics_import['JMETER']
+    if not self.important_sub_metrics:
+      self.important_sub_metrics = important_sub_metrics_import['JMETER']
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -197,10 +198,11 @@ class JmeterMetric(Metric):
 
     :return: status of the metric parse
     """
-    logger.info('Processing : %s',self.infile)
-    file_status = naarad.utils.is_valid_file(self.infile)
-    if not file_status:
-      return False
+    file_status = True
+    for infile in self.infile_list:
+      file_status = file_status and naarad.utils.is_valid_file(infile)
+      if not file_status:
+        return False
 
     status = self.parse_xml_jtl(self.aggregation_granularity)
     gc.collect()
@@ -213,31 +215,29 @@ class JmeterMetric(Metric):
     :param string granularity: The time period over which to aggregate and average the raw data. Valid values are 'hour', 'minute' or 'second'
     :return: status of the metric parse
     """
-    with open(self.infile) as infile:
-      data = defaultdict(list)
-      processed_data = defaultdict(lambda : defaultdict(lambda : defaultdict(list)))
-
-      line_regex = re.compile(r' (lb|ts|t|by|s)="([^"]+)"')
-      for line in infile:
-        if '<httpSample' not in line and '<sample' not in line:
-          continue
-        line_data = dict(re.findall(line_regex, line))
-        aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(line_data['ts'], granularity)
-        self.aggregate_count_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], aggregate_timestamp)
-        self.aggregate_values_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], ['t', 'by'], aggregate_timestamp)
-      logger.info('Finished parsing : %s', self.infile)
-
-      logger.info('Processing metrics for output to csv')
-      self.average_values_for_plot(processed_data, data, averaging_factor)
-
-      logger.info('Writing time series csv')
-      for csv in data.keys():
-        self.csv_files.append(csv)
-        with open(csv, 'w') as csvf:
-          csvf.write('\n'.join(sorted(data[csv])))
-
-      logger.info('Processing raw data for stats')
-      self.calculate_key_stats(processed_data)
+    data = defaultdict(list)
+    processed_data = defaultdict(lambda : defaultdict(lambda : defaultdict(list)))
+    line_regex = re.compile(r' (lb|ts|t|by|s)="([^"]+)"')
+    for input_file in self.infile_list:
+      logger.info('Processing : %s', input_file)
+      with open(input_file) as infile:
+        for line in infile:
+          if '<httpSample' not in line and '<sample' not in line:
+            continue
+          line_data = dict(re.findall(line_regex, line))
+          aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(line_data['ts'], granularity)
+          self.aggregate_count_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], aggregate_timestamp)
+          self.aggregate_values_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], ['t', 'by'], aggregate_timestamp)
+        logger.info('Finished parsing : %s', input_file)
+    logger.info('Processing metrics for output to csv')
+    self.average_values_for_plot(processed_data, data, averaging_factor)
+    logger.info('Writing time series csv')
+    for csv in data.keys():
+      self.csv_files.append(csv)
+      with open(csv, 'w') as csvf:
+        csvf.write('\n'.join(sorted(data[csv])))
+    logger.info('Processing raw data for stats')
+    self.calculate_key_stats(processed_data)
     return True
 
   def calculate_stats(self):
