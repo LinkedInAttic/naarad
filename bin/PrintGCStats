@@ -225,6 +225,8 @@ BEGIN {
   gen0t_idx = ++i;	# Includes gc_prologue() & gc_epilogue().
   gen1i_idx = ++i;	# Train incremental collection time. 
   gen1t_idx = ++i;	# Full GCs or Tenured GCs
+  g1_young_idx = ++i; #G1 GC Young
+  g1_mixed_idx = ++i; #G1 GC Mixed
   cmsIM_idx = ++i;	# CMS Initial Mark
   cmsRM_idx = ++i;	# CMS Remark
   cmsRS_idx = ++i;	# CMS Resize (evm only)
@@ -286,6 +288,8 @@ BEGIN {
   name_v[gen0real_idx]	= "gen0real";
   name_v[gen1i_idx]	= "gen1i";
   name_v[gen1t_idx]	= "gen1t";
+  name_v[g1_young_idx] = "g1young";
+  name_v[g1_mixed_idx] = "g1mixed";
   name_v[cmsIM_idx]	= "cmsIM";
   name_v[cmsRM_idx]	= "cmsRM";
   name_v[cmsRS_idx]	= "cmsRS";
@@ -424,10 +428,14 @@ BEGIN {
   # or [GC remark, 0.082 secs]
   # or [GC cleanup 11M->11M(25M), 0.126 secs]
   g1_cleanup_re		= "cleanup " heap_size_status_re;
-  g1_pause_re		= "pause \\((young|partial)\\)";
-  g1_pause_re		= g1_pause_re "( \\((initial-mark|evacuation failed)\\))?";
-  g1_stw_re		= "\\[GC (" g1_pause_re "|remark|" g1_cleanup_re "), " \
+  g1_young_pause_re		= "pause \\((young|partial)\\)";
+  g1_young_pause_re		= g1_young_pause_re "( \\((initial-mark|evacuation failed)\\))?";
+  g1_young_stw_re		= "\\[GC (" g1_young_pause_re "|remark|" g1_cleanup_re "), " \
 	  		  gc_time_secs_re "\\]";
+  g1_mixed_pause_re = "pause \\(mixed\\)";
+  g1_mixed_pause_re = g1_mixed_pause_re "( \\((initial-mark|evacuation failed)\\))?";
+  g1_mixed_stw_re = "\\[GC (" g1_mixed_pause_re "|remark|" g1_cleanup_re "), " \
+          gc_time_secs_re "\\]";
 }
 
 function initIntervalVars() {
@@ -778,6 +786,17 @@ updateLog == 1 {
   updateLog = 0;
 }
 
+$0 ~ "GC pause" {
+  g1_prefix = $0;
+  updateG1Log = 1;
+  next;  
+}
+
+updateG1Log == 1 {
+  $0 = g1_prefix$0;
+  updateG1Log = 0;
+}
+
 getDateTimeStamp() < ts_start {
    next;
 }
@@ -1123,11 +1142,19 @@ $0 ~ "\\[GC(--)? \\[PSYoungGen: +" heap_size_status_re "\\] " heap_report_re "\\
 # or [GC cleanup 11M->11M(25M), 0.126 secs]
 # /\[GC.*, [0-9][0-9.]* secs\]/ {
 # $0 ~ g1_stw_re {
-$0 ~ g1_stw_re {
+$0 ~ g1_young_stw_re {
 # print "	>> cht 14. line ", FNR, $0;
   match($0, gc_time_secs_re);
   secs = substr($0, RSTART, RLENGTH - 5) + 0;
-  recordStats(gen1t_idx, secs);
+  recordStats(g1_young_idx, secs);
+  printInterval();
+  next;
+}
+
+$0 ~ g1_mixed_stw_re {
+  match($0, gc_time_secs_re);
+  secs = substr($0, RSTART, RLENGTH - 5) + 0;
+  recordStats(g1_mixed_idx, secs);
   printInterval();
   next;
 }
