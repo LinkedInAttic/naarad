@@ -20,21 +20,16 @@ logger = logging.getLogger('naarad.metrics.NetstatMetric')
 class NetstatMetric(Metric):
   """
   Netstat metric
+  'connections' is given by the user in config file. Each element contains two ends of the socket, they are keywords in the hostname and the port number;
+  Note that port number can be 'ssh', and is optional
+  'input_connections' is used internally, will contain a list of user interested connections;
+  each element is a tuple of (host1,port1,host2,port2); (e.g., ('localhost','','','2344')
+  'processes' is given by the user in config file;   It will contain user-input of process names (pid/process, or pid, or /process)
+  'input_processes' is used internally, contains a list of pid/processes
   """
-  # 'connections' is given by the user in config file.
-  # Each element contains two ends of the socket, they are keywords in the hostname and the port number;
-  # Note that port number can be 'ssh', and is optional; 
-  # Note that the host name can be just a prefix (due to truncated output of netstat)
-  # e.g. host1:port1-host2 host1:port1  host1
   connections = ''
-  # used internally, will contain a list of user interested connections;
-  # each element is a tuple of (host1,port1,host2,port2); (e.g., ('localhost','','','2344')
   input_connections = []
-
-  # 'processes' is given by the user in config file
-  # It will contain user-input of process names (pid/process, or pid, or /process)
   processes = ''
-  # used internally, contains a list of pid/processes
   input_processes = []
   
   def __init__ (self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
@@ -45,10 +40,10 @@ class NetstatMetric(Metric):
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
 
-    self.extract_input_connections()
-    self.extract_input_processes()
+    self._extract_input_connections()
+    self._extract_input_processes()
 
-  def get_tuple(self, fields):
+  def _get_tuple(self, fields):
     """
     :param fields: a list which contains either 0,1,or 2 values
     :return: a tuple with default values of '';
@@ -61,24 +56,24 @@ class NetstatMetric(Metric):
       v2 = fields[1]
     return v1, v2
 
-  def extract_input_connections(self):
+  def _extract_input_connections(self):
     """
     Given user input of interested connections, it will extract the info and output a list of tuples.
     - input can be multiple values, separated by space;  
     - either host or port is optional
     - it may be just one end, 
-    - e.g., "host1:host2<->  host1:port1<->host2"
+    - e.g., "host1<->host2 host3<->  host1:port1<->host2"
     :return: None
     """
     for con in self.connections:
       ends = con.split('<->')  # [host1:port1->host2]      
       if len(ends) > 0: 
-        host1, port1 = self.get_tuple(ends[0].split(':'))
+        host1, port1 = self._get_tuple(ends[0].split(':'))
       if len(ends) > 1: 
-        host2, port2 = self.get_tuple(ends[1].split(':'))
+        host2, port2 = self._get_tuple(ends[1].split(':'))
       self.input_connections.append((host1,port1,host2,port2))
 
-  def extract_input_processes(self):
+  def _extract_input_processes(self):
     """
     Given user input of interested processes, it will extract the info and output a list of tuples.
     - input can be multiple values, separated by space;
@@ -88,10 +83,10 @@ class NetstatMetric(Metric):
     """
     for proc in self.processes:
       ends = proc.split('/')
-      pid, name = self.get_tuple(ends)
+      pid, name = self._get_tuple(ends)
       self.input_processes.append((pid,name))
 
-  def match_host_port(self, host, port, cur_host, cur_port):
+  def _match_host_port(self, host, port, cur_host, cur_port):
     """
     Determine whether user-specified (host,port) matches current (cur_host, cur_port)
     :param host,port: The user input of (host,port)
@@ -114,7 +109,7 @@ class NetstatMetric(Metric):
 
     return host_match and port_match
 
-  def match_processes(self, pid, name, cur_process):
+  def _match_processes(self, pid, name, cur_process):
     """
     Determine whether user-specified "pid/processes" contain this process
     :param pid: The user input of pid
@@ -122,7 +117,7 @@ class NetstatMetric(Metric):
     :param process: current process info
     :return: True or Not; (if both pid/process are given, then both of them need to match)
     """
-    cur_pid, cur_name = self.get_tuple(cur_process.split('/'))
+    cur_pid, cur_name = self._get_tuple(cur_process.split('/'))
 
     pid_match = False
     if not pid:
@@ -138,7 +133,7 @@ class NetstatMetric(Metric):
 
     return pid_match and name_match
 
-  def check_connection(self, local_end, remote_end, process):
+  def _check_connection(self, local_end, remote_end, process):
     """ 
     Check whether the connection is of interest or not
     :param local_end: Local connection end point, e.g., 'host1:port1'
@@ -147,29 +142,29 @@ class NetstatMetric(Metric):
     :return: a tuple of (local_end, remote_end, True/False); e.g. ('host1_23232', 'host2_2222', True)
     """
     # check tcp end points
-    cur_host1, cur_port1 = self.get_tuple(local_end.split(':'))
-    cur_host2, cur_port2 = self.get_tuple(remote_end.split(':'))
+    cur_host1, cur_port1 = self._get_tuple(local_end.split(':'))
+    cur_host2, cur_port2 = self._get_tuple(remote_end.split(':'))
 
     #check whether the connection is interested or not by checking user input
     host_port_is_interested = False
     for host1,port1,host2,port2 in self.input_connections:
-      if self.match_host_port(host1, port1, cur_host1, cur_port1) and self.match_host_port(host2, port2, cur_host2, cur_port2):
+      if self._match_host_port(host1, port1, cur_host1, cur_port1) and self._match_host_port(host2, port2, cur_host2, cur_port2):
         host_port_is_interested = True
         break
-      if self.match_host_port(host1, port1, cur_host2, cur_port2) and self.match_host_port(host2, port2, cur_host1, cur_port1):
+      if self._match_host_port(host1, port1, cur_host2, cur_port2) and self._match_host_port(host2, port2, cur_host1, cur_port1):
         host_port_is_interested = True
         break
 
     # check whether the connection is interested or not by checking process names given in the config
     process_is_interested = False
     for pid, name in self.input_processes:
-      if self.match_processes(pid, name, process):
+      if self._match_processes(pid, name, process):
         process_is_interested = True
         break
 
     return cur_host1 + '_' + cur_port1, cur_host2 + '_' + cur_port2, host_port_is_interested and process_is_interested
 
-  def add_data_line(self, data, col, value, ts):
+  def _add_data_line(self, data, col, value, ts):
     """
     Append the data point to the dictionary of "data"
     :param data: The dictionary containing all data
@@ -209,10 +204,10 @@ class NetstatMetric(Metric):
             continue
           
           # filtering based on user input; (local socket, remote socket, pid/process)
-          local_end, remote_end, interested = self.check_connection(words[5], words[6], words[8])
+          local_end, remote_end, interested = self._check_connection(words[5], words[6], words[8])
           if interested:
-            self.add_data_line(data, local_end + '.' + remote_end + '.RecvQ', words[3], ts)
-            self.add_data_line(data, local_end + '.' + remote_end + '.SendQ', words[4], ts)
+            self._add_data_line(data, local_end + '.' + remote_end + '.RecvQ', words[3], ts)
+            self._add_data_line(data, local_end + '.' + remote_end + '.SendQ', words[4], ts)
 
     #post processing, putting data in csv files;
     for csv in data.keys():
