@@ -219,9 +219,11 @@ def main():
     config_obj.optionxform = str
     config_obj.read(optfile)
 
-    if config_obj.has_section('GLOBAL') and config_obj.has_option('GLOBAL', 'user_defined_metrics'):
-      naarad.utils.parse_user_defined_metric_classes(config_obj, metric_classes)
-      config_obj.remove_option('GLOBAL', 'user_defined_metrics')
+    if config_obj.has_section('GLOBAL'):
+      ts_start, ts_end = naarad.utils.parse_global_section(config_obj, section)
+      if config_obj.has_option('GLOBAL', 'user_defined_metrics'):
+        naarad.utils.parse_user_defined_metric_classes(config_obj, metric_classes)
+      config_obj.remove_section('GLOBAL')
 
     for section in config_obj.sections():
       # GRAPH section is optional
@@ -242,8 +244,6 @@ def main():
           post_run_steps.append(run_step)
         else:
           logger.error('Unknown RUN-STEP run_order specified')
-      elif section == 'GLOBAL':
-        ts_start, ts_end = naarad.utils.parse_global_section(config_obj, section)
       else:
         # section name is used to create sub-directories, so enforce it. 
         if not naarad.utils.is_valid_metric_name(section):
