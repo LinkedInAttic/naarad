@@ -84,8 +84,10 @@ class Metric(object):
     groupby_indexes = []
     for i in range(len(groupby)):
       name, index = groupby[i].split(':')
-      if index: groupby_indexes.append(index)
-      else: groupby_indexes.append(self.name_to_index(name))
+      if index:
+        groupby_indexes.append(index)
+      else:
+        groupby_indexes.append(self.name_to_index(name))
     return groupby_indexes
 
   def ts_out_of_range(self, timestamp):
@@ -127,8 +129,8 @@ class Metric(object):
     self.infile_list = collected_files
     return True
 
-  def get_csv(self, grpby, column):
-    if not grpby:
+  def get_csv(self, column, groupby=None):
+    if not groupby:
       if column in self.column_csv_map.keys():
         return self.column_csv_map[column]
       col = naarad.utils.sanitize_string(column)
@@ -136,14 +138,13 @@ class Metric(object):
       self.csv_column_map[csv] = column
       self.column_csv_map[column] = csv
     else:
-      grp_column = grpby+'.'+column
-      if grp_column in self.column_csv_map.keys():
-        return self.column_csv_map[grp_column]
-      col = naarad.utils.sanitize_string(grp_column)
+      group_column = groupby+'.'+column
+      if group_column in self.column_csv_map.keys():
+        return self.column_csv_map[group_column]
+      col = naarad.utils.sanitize_string(group_column)
       csv = os.path.join(self.resource_directory, self.label + '.' + col + '.csv')
-      self.csv_column_map[csv] = grp_column
-      self.column_csv_map[grp_column] = csv
-
+      self.csv_column_map[csv] = group_column
+      self.column_csv_map[group_column] = csv
     return csv
   
   def get_important_sub_metrics_csv(self):
@@ -181,42 +182,38 @@ class Metric(object):
 
       with open(input_file, 'r') as infile:
         for line in infile:
-
           if self.sep is None or self.sep =='':
             words = line.strip().split()
           else:
             words = line.strip().split(self.sep)
           if len(words) == 0 or (len(words)==1 and words[0] == ''): #cond after or is to handle Newline
             continue
-
           if len(words) <= len(self.columns): #NOTE: len(self.columns) is always one less than len(words) since we assume the very first column is timestamp
             logger.warning("WARNING: Number of columns given in config is more than number of columns present in line {0}\n", line)
             continue
-
           if not timestamp_format or timestamp_format == 'unknown':
             timestamp_format = naarad.utils.detect_timestamp_format(words[0])
-
           if timestamp_format == 'unknown':
             continue
           ts = naarad.utils.get_standardized_timestamp(words[0], timestamp_format)
-
           if ts == -1:
             continue
           ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
-
           if self.ts_out_of_range(ts):
             continue
-
-
           qps[ts.split('.')[0]] += 1
-
           if self.groupby:
             groupby_names = None
-            for i in range(len(groupby_idxes)):
+            #for i in range(len(groupby_idxes)):
+            #  if not groupby_names:
+            #    groupby_names = words[groupby_idxes[i]].rstrip(':')
+            #  else:
+            #    groupby_names += '.' + words[groupby_idxes[i]].rstrip(':')
+            for index in groupby_idxes:
               if not groupby_names:
-                groupby_names = words[groupby_idxes[i]].rstrip(':')
+                groupby_names = words[index].rstrip(':')
               else:
-                groupby_names = groupby_names + '.' + words[groupby_idxes[i]].rstrip(':')
+                groupby_names += '.' + words[index].rstrip(':')
             for i in range(len(self.columns)):
               if i+1 in groupby_idxes:
                 continue
@@ -229,14 +226,14 @@ class Metric(object):
                   data[out_csv].append( ts + ',' + words[i+1] )
           else:
             for i in range(len(self.columns)):
-              out_csv = self.get_csv(None, self.columns[i])
+              out_csv = self.get_csv(self.columns[i])
               if out_csv in data:
                 data[out_csv].append( ts + ',' + words[i+1] )
               else:
                 data[out_csv] = []
                 data[out_csv].append( ts + ',' + words[i+1] )
     # Post processing, putting data in csv files
-    data[self.get_csv(None, 'qps')] = map(lambda x: x[0] + ',' + str(x[1]),sorted(qps.items()))
+    data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]),sorted(qps.items()))
     for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
