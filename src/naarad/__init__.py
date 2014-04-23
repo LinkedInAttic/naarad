@@ -284,7 +284,7 @@ class Naarad(object):
     indir_default = ''
 
     if config.has_section('GLOBAL'):
-      ts_start, ts_end = naarad.utils.parse_global_section(config, section)
+      ts_start, ts_end = naarad.utils.parse_global_section(config, 'GLOBAL')
       if config.has_option('GLOBAL', 'user_defined_metrics'):
         naarad.utils.parse_user_defined_metric_classes(config, metric_classes)
       config.remove_section('GLOBAL')

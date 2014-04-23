@@ -220,7 +220,7 @@ def main():
     config_obj.read(optfile)
 
     if config_obj.has_section('GLOBAL'):
-      ts_start, ts_end = naarad.utils.parse_global_section(config_obj, section)
+      ts_start, ts_end = naarad.utils.parse_global_section(config_obj, 'GLOBAL')
       if config_obj.has_option('GLOBAL', 'user_defined_metrics'):
         naarad.utils.parse_user_defined_metric_classes(config_obj, metric_classes)
       config_obj.remove_section('GLOBAL')
