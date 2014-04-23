@@ -21,7 +21,7 @@ logger = logging.getLogger('naarad.metrics.metric')
 class Metric(object):
 
   def __init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, **other_options):
+                rule_strings, important_sub_metrics, **other_options):
     self.metric_type = metric_type
     self.infile_list = infile_list
     self.hostname = hostname
@@ -45,7 +45,7 @@ class Metric(object):
     self.csv_column_map = {}
     self.sub_metric_description = defaultdict(lambda: 'None')  # the description of the submetrics. 
     self.sub_metric_unit = defaultdict(lambda: 'None')      # the unit of the submetrics.  The plot will have the Y-axis being: Metric name (Unit)
-    self.important_sub_metrics = ()
+    self.important_sub_metrics = important_sub_metrics
     self.sla_list = []  # TODO : remove this once report has grading done in the metric tables
     self.sla_map = defaultdict(lambda :defaultdict(lambda: defaultdict(None)))
     self.calculated_stats = {}
@@ -170,7 +170,6 @@ class Metric(object):
       else:
         self.summary_stats[column][stat] = naarad.utils.normalize_float_for_display(self.calculated_stats[column][stat])
 
-  @property
   def parse(self):
     qps = defaultdict(int)
     groupby_idxes = self.get_groupby_indexes(self.groupby)
@@ -285,7 +284,7 @@ class Metric(object):
           sub_metric = column
           if self.metric_type in self.device_types:
             sub_metric = column.split('.')[1]
-          if sub_metric in self.important_sub_metrics:
+          if self.check_important_sub_metrics(sub_metric):
             if not imp_metric_stats_present:
               FH_W_IMP.write(headers)
               imp_metric_stats_present = True
@@ -366,6 +365,8 @@ class Metric(object):
     """
     check whether the given sub metric is in important_sub_metrics list 
     """
+    if not self.important_sub_metrics:
+      return False
     if sub_metric in self.important_sub_metrics:
       return True
     items = sub_metric.split('.')

@@ -20,17 +20,17 @@ class SARMetric(Metric):
   supported_sar_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-memory', 'SAR-memutil', 'SAR-paging', 
       'SAR-etcp', 'SAR-tcp', 'SAR-dev', 'SAR-edev', 'SAR-sock', 'SAR-swapping')
   def __init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
-               **other_options):
+               important_sub_metrics, **other_options):
     metric_type = self.extract_metric_name(metric_type)
-    Metric.__init__(self, metric_type, infile_list,  hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings)
-    if self.metric_type in important_sub_metrics_import.keys():
+    Metric.__init__(self, metric_type, infile_list,  hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+                    important_sub_metrics)
+    if not self.important_sub_metrics and self.metric_type in important_sub_metrics_import.keys():
       self.important_sub_metrics = important_sub_metrics_import[self.metric_type]
     self.options = None
     self.devices = None
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
-    if metric_type in important_sub_metrics_import:
-      self.important_sub_metrics = important_sub_metrics_import[metric_type]
+
 
   def extract_metric_name(self, metric_name):
     """
