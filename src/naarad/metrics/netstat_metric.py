@@ -6,7 +6,6 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 from collections import defaultdict
-import gc
 import logging
 from naarad.metrics.metric import Metric
 
@@ -61,9 +60,13 @@ class NetstatMetric(Metric):
     :return: None
     """
     for con in self.connections:
-      ends = con.split('<->')  # [host1:port1->host2]      
+      ends = con.split('<->')  # [host1:port1->host2]
+      if len(ends) == 0:
+        continue
       if len(ends) > 0: 
         host1, port1 = self._get_tuple(ends[0].split(':'))
+      host2 = ''
+      port2 = ''
       if len(ends) > 1: 
         host2, port2 = self._get_tuple(ends[1].split(':'))
       self.input_connections.append((host1,port1,host2,port2))
