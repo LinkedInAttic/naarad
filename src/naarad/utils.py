@@ -160,7 +160,6 @@ def parse_basic_metric_options(config_obj, section):
       config_obj.remove_option(section, 'ts_start')
     if config_obj.has_option(section, 'ts_end'):
       ts_end = config_obj.get(section, 'ts_end')
-
       config_obj.remove_option(section, 'ts_end')
     if config_obj.has_option(section, 'precision'):
       precision = config_obj.get(section, 'precision')

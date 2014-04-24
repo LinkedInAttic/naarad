@@ -82,8 +82,8 @@ class Metric(object):
 
   def get_groupby_indexes(self, groupby):
     groupby_indexes = []
-    for i in range(len(groupby)):
-      name, index = groupby[i].split(':')
+    for group in groupby:
+      name, index = group.split(':')
       if index:
         groupby_indexes.append(index)
       else:
@@ -138,7 +138,7 @@ class Metric(object):
       self.csv_column_map[csv] = column
       self.column_csv_map[column] = csv
     else:
-      group_column = groupby+'.'+column
+      group_column = groupby + '.' + column
       if group_column in self.column_csv_map.keys():
         return self.column_csv_map[group_column]
       col = naarad.utils.sanitize_string(group_column)
@@ -203,11 +203,6 @@ class Metric(object):
           qps[ts.split('.')[0]] += 1
           if self.groupby:
             groupby_names = None
-            #for i in range(len(groupby_idxes)):
-            #  if not groupby_names:
-            #    groupby_names = words[groupby_idxes[i]].rstrip(':')
-            #  else:
-            #    groupby_names += '.' + words[groupby_idxes[i]].rstrip(':')
             for index in groupby_idxes:
               if not groupby_names:
                 groupby_names = words[index].rstrip(':')
@@ -219,20 +214,20 @@ class Metric(object):
               else:
                 out_csv = self.get_csv(groupby_names, self.columns[i])
                 if out_csv in data:
-                  data[out_csv].append( ts + ',' + words[i+1] )
+                  data[out_csv].append(ts + ',' + words[i+1])
                 else:
                   data[out_csv] = []
-                  data[out_csv].append( ts + ',' + words[i+1] )
+                  data[out_csv].append(ts + ',' + words[i+1])
           else:
             for i in range(len(self.columns)):
               out_csv = self.get_csv(self.columns[i])
               if out_csv in data:
-                data[out_csv].append( ts + ',' + words[i+1] )
+                data[out_csv].append(ts + ',' + words[i+1])
               else:
                 data[out_csv] = []
-                data[out_csv].append( ts + ',' + words[i+1] )
+                data[out_csv].append(ts + ',' + words[i+1])
     # Post processing, putting data in csv files
-    data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]),sorted(qps.items()))
+    data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]), sorted(qps.items()))
     for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
