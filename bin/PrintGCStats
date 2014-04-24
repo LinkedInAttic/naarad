@@ -234,7 +234,65 @@ BEGIN {
   cmsRS_idx = ++i;	# CMS Resize (evm only)
   totgc_idx = ++i;	# Total gc pause time
   # These must be greater than the totgc_idx.
-  g1_remark_refproc_idx = ++i; # G1 Remark Pause
+  g1_remark_refproc_idx = ++i; 
+  g1_young_parallel_idx = ++i;
+  g1_young_parallel_gc_workers_idx = ++i;
+  g1_young_parallel_gc_worker_start_avg_idx = ++i;
+  g1_young_parallel_gc_worker_start_max_idx = ++i;
+  g1_young_parallel_ext_root_scanning_avg_idx = ++i;
+  g1_young_parallel_ext_root_scanning_max_idx = ++i;
+  g1_young_parallel_update_rs_avg_idx = ++i;
+  g1_young_parallel_update_rs_max_idx = ++i;
+  g1_young_parallel_update_rs_processed_buffer_avg_idx = ++i;
+  g1_young_parallel_update_rs_processed_buffer_max_idx = ++i;
+  g1_young_parallel_scan_rs_avg_idx = ++i;
+  g1_young_parallel_scan_rs_max_idx = ++i;
+  g1_young_parallel_object_copy_rs_avg_idx = ++i;
+  g1_young_parallel_object_copy_rs_max_idx = ++i;
+  g1_young_parallel_termination_avg_idx = ++i;
+  g1_young_parallel_termination_max_idx = ++i;
+  g1_young_parallel_gc_worker_other_avg_idx = ++i;
+  g1_young_parallel_gc_worker_other_max_idx = ++i;
+  g1_young_parallel_gc_worker_total_avg_idx = ++i;
+  g1_young_parallel_gc_worker_total_max_idx = ++i;
+  g1_young_parallel_gc_worker_end_avg_idx = ++i;
+  g1_young_parallel_gc_worker_end_max_idx = ++i;
+  g1_young_code_root_fixup_idx = ++i;
+  g1_young_clear_ct_idx = ++i;
+  g1_young_other_idx = ++i;
+  g1_young_other_choose_cset_idx = ++i;
+  g1_young_other_ref_proc_idx = ++i;
+  g1_young_other_ref_enq_idx = ++i;
+  g1_young_other_free_cset_idx = ++i;
+  g1_mixed_parallel_idx = ++i;
+  g1_mixed_parallel_gc_workers_idx = ++i;
+  g1_mixed_parallel_gc_worker_start_avg_idx = ++i;
+  g1_mixed_parallel_gc_worker_start_max_idx = ++i;
+  g1_mixed_parallel_ext_root_scanning_avg_idx = ++i;
+  g1_mixed_parallel_ext_root_scanning_max_idx = ++i;
+  g1_mixed_parallel_update_rs_avg_idx = ++i;
+  g1_mixed_parallel_update_rs_max_idx = ++i;
+  g1_mixed_parallel_update_rs_processed_buffer_avg_idx = ++i;
+  g1_mixed_parallel_update_rs_processed_buffer_max_idx = ++i;
+  g1_mixed_parallel_scan_rs_avg_idx = ++i;
+  g1_mixed_parallel_scan_rs_max_idx = ++i;
+  g1_mixed_parallel_object_copy_rs_avg_idx = ++i;
+  g1_mixed_parallel_object_copy_rs_max_idx = ++i;
+  g1_mixed_parallel_termination_avg_idx = ++i;
+  g1_mixed_parallel_termination_max_idx = ++i;
+  g1_mixed_parallel_gc_worker_other_avg_idx = ++i;
+  g1_mixed_parallel_gc_worker_other_max_idx = ++i;
+  g1_mixed_parallel_gc_worker_total_avg_idx = ++i;
+  g1_mixed_parallel_gc_worker_total_max_idx = ++i;
+  g1_mixed_parallel_gc_worker_end_avg_idx = ++i;
+  g1_mixed_parallel_gc_worker_end_max_idx = ++i;
+  g1_mixed_code_root_fixup_idx = ++i;
+  g1_mixed_clear_ct_idx = ++i;
+  g1_mixed_other_idx = ++i;
+  g1_mixed_other_choose_cset_idx = ++i;
+  g1_mixed_other_ref_proc_idx = ++i;
+  g1_mixed_other_ref_enq_idx = ++i;
+  g1_mixed_other_free_cset_idx = ++i;
   gen0usr_idx = ++i;    # CPU user time in gen0
   gen0sys_idx = ++i;    # CPU sys time in gen0
   gen0real_idx = ++i;    # CPU sys time in gen0
@@ -296,6 +354,64 @@ BEGIN {
   name_v[g1_remark_idx] = "g1-pause-remark";
   name_v[g1_remark_refproc_idx] = "g1-pause-remark.ref-proc";
   name_v[g1_cleanup_idx] = "g1-pause-cleanup";
+  name_v[g1_young_parallel_idx] = "g1-pause-young.parallel";
+  name_v[g1_young_parallel_gc_workers_idx] = "g1-pause-young.parallel.gcworkers";
+  name_v[g1_young_parallel_gc_worker_start_avg_idx] = "g1-pause-young.parallel.gc-worker-start.avg";
+  name_v[g1_young_parallel_gc_worker_start_max_idx] = "g1-pause-young.parallel.gc-worker-start.max";
+  name_v[g1_young_parallel_ext_root_scanning_avg_idx] = "g1-pause-young.parallel.ext-root-scanning.avg";
+  name_v[g1_young_parallel_ext_root_scanning_max_idx] = "g1-pause-young.parallel.ext-root-scanning.max";
+  name_v[g1_young_parallel_update_rs_avg_idx] = "g1-pause-young.parallel.update-rs.avg";
+  name_v[g1_young_parallel_update_rs_max_idx] = "g1-pause-young.parallel.update-rs.max";
+  name_v[g1_young_parallel_update_rs_processed_buffer_avg_idx] = "g1-pause-young.parallel.update-rs.processed-buffers.avg";
+  name_v[g1_young_parallel_update_rs_processed_buffer_max_idx] = "g1-pause-young.parallel.update-rs.processed-buffers.max";
+  name_v[g1_young_parallel_scan_rs_avg_idx] = "g1-pause-young.parallel.scan-rs.avg";
+  name_v[g1_young_parallel_scan_rs_max_idx] = "g1-pause-young.parallel.scan-rs.max";
+  name_v[g1_young_parallel_object_copy_rs_avg_idx] = "g1-pause-young.parallel.object-copy-rs.avg";
+  name_v[g1_young_parallel_object_copy_rs_max_idx] = "g1-pause-young.parallel.object-copy-rs.max";
+  name_v[g1_young_parallel_termination_avg_idx] = "g1-pause-young.parallel.termination.avg";
+  name_v[g1_young_parallel_termination_max_idx] = "g1-pause-young.parallel.termination.max";
+  name_v[g1_young_parallel_gc_worker_other_avg_idx] = "g1-pause-young.parallel.gc-worker-other.avg";
+  name_v[g1_young_parallel_gc_worker_other_max_idx] = "g1-pause-young.parallel.gc-worker-other.max";
+  name_v[g1_young_parallel_gc_worker_total_avg_idx] = "g1-pause-young.parallel.gc-worker-total.avg";
+  name_v[g1_young_parallel_gc_worker_total_max_idx] = "g1-pause-young.parallel.gc-worker-total.max";
+  name_v[g1_young_parallel_gc_worker_end_avg_idx] = "g1-pause-young.parallel.gc-worker-end.avg";
+  name_v[g1_young_parallel_gc_worker_end_max_idx] = "g1-pause-young.parallel.gc-worker-end.max";
+  name_v[g1_young_code_root_fixup_idx] = "g1-pause-young.code-root-fixup";
+  name_v[g1_young_clear_ct_idx] = "g1-pause-young.clear-ct";
+  name_v[g1_young_other_idx] = "g1-pause-young.other";
+  name_v[g1_young_other_choose_cset_idx] = "g1-pause-young.other.choose-cset";
+  name_v[g1_young_other_ref_proc_idx] = "g1-pause-young.other.ref-proc";
+  name_v[g1_young_other_ref_enq_idx] = "g1-pause-young.other.reg-enq";
+  name_v[g1_young_other_free_cset_idx] = "g1-pause-young.other.free-cset";
+  name_v[g1_mixed_parallel_idx] = "g1-pause-mixed.parallel";
+  name_v[g1_mixed_parallel_gc_workers_idx] = "g1-pause-mixed.parallel.gcworkers";
+  name_v[g1_mixed_parallel_gc_worker_start_avg_idx] = "g1-pause-mixed.parallel.gc-worker-start.avg";
+  name_v[g1_mixed_parallel_gc_worker_start_max_idx] = "g1-pause-mixed.parallel.gc-worker-start.max"
+  name_v[g1_mixed_parallel_ext_root_scanning_avg_idx] = "g1-pause-mixed.parallel.ext-root-scanning.avg";
+  name_v[g1_mixed_parallel_ext_root_scanning_max_idx] = "g1-pause-mixed.parallel.ext-root-scanning.max";
+  name_v[g1_mixed_parallel_update_rs_avg_idx] = "g1-pause-mixed.parallel.update-rs.avg";
+  name_v[g1_mixed_parallel_update_rs_max_idx] = "g1-pause-mixed.parallel.update-rs.max";
+  name_v[g1_mixed_parallel_update_rs_processed_buffer_avg_idx] = "g1-pause-mixed.parallel.update-rs.processed-buffers.avg";
+  name_v[g1_mixed_parallel_update_rs_processed_buffer_max_idx] = "g1-pause-mixed.parallel.update-rs.processed-buffers.max";
+  name_v[g1_mixed_parallel_scan_rs_avg_idx] = "g1-pause-mixed.parallel.scan-rs.avg";
+  name_v[g1_mixed_parallel_scan_rs_max_idx] = "g1-pause-mixed.parallel.scan-rs.max";
+  name_v[g1_mixed_parallel_object_copy_rs_avg_idx] = "g1-pause-mixed.parallel.object-copy-rs.avg";
+  name_v[g1_mixed_parallel_object_copy_rs_max_idx] = "g1-pause-mixed.parallel.object-copy-rs.max";
+  name_v[g1_mixed_parallel_termination_avg_idx] = "g1-pause-mixed.parallel.termination.avg";
+  name_v[g1_mixed_parallel_termination_max_idx] = "g1-pause-mixed.parallel.termination.max";
+  name_v[g1_mixed_parallel_gc_worker_other_avg_idx] = "g1-pause-mixed.parallel.gc-worker-other.avg";
+  name_v[g1_mixed_parallel_gc_worker_other_max_idx] = "g1-pause-mixed.parallel.gc-worker-other.max";
+  name_v[g1_mixed_parallel_gc_worker_total_avg_idx] = "g1-pause-mixed.parallel.gc-worker-total.avg";
+  name_v[g1_mixed_parallel_gc_worker_total_max_idx] = "g1-pause-mixed.parallel.gc-worker-total.max";
+  name_v[g1_mixed_parallel_gc_worker_end_avg_idx] = "g1-pause-mixed.parallel.gc-worker-end.avg";
+  name_v[g1_mixed_parallel_gc_worker_end_max_idx] = "g1-pause-mixed.parallel.gc-worker-end.max";
+  name_v[g1_mixed_code_root_fixup_idx] = "g1-pause-mixed.code-root-fixup";
+  name_v[g1_mixed_clear_ct_idx] = "g1-pause-mixed.clear-ct";
+  name_v[g1_mixed_other_idx] = "g1-pause-mixed.other";
+  name_v[g1_mixed_other_choose_cset_idx] = "g1-pause-mixed.other.choose-cset";
+  name_v[g1_mixed_other_ref_proc_idx] = "g1-pause-mixed.other.ref-proc";
+  name_v[g1_mixed_other_ref_enq_idx] = "g1-pause-mixed.other.reg-enq";
+  name_v[g1_mixed_other_free_cset_idx] = "g1-pause-mixed.other.free-cset";
   name_v[cmsIM_idx]	= "cmsIM";
   name_v[cmsRM_idx]	= "cmsRM";
   name_v[cmsRS_idx]	= "cmsRS";
@@ -433,6 +549,28 @@ BEGIN {
   # or [GC pause (young) (initial mark), 0.082 secs]
   # or [GC remark, 0.082 secs]
   # or [GC cleanup 11M->11M(25M), 0.126 secs]
+  g1_gc_ms_re = "[0-9]+\\.[0-9]+ ms";
+  g1_gc_stats_re =  "Min: [0-9]+[.0-9]+, Avg: [0-9]+[.0-9]+, Max: [0-9]+[.0-9]+, Diff: [0-9]+[.0-9]+, Sum: [0-9]+[.0-9]+";
+  g1_gc_stats_alt_re =  "Min: [0-9]+[\\.0-9]+, Avg: [0-9]+[\\.0-9]+, Max: [0-9]+[\\.0-9]+, Diff: [0-9]+[\\.0-9]+";
+  g1_times_re = "\\[Times: user=[0-9]+\\.[0-9]+, sys=[0-9]+\\.[0-9]+, real=[0-9]+\\.[0-9]+\\]";
+  g1_parallel_re = "\\[Parallel Time: " gc_ms_re ", GC Workers: [0-9]+\\]";
+  g1_parallel_gc_worker_start_re = "\\[GC Worker Start \\(ms\\): " g1_gc_stats_alt_re "\\]";
+  g1_parallel_ext_root_scanning_re = "\\[Ext Root Scanning \\(ms\\): " g1_gc_stats_re "\\]";
+  g1_parallel_update_rs_re = "\\[Update RS \\(ms\\): " g1_gc_stats_re "\\]";
+  g1_parallel_update_rs_processed_buffer_re = "\\[Processed Buffers: " g1_gc_stats_re "\\]";
+  g1_parallel_scan_rs_re = "\\[Scan RS \\(ms\\): " g1_gc_stats_re "\\]";
+  g1_parallel_object_copy_rs_re = "\\[Object Copy \\(ms\\): " g1_gc_stats_re "\\]";
+  g1_parallel_termination_re = "\\[Termination \\(ms\\): " g1_gc_stats_re "\\]";
+  g1_parallel_gc_worker_other_re = "\\[GC Worker Other \\(ms\\): " g1_gc_stats_re "\\]";
+  g1_parallel_gc_worker_total_re = "\\[GC Worker Total (ms): " g1_gc_stats_re "\\]";
+  g1_parallel_gc_worker_end_re = "\\[GC Worker End \\(ms\\): " g1_gc_stats_alt_re "\\]";
+  g1_code_root_fixup_re = "\\[Code Root Fixup: " g1_gc_ms_re "\\]";
+  g1_clear_ct_re = "\\[Clear CT: " g1_gc_ms_re "\\]";
+  g1_other_re = "\\[Other: " g1_gc_ms_re "\\]";
+  g1_other_choose_cset_re = "\\[Choose CSet: " g1_gc_ms_re "\\]";
+  g1_other_ref_proc_re = "\\[Ref Proc: " g1_gc_ms_re "\\]";
+  g1_other_ref_enq_re = "\\[Ref Enq: " g1_gc_ms_re "\\]";
+  g1_other_free_cset_re = "\\[Free CSet: " g1_gc_ms_re "\\]";
   g1_cleanup_re		= "cleanup " heap_size_status_re;
   g1_young_pause_re		= "pause \\(young\\)";
   g1_young_pause_re		= g1_young_pause_re "( \\((initial-mark|evacuation failed)\\))?";
@@ -517,6 +655,19 @@ function getTimeStamp() {
   return gts_tmp;
 }
 
+function getNestedValue(inputString, regexOuter, regexInner) {
+  match(inputString, regexOuter);
+  extractedOuterString = substr(inputString, RSTART, RLENGTH);
+  #print extractedOuterString;
+  if (regexOuter == regexInner) {
+  	return extractedOuterString;
+  }
+  match(extractedOuterString, regexInner);
+  extractedInnerString = substr(extractedOuterString, RSTART, RLENGTH);
+  #print extractedInnerString;
+  return extractedInnerString;
+}
+
 function recordStatsInternal(idx, seconds) {
   count_v[idx] += 1;
   sum_v[idx] += seconds;
@@ -534,8 +685,10 @@ function writePlotData(tstamp, value, widx) {
     if (splitfiles == 1) {
       if (datestamps == 1) {
         printf("%s,%9.7f,%s,%9.7f\n", tstamp, value, tstamp, value) >> (splitfileprefix "." name_v[widx] ".csv");
+        close((splitfileprefix "." name_v[widx] ".csv"));
       } else {
         printf("%9.3f,%9.7f,%9.3f,%9.7f\n", tstamp, value, tstamp + value, value) >> (splitfileprefix "." name_v[widx] ".csv");
+        close((splitfileprefix "." name_v[widx] ".csv"));
       }
     } else {
       if (datestamps == 1) {
@@ -552,8 +705,10 @@ function writePlotData(tstamp, value, widx) {
     if (splitfiles == 1) {
       if (datestamps == 1) {
         printf("%s,%9.7f\n", tstamp, value) >> (splitfileprefix "." name_v[widx] ".csv");
+        close((splitfileprefix "." name_v[widx] ".csv"));
       } else {
         printf("%9.3f,%9.7f\n", tstamp, value) >> (splitfileprefix "." name_v[widx] ".csv");
+        close((splitfileprefix "." name_v[widx] ".csv"));
       }
     } else {
       if (datestamps == 1) {
@@ -570,8 +725,10 @@ function writePlotData(tstamp, value, widx) {
     if (splitfiles == 1) {
       if (datestamps == 1) {
         printf("%s\n", tstamp) >> (splitfileprefix "." name_v[widx] ".csv");
+        close((splitfileprefix "." name_v[widx] ".csv"));
       } else {
         printf("%9.3f\n", tstamp) >> (splitfileprefix "." name_v[widx] ".csv");
+        close((splitfileprefix "." name_v[widx] ".csv"));
       }
     } else {
       if (datestamps == 1) {
@@ -588,8 +745,10 @@ function writePlotData(tstamp, value, widx) {
     if (splitfiles == 1) {
       if (datestamps == 1) {
         printf("%s,%9.7f,%s\n", tstamp, value, tstamp) >> (splitfileprefix "." name_v[widx] ".csv");
+        close((splitfileprefix "." name_v[widx] ".csv"));
       } else {
         printf("%9.3f,%9.7f,%9.3f\n", tstamp, value, tstamp + value) >> (splitfileprefix "." name_v[widx] ".csv");
+        close((splitfileprefix "." name_v[widx] ".csv"));
       }
     } else {
       if (datestamps == 1) {
@@ -1174,23 +1333,83 @@ $0 ~ "\\[GC(--)? \\[PSYoungGen: +" heap_size_status_re "\\] " heap_report_re "\\
 $0 ~ g1_young_stw_re {
 # print "	>> cht 14. line ", FNR, $0;
   match($0, gc_time_secs_re);
-  secs = substr($0, RSTART, RLENGTH - 5) + 0;
+  secs = substr($0, RSTART, RLENGTH - 5);
   recordStats(g1_young_idx, secs);
+  recordStats(g1_young_parallel_idx, getNestedValue($0,("Parallel Time: " g1_gc_ms_re),"[0-9]+\\.[0-9]+"));  
+  recordStats(g1_young_parallel_gc_workers_idx, getNestedValue($0,"GC Workers: [0-9]+","[0-9]+"));
+  recordStats(g1_young_parallel_gc_worker_end_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_start_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_gc_worker_end_max_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_start_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_ext_root_scanning_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_ext_root_scanning_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_ext_root_scanning_max_idx, getNestedValue(getNestedValue($0, g1_parallel_ext_root_scanning_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_update_rs_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_update_rs_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_update_rs_max_idx, getNestedValue(getNestedValue($0, g1_parallel_update_rs_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_update_rs_processed_buffer_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_update_rs_processed_buffer_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_update_rs_processed_buffer_max_idx, getNestedValue(getNestedValue($0, g1_parallel_update_rs_processed_buffer_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_scan_rs_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_scan_rs_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_scan_rs_max_idx, getNestedValue(getNestedValue($0, g1_parallel_scan_rs_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_object_copy_rs_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_object_copy_rs_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_object_copy_rs_max_idx, getNestedValue(getNestedValue($0, g1_parallel_object_copy_rs_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_termination_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_termination_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_termination_max_idx, getNestedValue(getNestedValue($0, g1_parallel_termination_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_gc_worker_other_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_other_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_gc_worker_other_max_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_other_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_gc_worker_total_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_total_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_gc_worker_total_max_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_total_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_gc_worker_end_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_end_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_parallel_gc_worker_end_max_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_end_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_young_code_root_fixup_idx, getNestedValue($0, g1_code_root_fixup_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_young_clear_ct_idx, getNestedValue($0, g1_clear_ct_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_young_other_idx, getNestedValue($0, g1_other_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_young_other_choose_cset_idx, getNestedValue($0, g1_other_choose_cset_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_young_other_ref_proc_idx, getNestedValue($0, g1_other_ref_proc_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_young_other_ref_enq_idx, getNestedValue($0, g1_other_ref_enq_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_young_other_free_cset_idx, getNestedValue($0, g1_other_free_cset_re, "[0-9]+[.0-9]+"));
+  
   printInterval();
   next;
 }
 
 $0 ~ g1_mixed_stw_re {
   match($0, gc_time_secs_re);
-  secs = substr($0, RSTART, RLENGTH - 5) + 0;
+  secs = substr($0, RSTART, RLENGTH - 5);
   recordStats(g1_mixed_idx, secs);
+  recordStats(g1_mixed_parallel_idx, getNestedValue($0,("Parallel Time: " g1_gc_ms_re),"[0-9]+\\.[0-9]+"));  
+  recordStats(g1_mixed_parallel_gc_workers_idx, getNestedValue($0,"GC Workers: [0-9]+","[0-9]+"));
+  recordStats(g1_mixed_parallel_gc_worker_start_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_start_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_gc_worker_start_max_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_start_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_ext_root_scanning_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_ext_root_scanning_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_ext_root_scanning_max_idx, getNestedValue(getNestedValue($0, g1_parallel_ext_root_scanning_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_update_rs_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_update_rs_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_update_rs_max_idx, getNestedValue(getNestedValue($0, g1_parallel_update_rs_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_update_rs_processed_buffer_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_update_rs_processed_buffer_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_update_rs_processed_buffer_max_idx, getNestedValue(getNestedValue($0, g1_parallel_update_rs_processed_buffer_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_scan_rs_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_scan_rs_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_scan_rs_max_idx, getNestedValue(getNestedValue($0, g1_parallel_scan_rs_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_object_copy_rs_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_object_copy_rs_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_object_copy_rs_max_idx, getNestedValue(getNestedValue($0, g1_parallel_object_copy_rs_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_termination_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_termination_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_termination_max_idx, getNestedValue(getNestedValue($0, g1_parallel_termination_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_gc_worker_other_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_other_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_gc_worker_other_max_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_other_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_gc_worker_total_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_total_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_gc_worker_total_max_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_total_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_gc_worker_end_avg_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_end_re, "Avg: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_parallel_gc_worker_end_max_idx, getNestedValue(getNestedValue($0, g1_parallel_gc_worker_end_re, "Max: [0-9]+[.0-9]+"), "[0-9]+[.0-9]+", "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_code_root_fixup_idx, getNestedValue($0, g1_code_root_fixup_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_clear_ct_idx, getNestedValue($0, g1_clear_ct_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_other_idx, getNestedValue($0, g1_other_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_other_choose_cset_idx, getNestedValue($0, g1_other_choose_cset_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_other_ref_proc_idx, getNestedValue($0, g1_other_ref_proc_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_other_ref_enq_idx, getNestedValue($0, g1_other_ref_enq_re, "[0-9]+[.0-9]+"));
+  recordStats(g1_mixed_other_free_cset_idx, getNestedValue($0, g1_other_free_cset_re, "[0-9]+[.0-9]+"));
+
   printInterval();
   next;
 }
 
 $0 ~ g1_cleanup_stw_re {
   match($0, gc_time_secs_re);
-  secs = substr($0, RSTART, RLENGTH - 5) + 0;
+  secs = substr($0, RSTART, RLENGTH - 5);
   recordStats(g1_cleanup_idx, secs);
   printInterval();
   next;

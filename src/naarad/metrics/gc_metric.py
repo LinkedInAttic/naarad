@@ -29,7 +29,25 @@ class GCMetric(Metric):
   rate_types = ()
   val_types = ('alloc', 'promo', 'used0', 'used1', 'used', 'commit0', 'commit1', 'commit', 'gen0', 'gen0t', 'gen0usr', 'gen0sys', 'gen0real',
       'cmsIM', 'cmsRM', 'cmsRS', 'GCPause', 'cmsCM', 'cmsCP', 'cmsCS', 'cmsCR', 'safept', 'apptime', 'used0AfterGC', 'used1AfterGC', 'usedAfterGC', 
-      'gen1t', 'g1-pause-young', 'g1-pause-mixed', 'g1-pause-remark', 'g1-pause-cleanup', 'g1-pause-remark.ref-proc')
+      'gen1t', 'g1-pause-young', 'g1-pause-mixed', 'g1-pause-remark', 'g1-pause-cleanup', 'g1-pause-remark.ref-proc', 'g1-pause-young.parallel',
+      'g1-pause-young.parallel.gcworkers', 'g1-pause-young.parallel.ext-root-scanning.avg', 'g1-pause-young.parallel.ext-root-scanning.max', 
+      'g1-pause-young.parallel.update-rs.avg', 'g1-pause-young.parallel.update-rs.max', 'g1-pause-young.parallel.update-rs.processed-buffers.avg', 
+      'g1-pause-young.parallel.update-rs.processed-buffers.max', 'g1-pause-young.parallel.scan-rs.avg', 'g1-pause-young.parallel.scan-rs.max', 
+      'g1-pause-young.parallel.object-copy-rs.avg', 'g1-pause-young.parallel.object-copy-rs.max', 'g1-pause-young.parallel.termination.avg', 
+      'g1-pause-young.parallel.termination.max', 'g1-pause-young.parallel.gc-worker-other.avg', 'g1-pause-young.parallel.gc-worker-other.max', 
+      'g1-pause-young.parallel.gc-worker-total.avg', 'g1-pause-young.parallel.gc-worker-total.max', 'g1-pause-young.parallel.gc-worker-end.avg', 
+      'g1-pause-young.parallel.gc-worker-end.max', 'g1-pause-young.code-root-fixup', 'g1-pause-young.clear-ct', 'g1-pause-young.other', 
+      'g1-pause-young.other.choose-cset', 'g1-pause-young.other.ref-proc', 'g1-pause-young.other.reg-enq', 'g1-pause-young.other.free-cset', 
+      'g1-pause-mixed.parallel', 'g1-pause-mixed.parallel.gcworkers', 'g1-pause-mixed.parallel.ext-root-scanning.avg', 
+      'g1-pause-mixed.parallel.ext-root-scanning.max', 'g1-pause-mixed.parallel.update-rs.avg', 'g1-pause-mixed.parallel.update-rs.max', 
+      'g1-pause-mixed.parallel.update-rs.processed-buffers.avg', 'g1-pause-mixed.parallel.update-rs.processed-buffers.max', 
+      'g1-pause-mixed.parallel.scan-rs.avg', 'g1-pause-mixed.parallel.scan-rs.max', 'g1-pause-mixed.parallel.object-copy-rs.avg', 
+      'g1-pause-mixed.parallel.object-copy-rs.max', 'g1-pause-mixed.parallel.termination.avg', 'g1-pause-mixed.parallel.termination.max', 
+      'g1-pause-mixed.parallel.gc-worker-other.avg', 'g1-pause-mixed.parallel.gc-worker-other.max', 'g1-pause-mixed.parallel.gc-worker-total.avg', 
+      'g1-pause-mixed.parallel.gc-worker-total.max', 'g1-pause-mixed.parallel.gc-worker-end.avg', 'g1-pause-mixed.parallel.gc-worker-end.max', 
+      'g1-pause-mixed.code-root-fixup', 'g1-pause-mixed.clear-ct', 'g1-pause-mixed.other', 'g1-pause-mixed.other.choose-cset', 
+      'g1-pause-mixed.other.ref-proc', 'g1-pause-mixed.other.reg-enq', 'g1-pause-mixed.other.free-cset', 'g1-pause-young.parallel.gc-worker-start.avg', 
+      'g1-pause-young.parallel.gc-worker-start.max', 'g1-pause-mixed.parallel.gc-worker-start.avg', 'g1-pause-mixed.parallel.gc-worker-start.max')
 
   def __init__ (self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                 important_sub_metrics, **other_options):
