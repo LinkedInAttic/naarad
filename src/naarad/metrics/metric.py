@@ -168,7 +168,6 @@ class Metric(object):
     if self.groupby:
       groupby_idxes = self.get_groupby_indexes(self.groupby)
     data = {}
-
     for input_file in self.infile_list:
       logger.info("Working on " + input_file)
       timestamp_format = None
@@ -178,7 +177,7 @@ class Metric(object):
             words = line.strip().split()
           else:
             words = line.strip().split(self.sep)
-          if len(words) == 0 or (len(words) == 1 and words[0] == ''): #cond after or is to handle Newline
+          if len(words) == 0:
             continue
           if len(words) <= len(self.columns): #NOTE: len(self.columns) is always one less than len(words) since we assume the very first column is timestamp
             logger.warning("WARNING: Number of columns given in config is more than number of columns present in line {0}\n", line)

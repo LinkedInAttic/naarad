@@ -211,7 +211,6 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
   if config_obj.has_option(section, 'calc_metrics'):
     new_metric.calc_metrics = config_obj.get(section, 'calc_metrics')
   new_metric.precision = precision
-
   return new_metric
 
 def parse_global_section(config_obj, section):
@@ -586,7 +585,6 @@ def get_standardized_timestamp(timestamp, ts_format):
     timestamp = str(datetime.datetime.now())
   if not ts_format:
     ts_format = detect_timestamp_format(timestamp)
-
   try:
     if ts_format == '%Y-%m-%d %H:%M:%S.%f':
       return timestamp
