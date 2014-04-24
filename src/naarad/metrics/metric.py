@@ -172,13 +172,14 @@ class Metric(object):
 
   def parse(self):
     qps = defaultdict(int)
-    groupby_idxes = self.get_groupby_indexes(self.groupby)
+    groupby_idxes = None
+    if self.groupby:
+      groupby_idxes = self.get_groupby_indexes(self.groupby)
     data = {}
 
     for input_file in self.infile_list:
       logger.info("Working on " + input_file)
       timestamp_format = None
-
       with open(input_file, 'r') as infile:
         for line in infile:
           if self.sep is None or self.sep =='':

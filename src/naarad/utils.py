@@ -679,7 +679,6 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
   metric.infile_list = updated_infile_list
 
   if not metric.ignore:
-
     if metric.collect():
       if metric.parse():
         metric.calc()
