@@ -14,6 +14,7 @@ logger = logging.getLogger('naarad.metrics.NetstatMetric')
 class NetstatMetric(Metric):
   """
   Netstat metric
+  The netstat output can be obtained by command of 'netstat -Ttp'
   'connections' is given by the user in config file. Each element contains two ends of the socket, they are keywords in the hostname and the port number;
   Note that port number can be 'ssh', and is optional
   'input_connections' is used internally, will contain a list of user interested connections;
@@ -60,7 +61,8 @@ class NetstatMetric(Metric):
     :return: None
     """
     for con in self.connections:
-      ends = con.split('<->').remove('')  # [host1:port1->host2]
+      ends = con.strip().split('<->')  # [host1:port1->host2]
+      ends = filter(None, ends) #remove '' elements
       if len(ends) == 0:
         continue
       if len(ends) > 0: 
