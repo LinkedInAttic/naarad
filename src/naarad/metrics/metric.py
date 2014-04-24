@@ -130,21 +130,14 @@ class Metric(object):
     return True
 
   def get_csv(self, column, groupby=None):
-    if not groupby:
-      if column in self.column_csv_map.keys():
-        return self.column_csv_map[column]
-      col = naarad.utils.sanitize_string(column)
-      csv = os.path.join(self.resource_directory, self.label + '.' + col + '.csv')
-      self.csv_column_map[csv] = column
-      self.column_csv_map[column] = csv
-    else:
-      group_column = groupby + '.' + column
-      if group_column in self.column_csv_map.keys():
-        return self.column_csv_map[group_column]
-      col = naarad.utils.sanitize_string(group_column)
-      csv = os.path.join(self.resource_directory, self.label + '.' + col + '.csv')
-      self.csv_column_map[csv] = group_column
-      self.column_csv_map[group_column] = csv
+    if groupby:
+      column = groupby + '.' + column
+    if column in self.column_csv_map.keys():
+      return self.column_csv_map[column]
+    col = naarad.utils.sanitize_string(column)
+    csv = os.path.join(self.resource_directory, self.label + '.' + col + '.csv')
+    self.csv_column_map[csv] = column
+    self.column_csv_map[column] = csv
     return csv
   
   def get_important_sub_metrics_csv(self):
@@ -182,11 +175,11 @@ class Metric(object):
       timestamp_format = None
       with open(input_file, 'r') as infile:
         for line in infile:
-          if self.sep is None or self.sep =='':
+          if self.sep is None or self.sep == '':
             words = line.strip().split()
           else:
             words = line.strip().split(self.sep)
-          if len(words) == 0 or (len(words)==1 and words[0] == ''): #cond after or is to handle Newline
+          if len(words) == 0 or (len(words) == 1 and words[0] == ''): #cond after or is to handle Newline
             continue
           if len(words) <= len(self.columns): #NOTE: len(self.columns) is always one less than len(words) since we assume the very first column is timestamp
             logger.warning("WARNING: Number of columns given in config is more than number of columns present in line {0}\n", line)
