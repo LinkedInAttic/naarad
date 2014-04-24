@@ -6,14 +6,9 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 from collections import defaultdict
-import datetime
 import gc
 import logging
-import os
-import re
-import numpy
 from naarad.metrics.metric import Metric
-import naarad.utils
 
 logger = logging.getLogger('naarad.metrics.NetstatMetric')
 
@@ -185,35 +180,28 @@ class NetstatMetric(Metric):
     Parse the netstat output file
     :return: status of the metric parse
     """
-    status = True
     #sample netstat output: 2014-04-02 15:44:02.86612	tcp     9600      0 host1.localdomain.com.:21567 remote.remotedomain.com:51168 ESTABLISH pid/process
+    data = {}  # stores the data of each sub-metric
     for infile in self.infile_list:
       logger.info('Processing : %s',infile)
       with open(infile) as fh:
-        data = {}  # stores the data of each sub-metric
         for line in fh:
           if 'ESTABLISHED' not in line:
             continue
-          
           words = line.split()
           if len(words) < 8 or words[2] != 'tcp':
             continue
-          
           ts = words[0] + " " + words[1]
           if self.ts_out_of_range(ts):
             continue
-          
           # filtering based on user input; (local socket, remote socket, pid/process)
           local_end, remote_end, interested = self._check_connection(words[5], words[6], words[8])
           if interested:
             self._add_data_line(data, local_end + '.' + remote_end + '.RecvQ', words[3], ts)
             self._add_data_line(data, local_end + '.' + remote_end + '.SendQ', words[4], ts)
-
     #post processing, putting data in csv files;
     for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
         fh.write('\n'.join(sorted(data[csv])))
-
-    gc.collect()
-    return status
+    return True

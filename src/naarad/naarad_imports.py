@@ -30,7 +30,7 @@ metric_classes = {
     'PROCMEMINFO' : ProcMeminfoMetric, 
     'PROCZONEINFO' : ProcZoneinfoMetric,
     'SAR' : SARMetric, 
-    'NETSTAT' : NetstatMetric,
+    'NETSTAT' : NetstatMetric
     }
 
 #Custom metrics;  aggregate_metric can only processed after regular metrics are done
