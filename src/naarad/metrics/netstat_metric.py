@@ -60,7 +60,7 @@ class NetstatMetric(Metric):
     :return: None
     """
     for con in self.connections:
-      ends = con.split('<->')  # [host1:port1->host2]
+      ends = con.split('<->').remove('')  # [host1:port1->host2]
       if len(ends) == 0:
         continue
       if len(ends) > 0: 
