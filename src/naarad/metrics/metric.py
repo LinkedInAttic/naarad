@@ -82,11 +82,11 @@ class Metric(object):
   def get_groupby_indexes(self, groupby):
     groupby_indexes = []
     for group in groupby:
-      name, index = group.split(':')
-      if index:
+      if ':' in group.rstrip(':'):
+        name, index = group.split(':')
         groupby_indexes.append(index)
       else:
-        groupby_indexes.append(self.name_to_index(name))
+        groupby_indexes.append(self.name_to_index(group.rstrip(':')))
     return groupby_indexes
 
   def ts_out_of_range(self, timestamp):
