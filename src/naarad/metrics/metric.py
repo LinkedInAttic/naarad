@@ -9,7 +9,6 @@ from collections import defaultdict
 import glob
 import logging
 import os
-import sys
 import re
 from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils

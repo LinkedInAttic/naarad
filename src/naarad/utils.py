@@ -178,7 +178,6 @@ def parse_basic_metric_options(config_obj, section):
   return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
          important_sub_metrics
 
-
 def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregate_metric_classes, outdir_default, resource_path):
   """
   Parse a metric section and create a Metric object
