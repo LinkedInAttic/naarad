@@ -56,6 +56,7 @@ class Metric(object):
     self.timezone = "PDT"
     self.options = None
     self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
+    self.groupby = None
     for (key, val) in rule_strings.iteritems():
       naarad.utils.set_sla(self, self.label, key, val)
     if other_options:
@@ -65,8 +66,28 @@ class Metric(object):
         self.titles_string = self.columns
       if self.columns:
         self.columns = self.columns.split()
+      if self.groupby:
+        self.groupby = self.groupby.split()
+
       self.titles = dict(zip(self.columns, self.titles_string.split(','))) if self.columns and self.titles_string else None
       self.ylabels = dict(zip(self.columns, self.ylabels_string.split(','))) if self.columns and self.ylabels_string else None
+
+  def name_to_index(self, name):
+    index = None
+    for i in range(len(self.columns)):
+      if name == self.columns[i]:
+        index = i+1
+    return index
+
+  def get_groupby_indexes(self, groupby):
+    groupby_indexes = []
+    for group in groupby:
+      if ':' in group.rstrip(':'):
+        name, index = group.split(':')
+        groupby_indexes.append(index)
+      else:
+        groupby_indexes.append(self.name_to_index(group.rstrip(':')))
+    return groupby_indexes
 
   def ts_out_of_range(self, timestamp):
     if self.ts_start and timestamp < self.ts_start:
@@ -107,9 +128,11 @@ class Metric(object):
     self.infile_list = collected_files
     return True
 
-  def get_csv(self, column):
+  def get_csv(self, column, groupby=None):
+    if groupby:
+      column = groupby + '.' + column
     if column in self.column_csv_map.keys():
-      return self.column_csv_map[column]    
+      return self.column_csv_map[column]
     col = naarad.utils.sanitize_string(column)
     csv = os.path.join(self.resource_directory, self.label + '.' + col + '.csv')
     self.csv_column_map[csv] = column
@@ -141,13 +164,16 @@ class Metric(object):
 
   def parse(self):
     qps = defaultdict(int)
+    groupby_idxes = None
+    if self.groupby:
+      groupby_idxes = self.get_groupby_indexes(self.groupby)
     data = {}
     for input_file in self.infile_list:
-      logger.info("Working on" + input_file)
+      logger.info("Working on " + input_file)
       timestamp_format = None
       with open(input_file, 'r') as infile:
         for line in infile:
-          if self.sep is None:
+          if self.sep is None or self.sep == '':
             words = line.strip().split()
           else:
             words = line.strip().split(self.sep)
@@ -167,13 +193,31 @@ class Metric(object):
           if self.ts_out_of_range(ts):
             continue
           qps[ts.split('.')[0]] += 1
-          for i in range(len(self.columns)):
-            out_csv = self.get_csv(self.columns[i])
-            if out_csv in data:
-              data[out_csv].append( ts + ',' + words[i+1] )
-            else:
-              data[out_csv] = []
-              data[out_csv].append( ts + ',' + words[i+1] )
+          if self.groupby:
+            groupby_names = None
+            for index in groupby_idxes:
+              if not groupby_names:
+                groupby_names = words[index].rstrip(':')
+              else:
+                groupby_names += '.' + words[index].rstrip(':')
+            for i in range(len(self.columns)):
+              if i+1 in groupby_idxes:
+                continue
+              else:
+                out_csv = self.get_csv(self.columns[i], groupby_names)
+                if out_csv in data:
+                  data[out_csv].append(ts + ',' + words[i+1])
+                else:
+                  data[out_csv] = []
+                  data[out_csv].append(ts + ',' + words[i+1])
+          else:
+            for i in range(len(self.columns)):
+              out_csv = self.get_csv(self.columns[i])
+              if out_csv in data:
+                data[out_csv].append(ts + ',' + words[i+1])
+              else:
+                data[out_csv] = []
+                data[out_csv].append(ts + ',' + words[i+1])
     # Post processing, putting data in csv files
     data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]), sorted(qps.items()))
     for csv in data.keys():
