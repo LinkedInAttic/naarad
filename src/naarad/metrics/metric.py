@@ -204,7 +204,7 @@ class Metric(object):
               if i+1 in groupby_idxes:
                 continue
               else:
-                out_csv = self.get_csv(groupby_names, self.columns[i])
+                out_csv = self.get_csv(self.columns[i], groupby_names)
                 if out_csv in data:
                   data[out_csv].append(ts + ',' + words[i+1])
                 else:
