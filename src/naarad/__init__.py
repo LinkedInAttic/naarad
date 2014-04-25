@@ -27,11 +27,11 @@ class _Analysis(object):
   """
   Class that saves state for analysis to be conducted
   """
-  def __init__(self, ts_start, config_file_location, test_id=None):
+  def __init__(self, ts_start, config, test_id=None):
     self.ts_start = ts_start
     self.ts_end = None
     self.test_id = test_id
-    self.config_file_location = config_file_location
+    self.config = config
     self.description = ''
     self.input_directory = None
     self.output_directory = None
@@ -56,17 +56,17 @@ class Naarad(object):
     naarad.reporting.diff.Diff.graphing_modules = graphing_modules
 
 
-  def signal_start(self, config_file_location, test_id=None, **kwargs):
+  def signal_start(self, config, test_id=None, **kwargs):
     """
     Initialize an analysis object and set ts_start for the analysis represented by test_id
     :param test_id: integer that represents the analysis
-    :param config_file_location: local or http location of the naarad config used for this analysis
+    :param config: config can be a ConfigParser.ConfigParser object or a string specifying local or http(s) location for config
     :return: test_id
     """
     if not test_id:
       self._default_test_id += 1
       test_id = self._default_test_id
-    self._analyses[test_id] = _Analysis(naarad.utils.get_standardized_timestamp('now', None), config_file_location,
+    self._analyses[test_id] = _Analysis(naarad.utils.get_standardized_timestamp('now', None), config,
                                       test_id=test_id)
     if kwargs:
       if 'description' in kwargs.keys():
@@ -159,9 +159,9 @@ class Naarad(object):
     :return: int: status code.
     """
     if len(self._analyses) == 0:
-      if 'config_file_location' not in kwargs:
+      if 'config' not in kwargs:
         return CONSTANTS.ERROR
-      self._analyses[0] = _Analysis(None, kwargs['config_file_location'])
+      self._analyses[0] = _Analysis(None, kwargs['config'])
     error_count = 0
     self._input_directory = input_directory
     self._output_directory = output_directory
@@ -173,8 +173,8 @@ class Naarad(object):
           self._analyses[test_id].output_directory = os.path.join(output_directory, str(test_id))
         else:
           self._analyses[test_id].output_directory = output_directory
-      if('config_file_location' in kwargs.keys()) and (not self._analyses[test_id].config_file_location):
-        self._analyses[test_id].config_file_location = kwargs['config_file_location']
+      if('config' in kwargs.keys()) and (not self._analyses[test_id].config):
+        self._analyses[test_id].config = kwargs['config']
       self._create_output_directories(self._analyses[test_id])
       self._analyses[test_id].status = self.run(self._analyses[test_id], **kwargs)
       if self._analyses[test_id].status != CONSTANTS.OK:
@@ -191,14 +191,18 @@ class Naarad(object):
     :return:
     """
     threads = []
-    if not naarad.utils.is_valid_file(analysis.config_file_location):
+    if isinstance(analysis.config, str):
+      if not naarad.utils.is_valid_file(analysis.config):
+        return CONSTANTS.INVALID_CONFIG
+      config_object = ConfigParser.ConfigParser(kwargs)
+      config_object.optionxform = str
+      config_object.read(analysis.config)
+    elif isinstance(analysis.config, ConfigParser.ConfigParser):
+      config_object = analysis.config
+    else:
       return CONSTANTS.INVALID_CONFIG
-    config_object = ConfigParser.ConfigParser(kwargs)
-    config_object.optionxform = str
-    config_object.read(analysis.config_file_location)
     metrics, run_steps, crossplots = self._process_naarad_config(config_object, analysis)
     graph_lock = threading.Lock()
-
     for metric in metrics['metrics']:
       if analysis.ts_start and not metric.ts_start:
         metric.ts_start = analysis.ts_start
