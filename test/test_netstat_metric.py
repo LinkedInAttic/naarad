@@ -49,15 +49,20 @@ def test_netstatmetric():
   resource_path = 'resources'
   rule_strings = {}
   output_directory = tmp_dir
-  infile='netstat.tcp.out'
+  infile=['netstat.tcp.out']
   other_options = {'connections': 'host1.localdomain.com<->web1.remotedomain.com:https host1:48860<->email', 'processes': '/firefox'}
   ts_start = None
   ts_end = None
+  important_sub_metrics =[]
 
-  cur_metric = NetstatMetric(section, infile, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, **other_options)
-  cur_metric.infile = os.path.join('logs', infile)
+  cur_metric = NetstatMetric(section, infile, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
 
-  print cur_metric.infile
+  new_file_list = []
+  for afile in cur_metric.infile_list:
+    new_file_list.append(os.path.join('logs', afile))
+  cur_metric.infile_list = new_file_list
+
+  #print cur_metric.infile
   # create sub-directory of resource_path
   sub_dir = os.path.join(output_directory, resource_path)
   if not os.path.exists(sub_dir):
