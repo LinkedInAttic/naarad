@@ -56,11 +56,7 @@ def test_netstatmetric():
   important_sub_metrics =[]
 
   cur_metric = NetstatMetric(section, infile, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
-
-  new_file_list = []
-  for afile in cur_metric.infile_list:
-    new_file_list.append(os.path.join('logs', afile))
-  cur_metric.infile_list = new_file_list
+  cur_metric.infile_list = [os.path.join('logs', f) for f in cur_metric.infile_list]
 
   #print cur_metric.infile
   # create sub-directory of resource_path
