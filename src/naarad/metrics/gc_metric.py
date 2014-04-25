@@ -47,7 +47,10 @@ class GCMetric(Metric):
       'g1-pause-mixed.parallel.gc-worker-total.max', 'g1-pause-mixed.parallel.gc-worker-end.avg', 'g1-pause-mixed.parallel.gc-worker-end.max', 
       'g1-pause-mixed.code-root-fixup', 'g1-pause-mixed.clear-ct', 'g1-pause-mixed.other', 'g1-pause-mixed.other.choose-cset', 
       'g1-pause-mixed.other.ref-proc', 'g1-pause-mixed.other.reg-enq', 'g1-pause-mixed.other.free-cset', 'g1-pause-young.parallel.gc-worker-start.avg', 
-      'g1-pause-young.parallel.gc-worker-start.max', 'g1-pause-mixed.parallel.gc-worker-start.avg', 'g1-pause-mixed.parallel.gc-worker-start.max')
+      'g1-pause-young.parallel.gc-worker-start.max', 'g1-pause-mixed.parallel.gc-worker-start.avg', 'g1-pause-mixed.parallel.gc-worker-start.max', 
+      'g1-eden-occupancy-before-gc', 'g1-eden-capacity-before-gc', 'g1-eden-occupancy-after-gc', 'g1-eden-capacity-after-gc', 'g1-survivor-before-gc', 
+      'g1-survivor-after-gc', 'g1-heap-occupancy-before-gc', 'g1-heap-capacity-before-gc', 'g1-heap-occupancy-after-gc', 'g1-heap-capacity-after-gc',
+      'g1-young-cpu.sys', 'g1-young-cpu.usr', 'g1-young-cpu.real', 'g1-mixed-cpu.usr', 'g1-mixed-cpu.sys', 'g1-mixed-cpu.real')
 
   def __init__ (self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                 important_sub_metrics, **other_options):
