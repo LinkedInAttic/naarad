@@ -133,7 +133,8 @@ class JmeterMetric(Metric):
           if metric in ['t', 'by']:
             data[self.get_csv(transaction, metric)].append(','.join([time_stamp, str(sum(map(float,metric_data))/float(len(metric_data)))]))
             if metric == 'by':
-              data[self.get_csv(transaction, 'thr')].append(','.join([time_stamp, str(sum(map(float,metric_data))/float(averaging_factor * 1024 * 1024 / 8.0))]))
+              metric_store['thr'][transaction][time_stamp] = sum(map(float,metric_data))/float(averaging_factor * 1024 * 1024 / 8.0)
+              data[self.get_csv(transaction, 'thr')].append(','.join([time_stamp, str(metric_store['thr'][transaction][time_stamp])]))
           elif metric in ['qps', 'eqps']:
             data[self.get_csv(transaction, metric)].append(','.join([time_stamp, str(metric_data/float(averaging_factor))]))
     return None
@@ -190,6 +191,11 @@ class JmeterMetric(Metric):
           naarad.utils.calculate_stats(metric_store['eqps'][transaction].values(),
                                        stats_to_calculate, percentiles_to_calculate)
         self.update_summary_stats(transaction + '.' + 'ErrorsPerSecond')
+      transaction_key = transaction + '.' + 'DataThroughput'
+      self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
+        naarad.utils.calculate_stats(metric_store['thr'][transaction].values(),
+                                     stats_to_calculate, percentiles_to_calculate)
+      self.update_summary_stats(transaction_key)
     return None
 
   def parse(self):
@@ -242,8 +248,9 @@ class JmeterMetric(Metric):
 
   def calculate_stats(self):
     stats_csv = os.path.join(self.resource_directory, self.label + '.stats.csv')
+    imp_metric_stats_csv = os.path.join(self.resource_directory, self.label + '.important_sub_metrics.csv')
     csv_header = 'sub_metric,mean,std. deviation,median,min,max,90%,95%,99%\n'
-
+    imp_csv_header = 'sub_metric,mean,std,p50,p75,p90,p95,p99,min,max\n'
     with open(stats_csv,'w') as FH:
       FH.write(csv_header)
       for sub_metric in self.calculated_stats:
@@ -252,7 +259,6 @@ class JmeterMetric(Metric):
         csv_data = ','.join([sub_metric,str(numpy.round_(stats_data['mean'], 2)),str(numpy.round_(stats_data['std'], 2)),str(numpy.round_(stats_data['median'], 2)),str(numpy.round_(stats_data['min'], 2)),str(numpy.round_(stats_data['max'], 2)),str(numpy.round_(percentile_data[90], 2)),str(numpy.round_(percentile_data[95], 2)),str(numpy.round_(percentile_data[99], 2))])
         FH.write(csv_data + '\n')
       self.stats_files.append(stats_csv)
-
     for sub_metric in self.calculated_percentiles:
       percentiles_csv = self.get_csv(sub_metric,'percentiles')
       percentile_data = self.calculated_percentiles[sub_metric]
@@ -260,10 +266,21 @@ class JmeterMetric(Metric):
         for percentile in sorted(percentile_data):
           FH.write(str(percentile) + ',' + str(numpy.round_(percentile_data[percentile],2)) + '\n')
         self.percentiles_files.append(percentiles_csv)
+    with open(imp_metric_stats_csv, 'w') as FH_IMP:
+      FH_IMP.write(csv_header)
+      for sub_metric in self.important_sub_metrics:
+        if sub_metric in self.calculated_stats.keys():
+          percentile_data = self.calculated_percentiles[sub_metric]
+          stats_data = self.calculated_stats[sub_metric]
+          csv_data = ','.join([sub_metric,str(numpy.round_(stats_data['mean'], 2)),str(numpy.round_(stats_data['std'], 2)),str(numpy.round_(stats_data['median'], 2)),str(numpy.round_(stats_data['min'], 2)),str(numpy.round_(stats_data['max'], 2)),str(numpy.round_(percentile_data[90], 2)),str(numpy.round_(percentile_data[95], 2)),str(numpy.round_(percentile_data[99], 2))])
+          FH_IMP.write(csv_data + '\n')
+      self.important_stats_files.append(imp_metric_stats_csv)
+
 
   def graph(self, graphing_library='matplotlib'):
     self.plot_timeseries(graphing_library)
     self.plot_cdf(graphing_library)
+    print 'JOY', self.plot_files
     return True
 
   def plot_timeseries(self, graphing_library='matplotlib'):
