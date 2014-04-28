@@ -1,16 +1,15 @@
 # Naarad #
 
-## What is Naarad ? ##
+## What is Naarad? ##
 
 Naarad is a framework for performance analysis & rating of sharded & stateful services
 
-## Why Naarad ? ##
+## Why Naarad? ##
 
 Use-cases:
 * Scalability / Headroom Rating 
 * Continuous Integration ( Performance )
 * Performance Investigation 
-
 
 Naarad is a highly configurable system analysis tool that parses and plots timeseries data for better visual correlation. 
 It can be used for performance analysis of your service/application.
@@ -46,6 +45,7 @@ Many tools and frameworks like Zenoss, rrdtool etc have solved the use-case of m
 3. Install the necessary Python libraries using PIP.
 
         cd naarad; pip install -r requirements.txt
+4. For problems in installation, check out our [troubleshooting wiki](https://github.com/linkedin/naarad/wiki/Troubleshooting)
 
 # More details #
 
