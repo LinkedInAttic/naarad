@@ -51,7 +51,7 @@ def prepare_data():
   log.append('2014-04-14 12:09:12.05993	tcp        3245      0 host1.localdomain.com:48860 email.localdomain.com:https ESTABLISHED 4996/firefox')
 
   with open(os.path.join(tmp_dir, 'netstat.tcp.out'), 'w') as fh:
-    fh.write('\n'.join(sorted(log)))
+    fh.write('\n'.join(log))
 
 def setup():
   create_tmp_dir()
@@ -68,7 +68,7 @@ def create_tmp_dir():
   :return:
   """
   global tmp_dir
-  tmp_dir = os.path.join('./','tmp' + '.' +str(uuid.uuid4()))   #./tmp.'randomstring'
+  tmp_dir = os.path.join('./', 'tmp' + '.' + str(uuid.uuid4()))   #./tmp.'randomstring'
   if not os.path.exists(tmp_dir):
     os.makedirs(tmp_dir)
   else:
