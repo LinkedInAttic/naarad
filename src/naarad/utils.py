@@ -29,13 +29,26 @@ import naarad.naarad_constants as CONSTANTS
 logger = logging.getLogger('naarad.utils')
 
 
-def parse_user_defined_metric_classes(user_imports, metric_classes):
-  user_defined_metric_classes = user_imports.metric_classes
-  user_defined_metric_files = user_imports.metric_files
-  for metric_name, metric_class in user_defined_metric_classes.items():
+def parse_user_defined_metric_classes(config_obj, metric_classes):
+  """
+  Parse the user defined metric class information
+  :param config_obj: ConfigParser object
+  :param metric_classes: list of metric classes to be updated
+  :return:
+  """
+  user_defined_metric_list = config_obj.get('GLOBAL', 'user_defined_metrics').split()
+  for udm_string in user_defined_metric_list:
     try:
-      new_module = imp.load_source(metric_class, user_defined_metric_files[metric_name])
-      new_class = getattr(new_module, metric_class)
+      metric_name, metric_class_name, metric_file = udm_string.split(':')
+    except ValueError:
+      logger.error('Bad user defined metric specified')
+      continue
+    module_name = os.path.splitext(os.path.basename(metric_file))[0]
+    try:
+      new_module = imp.load_source(module_name, metric_file)
+      new_class = getattr(new_module, metric_class_name)
+      if metric_name in metric_classes.keys():
+        logger.warn('Overriding pre-defined metric class definition for ', metric_name)
       metric_classes[metric_name] = new_class
     except ImportError:
       logger.error('Something wrong with importing a user defined metric class. Skipping metric: ', metric_name)
@@ -144,7 +157,7 @@ def parse_basic_metric_options(config_obj, section):
   :param section: Section name
   :return: all the parsed options
   """
-  infile = None
+  infile = {}
   aggr_hosts = None
   aggr_metrics = None
   ts_start = None
@@ -152,16 +165,20 @@ def parse_basic_metric_options(config_obj, section):
   precision = None
   hostname = "localhost"
   rule_strings = {}
+  important_sub_metrics = None
+
   try:
+    if config_obj.has_option(section, 'important_sub_metrics'):
+      important_sub_metrics = config_obj.get(section, 'important_sub_metrics').split()
+      config_obj.remove_option(section, 'important_sub_metrics')
+
     if config_obj.has_option(section, 'hostname'):
       hostname = config_obj.get(section, 'hostname')
       config_obj.remove_option(section, 'hostname')
-    else:
-      logger.info('No hostname is found in section %s ' % section)
     
     #'infile' is not mandatory for aggregate metrics
     if config_obj.has_option(section,'infile'):
-      infile = config_obj.get(section, 'infile')
+      infile = config_obj.get(section, 'infile').split()
       config_obj.remove_option(section, 'infile')
 
     label = sanitize_string_section_name(section)
@@ -178,18 +195,15 @@ def parse_basic_metric_options(config_obj, section):
     if config_obj.has_option(section, 'aggr_hosts'):
       aggr_hosts = config_obj.get(section, 'aggr_hosts')
       config_obj.remove_option(section, 'aggr_hosts')
-    else: 
-      logger.info('No aggr_hosts is found in section %s ' % section)
     if config_obj.has_option(section, 'aggr_metrics'):
       aggr_metrics = config_obj.get(section, 'aggr_metrics')
       config_obj.remove_option(section, 'aggr_metrics')
-    else: 
-      logger.info('No aggr_metrics is found in section %s ' % section)
-    rule_strings, kwargs = get_rule_strings(config_obj, section)
+    rule_strings, other_options = get_rule_strings(config_obj, section)
   except ConfigParser.NoOptionError:
     logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
     sys.exit()
-  return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, kwargs, rule_strings
+  return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
+         important_sub_metrics
 
 def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregate_metric_classes, outdir_default, resource_path):
   """
@@ -203,15 +217,21 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
   :param resource_path: Default resource directory
   :return: An initialized Metric object
   """
-  hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, kwargs, rule_strings = parse_basic_metric_options(config_obj, section)
+  hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
+    important_sub_metrics = parse_basic_metric_options(config_obj, section)
+
   #TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
   if metric_type in metric_classes: # regular metrics
-    new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
-  elif metric_type in aggregate_metric_classes:       #aggregate metrics     
-    new_metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+    new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start,
+                                             ts_end, rule_strings, important_sub_metrics, **other_options)
+  elif metric_type in aggregate_metric_classes:       #aggregate metrics
+    new_metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default,
+                                                       resource_path, label, ts_start, ts_end, rule_strings,
+                                                       important_sub_metrics, **other_options)
   else:            # new metrics. 
-    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, **kwargs)
+    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings,
+                        important_sub_metrics, **other_options)
 
   if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
     new_metric.ignore = True
@@ -227,6 +247,8 @@ def parse_global_section(config_obj, section):
   :param section: Section name
   :return: ts_start and ts_end time
   """
+  ts_start = None
+  ts_end = None
   if config_obj.has_option(section, 'ts_start'):
     ts_start = config_obj.get(section, 'ts_start')
     config_obj.remove_option(section, 'ts_start')
@@ -673,10 +695,14 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
   if metric.outdir is None:
     metric.outdir = os.path.normpath(outdir_default)
 
-  # handling both cases of local file or http download.
-  if not metric.infile.startswith('http://') \
-    and not metric.infile.startswith('https://'):
-    metric.infile = os.path.join(indir_default, metric.infile)
+  updated_infile_list = []
+  for infile in metric.infile_list:
+    # handling both cases of local file or http download.
+    if not infile.startswith('http://') and not infile.startswith('https://'):
+      updated_infile_list.append(os.path.join(indir_default, infile))
+    else:
+      updated_infile_list.append(infile)
+  metric.infile_list = updated_infile_list
 
   if not metric.ignore:
     if metric.collect():

@@ -1,0 +1,8 @@
+[NETSTAT-host1]
+hostname=localhost
+infile=netstat.tcp.out
+connections=host1.localdomain.com<->web1.remotedomain.com:https host1:48860<->email
+processes=/firefox
+
+[GRAPH]
+graphing_library=matplotlib

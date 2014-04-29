@@ -6,6 +6,7 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 from collections import defaultdict
+import glob
 import logging
 import os
 import re
@@ -18,10 +19,10 @@ logger = logging.getLogger('naarad.metrics.metric')
 
 class Metric(object):
 
-  def __init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, **other_options):
+  def __init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
+                rule_strings, important_sub_metrics, **other_options):
     self.metric_type = metric_type
-    self.infile = infile
+    self.infile_list = infile_list
     self.hostname = hostname
     self.outdir = output_directory
     self.resource_path = resource_path
@@ -43,7 +44,7 @@ class Metric(object):
     self.csv_column_map = {}
     self.sub_metric_description = defaultdict(lambda: 'None')  # the description of the submetrics. 
     self.sub_metric_unit = defaultdict(lambda: 'None')      # the unit of the submetrics.  The plot will have the Y-axis being: Metric name (Unit)
-    self.important_sub_metrics = ()
+    self.important_sub_metrics = important_sub_metrics
     self.sla_list = []  # TODO : remove this once report has grading done in the metric tables
     self.sla_map = defaultdict(lambda :defaultdict(lambda: defaultdict(None)))
     self.calculated_stats = {}
@@ -55,6 +56,7 @@ class Metric(object):
     self.timezone = "PDT"
     self.options = None
     self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
+    self.groupby = None
     for (key, val) in rule_strings.iteritems():
       naarad.utils.set_sla(self, self.label, key, val)
     if other_options:
@@ -64,8 +66,28 @@ class Metric(object):
         self.titles_string = self.columns
       if self.columns:
         self.columns = self.columns.split()
+      if self.groupby:
+        self.groupby = self.groupby.split()
+
       self.titles = dict(zip(self.columns, self.titles_string.split(','))) if self.columns and self.titles_string else None
       self.ylabels = dict(zip(self.columns, self.ylabels_string.split(','))) if self.columns and self.ylabels_string else None
+
+  def name_to_index(self, name):
+    index = None
+    for i in range(len(self.columns)):
+      if name == self.columns[i]:
+        index = i+1
+    return index
+
+  def get_groupby_indexes(self, groupby):
+    groupby_indexes = []
+    for group in groupby:
+      if ':' in group.rstrip(':'):
+        name, index = group.split(':')
+        groupby_indexes.append(index)
+      else:
+        groupby_indexes.append(self.name_to_index(group.rstrip(':')))
+    return groupby_indexes
 
   def ts_out_of_range(self, timestamp):
     if self.ts_start and timestamp < self.ts_start:
@@ -74,29 +96,43 @@ class Metric(object):
       return True
     return False
 
-  def collect_local(self):
-    return os.path.exists(self.infile)
+  def collect_local(self, infile):
+    return os.path.exists(infile)
 
   def collect(self):
-    # self.infile can be of several formats: for instance a local dir (e.g., /path/a.log) or an http url;  
-    # decide the case based on self.infile; 
-    # self.access is optional, can be removed. 
-    
-    if self.infile.startswith("http://") or self.infile.startswith("https://"):     
-      if naarad.utils.is_valid_url(self.infile):      
-        # reassign self.infile, so that it points to the local (downloaded) file
-        http_download_dir = os.path.join(self.outdir, self.label)
-        self.infile = naarad.httpdownload.download_url_single(self.infile, http_download_dir)
-        return True
+    # self.infile_list can be of several formats: for instance a local dir (e.g., /path/a.log) or an http url;
+    # decide the case based on self.infile_list;
+    # self.access is optional, can be removed.
+    collected_files = []
+    for infile in self.infile_list:
+      if infile.startswith("http://") or infile.startswith("https://"):
+        if naarad.utils.is_valid_url(infile):
+          http_download_dir = os.path.join(self.outdir, self.label)
+          output_file = naarad.httpdownload.download_url_single(infile, http_download_dir)
+          if output_file:
+            collected_files.append(output_file)
+          else:
+            return False
+        else:
+          logger.error("The given url of {0} is invalid.\n".format(infile))
+          return False
       else:
-        logger.error("The given url of {0} is invalid.\n".format(self.infile))
-        return False
-    else:   
-      return self.collect_local()
+        file_matches = glob.glob(infile)
+        if len(file_matches) == 0:
+          return False
+        for file_name in file_matches:
+          if self.collect_local(file_name):
+            collected_files.append(file_name)
+          else:
+            return False
+    self.infile_list = collected_files
+    return True
 
-  def get_csv(self, column):
+  def get_csv(self, column, groupby=None):
+    if groupby:
+      column = groupby + '.' + column
     if column in self.column_csv_map.keys():
-      return self.column_csv_map[column]    
+      return self.column_csv_map[column]
     col = naarad.utils.sanitize_string(column)
     csv = os.path.join(self.resource_directory, self.label + '.' + col + '.csv')
     self.csv_column_map[csv] = column
@@ -127,45 +163,67 @@ class Metric(object):
         self.summary_stats[column][stat] = naarad.utils.normalize_float_for_display(self.calculated_stats[column][stat])
 
   def parse(self):
-    logger.info("Working on" + self.infile)
-    timestamp_format = None
     qps = defaultdict(int)
-    with open(self.infile, 'r') as infile:
-      data = {}
-      for line in infile:
-        if self.sep is None:
-          words = line.strip().split()
-        else:
-          words = line.strip().split(self.sep)
-        if len(words) == 0:
-          continue
-        if len(words) <= len(self.columns): #NOTE: len(self.columns) is always one less than len(words) since we assume the very first column is timestamp
-          logger.warning("WARNING: Number of columns given in config is more than number of columns present in line {0}\n", line)
-          continue
-        if not timestamp_format or timestamp_format == 'unknown':
-          timestamp_format = naarad.utils.detect_timestamp_format(words[0])
-        if timestamp_format == 'unknown':
-          continue
-        ts = naarad.utils.get_standardized_timestamp(words[0], timestamp_format)
-        if ts == -1:
-          continue
-        ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
-        if self.ts_out_of_range(ts):
-          continue
-        qps[ts.split('.')[0]] += 1
-        for i in range(len(self.columns)):
-          out_csv = self.get_csv(self.columns[i])
-          if out_csv in data:
-            data[out_csv].append( ts + ',' + words[i+1] )
+    groupby_idxes = None
+    if self.groupby:
+      groupby_idxes = self.get_groupby_indexes(self.groupby)
+    data = {}
+    for input_file in self.infile_list:
+      logger.info("Working on " + input_file)
+      timestamp_format = None
+      with open(input_file, 'r') as infile:
+        for line in infile:
+          if self.sep is None or self.sep == '':
+            words = line.strip().split()
           else:
-            data[out_csv] = []
-            data[out_csv].append( ts + ',' + words[i+1] )
+            words = line.strip().split(self.sep)
+          if len(words) == 0:
+            continue
+          if len(words) <= len(self.columns): #NOTE: len(self.columns) is always one less than len(words) since we assume the very first column is timestamp
+            logger.warning("WARNING: Number of columns given in config is more than number of columns present in line {0}\n", line)
+            continue
+          if not timestamp_format or timestamp_format == 'unknown':
+            timestamp_format = naarad.utils.detect_timestamp_format(words[0])
+          if timestamp_format == 'unknown':
+            continue
+          ts = naarad.utils.get_standardized_timestamp(words[0], timestamp_format)
+          if ts == -1:
+            continue
+          ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
+          if self.ts_out_of_range(ts):
+            continue
+          qps[ts.split('.')[0]] += 1
+          if self.groupby:
+            groupby_names = None
+            for index in groupby_idxes:
+              if not groupby_names:
+                groupby_names = words[index].rstrip(':')
+              else:
+                groupby_names += '.' + words[index].rstrip(':')
+            for i in range(len(self.columns)):
+              if i+1 in groupby_idxes:
+                continue
+              else:
+                out_csv = self.get_csv(self.columns[i], groupby_names)
+                if out_csv in data:
+                  data[out_csv].append(ts + ',' + words[i+1])
+                else:
+                  data[out_csv] = []
+                  data[out_csv].append(ts + ',' + words[i+1])
+          else:
+            for i in range(len(self.columns)):
+              out_csv = self.get_csv(self.columns[i])
+              if out_csv in data:
+                data[out_csv].append(ts + ',' + words[i+1])
+              else:
+                data[out_csv] = []
+                data[out_csv].append(ts + ',' + words[i+1])
     # Post processing, putting data in csv files
-    data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]),sorted(qps.items())) 
+    data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]), sorted(qps.items()))
     for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
-        fh.write('\n'.join(data[csv]) )
+        fh.write('\n'.join(sorted(data[csv])))
     return True
 
   def calculate_stats(self):
@@ -213,7 +271,7 @@ class Metric(object):
           sub_metric = column
           if self.metric_type in self.device_types:
             sub_metric = column.split('.')[1]
-          if sub_metric in self.important_sub_metrics:
+          if self.check_important_sub_metrics(sub_metric):
             if not imp_metric_stats_present:
               FH_W_IMP.write(headers)
               imp_metric_stats_present = True
@@ -294,6 +352,8 @@ class Metric(object):
     """
     check whether the given sub metric is in important_sub_metrics list 
     """
+    if not self.important_sub_metrics:
+      return False
     if sub_metric in self.important_sub_metrics:
       return True
     items = sub_metric.split('.')
