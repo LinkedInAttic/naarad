@@ -191,6 +191,7 @@ class Naarad(object):
     :return:
     """
     threads = []
+    crossplots = []
     if isinstance(analysis.config, str):
       if not naarad.utils.is_valid_file(analysis.config):
         return CONSTANTS.INVALID_CONFIG
@@ -286,6 +287,7 @@ class Naarad(object):
     run_steps = defaultdict(list)
     metrics = defaultdict(list)
     indir_default = ''
+    crossplots =[] 
 
     if config.has_section('GLOBAL'):
       ts_start, ts_end = naarad.utils.parse_global_section(config, 'GLOBAL')
