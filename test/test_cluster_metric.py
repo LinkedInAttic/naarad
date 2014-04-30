@@ -47,11 +47,11 @@ def delete_tmp_dir():
   
 def test_clustermetric():
   #construct 2 SARMetric
-  metric1 = SARMetric('SAR-cpuusage-host1', 'sar.cpuusage.out', 'host1', '.', 'logs', 'SAR-cpuusage-host1', None, None, {});
+  metric1 = SARMetric('SAR-cpuusage-host1', 'sar.cpuusage.out', 'host1', '.', 'logs', 'SAR-cpuusage-host1', None, None, {}, None);
   metric1.csv_column_map['logs/SAR-cpuusage-host1.all.percent-sys.csv'] = 'all.%sys'
   metric1.column_csv_map['all.%sys'] = 'logs/SAR-cpuusage-host1.all.percent-sys.csv'
   
-  metric2 = SARMetric('SAR-cpuusage-host2', 'sar.cpuusage.out', 'host2', '.', 'logs', 'SAR-cpuusage-host2', None, None, {});
+  metric2 = SARMetric('SAR-cpuusage-host2', 'sar.cpuusage.out', 'host2', '.', 'logs', 'SAR-cpuusage-host2', None, None, {}, None);
   metric2.csv_column_map['logs/SAR-cpuusage-host2.all.percent-sys.csv'] = 'all.%sys'
   metric2.column_csv_map['all.%sys'] = 'logs/SAR-cpuusage-host2.all.percent-sys.csv'
   
@@ -68,7 +68,7 @@ def test_clustermetric():
   ts_end = None
   metrics = [metric1, metric2]
   
-  cur_metric = ClusterMetric(section, aggregate_hosts, aggregate_metrics, metrics, output_directory, resource_path, label, ts_start, ts_end, rule_strings)
+  cur_metric = ClusterMetric(section, aggregate_hosts, aggregate_metrics, metrics, output_directory, resource_path, label, ts_start, ts_end, rule_strings, None)
   
   # create sub-directory of resource_path
   sub_dir = os.path.join(output_directory, resource_path)

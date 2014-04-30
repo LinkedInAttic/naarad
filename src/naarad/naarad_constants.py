@@ -22,6 +22,7 @@ PARSE_FAILED = 3
 GRAPH_FAILED = 4
 REPORT_FAILED = 5
 ERROR = 6
+INVALID_CONFIG = 7
 
 # Report Constants
 DEFAULT_REPORT_TITLE = 'naarad analysis report'

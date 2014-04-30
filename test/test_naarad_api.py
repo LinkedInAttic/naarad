@@ -5,6 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");?you may not use 
 Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS,?WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 
+import ConfigParser
 import os
 import sys
 import time
@@ -23,6 +24,9 @@ def test_naarad_apis():
   """
   examples_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'examples')
   config_file = os.path.join(os.path.join(examples_directory, 'conf'),'config-gc')
+  config_object = ConfigParser.ConfigParser()
+  config_object.optionxform = str
+  config_object.read(config_file)
   input_directory = os.path.join(examples_directory,'logs')
   output_directory = 'test_api_temp' 
   diff_output_directory = 'test_api_temp/diff_location'
@@ -32,7 +36,7 @@ def test_naarad_apis():
   test_id_1 = naarad_obj.signal_start(config_file)
   time.sleep(60)
   naarad_obj.signal_stop(test_id_1)
-  test_id_2 = naarad_obj.signal_start(config_file)
+  test_id_2 = naarad_obj.signal_start(config_object)
   time.sleep(60)
   naarad_obj.signal_stop(test_id_2)
   if naarad_obj.analyze(input_directory, output_directory) != CONSTANTS.OK :

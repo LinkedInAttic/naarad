@@ -10,11 +10,14 @@ function switch_diff_table(metric)
     }
 }
 
+var chartsList = [];
+var syncRange;
 var colorSets = [
 ["#1F78B4", "#B2DF8A", "#A6CEE3"],
 ["#993399", "#B3CDE3", "#CCEBC5"],
 null
-]
+];
+
 function plot(selector_id, div_id, colorset_id, advanced_source, url_div)
 {
   var chart_data_selector = document.getElementById(selector_id);
@@ -25,6 +28,8 @@ function plot(selector_id, div_id, colorset_id, advanced_source, url_div)
   document.getElementById(url_div).innerHTML = "<a href=" + chart_data_source + " target=\"_blank\">[csv]</a>"
   var div_width = document.getElementById(div_id).clientWidth;
   var div_height = document.getElementById(div_id).clientHeight;
+  var blockRedraw = false;
+  var initialized = false;
   chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,
   {
     axes : {
@@ -43,10 +48,25 @@ function plot(selector_id, div_id, colorset_id, advanced_source, url_div)
     xlabel: "Time",
     colors: colorSets[colorset_id],
     labels: [ "Time", chart_data_title],
-    labelsDiv: "labels-" + div_id
+    labelsDiv: "labels-" + div_id,
+    dateWindow: syncRange,
+    drawCallback: function(me, initial) {
+      if (blockRedraw || initial) return;
+      blockRedraw = true;
+      syncRange = me.xAxisRange();
+      for (var i = 0; i < chartsList.length; i++)
+      {
+        if (chartsList[i] == me) continue;
+        chartsList[i].updateOptions({
+          dateWindow: syncRange
+        });
+      }
+    blockRedraw = false;
+    }
   }
   );
   chart_1.resize(div_width, window.screen.height*0.75/2);
+  chartsList.push(chart_1);
 }
 
 function plot_cdf(selector_id, div_id, colorset_id, advanced_source, url_div)
