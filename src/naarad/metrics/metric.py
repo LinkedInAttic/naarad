@@ -57,6 +57,8 @@ class Metric(object):
     self.options = None
     self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
     self.groupby = None
+    self.JOY = 'JOY'
+    self.summary_html_content_enabled = True
     for (key, val) in rule_strings.iteritems():
       naarad.utils.set_sla(self, self.label, key, val)
     if other_options:
@@ -168,6 +170,7 @@ class Metric(object):
     if self.groupby:
       groupby_idxes = self.get_groupby_indexes(self.groupby)
     data = {}
+    aggregate_data = {}
     for input_file in self.infile_list:
       logger.info("Working on " + input_file)
       timestamp_format = None
@@ -210,6 +213,12 @@ class Metric(object):
                 else:
                   data[out_csv] = []
                   data[out_csv].append(ts + ',' + words[i+1])
+                out_csv = self.get_csv(self.columns[i], 'Overall_Summary')
+                if out_csv in aggregate_data:
+                  aggregate_data[out_csv].append(ts + ',' + words[i+1])
+                else:
+                  aggregate_data[out_csv] = []
+                  aggregate_data[out_csv].append(ts + ',' + words[i+1])
           else:
             for i in range(len(self.columns)):
               out_csv = self.get_csv(self.columns[i])
@@ -224,6 +233,18 @@ class Metric(object):
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
         fh.write('\n'.join(sorted(data[csv])))
+    if self.groupby:
+      for csv in aggregate_data.keys():
+        new_data = defaultdict(int)
+        for d in aggregate_data[csv]:
+          timestamp, value = d.split(',')
+          new_data[timestamp] += int(value)
+        aggregate_data[csv] = []
+        for ts, value in sorted(new_data.items()):
+          aggregate_data[csv].append(str(ts) + ',' + str(value))
+        self.csv_files.append(csv)
+        with open(csv, 'w') as fh:
+          fh.write('\n'.join(sorted(aggregate_data[csv])))
     return True
 
   def calculate_stats(self):

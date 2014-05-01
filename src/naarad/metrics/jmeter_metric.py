@@ -54,6 +54,7 @@ class JmeterMetric(Metric):
     self.aggregation_granularity = 'minute'
     self.calculated_percentiles = {}
     self.summary_stats = defaultdict(dict)
+    self.summary_html_content_enabled = True
     if not self.important_sub_metrics:
       self.important_sub_metrics = important_sub_metrics_import['JMETER']
     if other_options:
@@ -280,7 +281,6 @@ class JmeterMetric(Metric):
   def graph(self, graphing_library='matplotlib'):
     self.plot_timeseries(graphing_library)
     self.plot_cdf(graphing_library)
-    print 'JOY', self.plot_files
     return True
 
   def plot_timeseries(self, graphing_library='matplotlib'):

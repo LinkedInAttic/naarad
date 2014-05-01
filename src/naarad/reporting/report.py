@@ -137,10 +137,11 @@ class Report(object):
             div_file.seek(0)
             coplot_html_content += '\n' + div_file.read()
 
-      for summary_stats_file in metric.important_stats_files:
-        if naarad.utils.is_valid_file(summary_stats_file):
-          summary_stats = self.get_summary_table(summary_stats_file)
-          summary_html_content += template_environment.get_template(CONSTANTS.TEMPLATE_SUMMARY_CONTENT).render(metric_stats=summary_stats, metric=metric) + '\n'
+      if metric.summary_html_content_enabled:
+        for summary_stats_file in metric.important_stats_files:
+          if naarad.utils.is_valid_file(summary_stats_file):
+            summary_stats = self.get_summary_table(summary_stats_file)
+            summary_html_content += template_environment.get_template(CONSTANTS.TEMPLATE_SUMMARY_CONTENT).render(metric_stats=summary_stats, metric=metric) + '\n'
 
       for metric_stats_file in metric.stats_files:
         metric_template_data = {}
