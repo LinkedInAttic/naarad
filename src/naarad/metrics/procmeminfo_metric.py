@@ -81,8 +81,6 @@ class ProcMeminfoMetric(Metric):
           else:
             out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
             data[out_csv] = []
-          logger.info(out_csv)
-          logger.info(data.keys())
           data[out_csv].append(ts + "," + words[3])
     #post processing, putting data in csv files;   
     for csv in data.keys():      
