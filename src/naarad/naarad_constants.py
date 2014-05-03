@@ -7,7 +7,7 @@ Unless required by applicable law or agreed to in writing, software distribute
 # Metric Constants
 DEFAULT_SUMMARY_STATS = ['mean', 'std', 'p50', 'p75', 'p90', 'p95', 'p99', 'min', 'max']
 important_sub_metrics_import = {
-    'GC': ('GCPause', 'used'),
+    'GC': ('GCPause', 'used', 'cmsIM', 'cmsCM', 'gen0t', 'g1-pause-young', 'g1-pause-mixed', 'g1-pause-remark', 'g1-pause-cleanup'),
     'LINKEDINANDROIDRUM': ('launch_time', 'nus_update_time'),
     'SAR-cpuusage': ('%sys', '%usr'),
     'SAR-device': ('%util', 'await'),
