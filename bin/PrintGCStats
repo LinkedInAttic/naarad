@@ -975,18 +975,6 @@ $0 ~ ".*\\[GC[^ ]+ .*" {
   sub(/GC[^ ]+/, "GC", $0);
 }
 
-$0 ~ ".*\\[GC remark [^\\[]+" {
-  sub(/GC remark [^\[]+/, "GC remark ", $0);
-  secs = $(NF-1);
-  recordStats(g1_remark_idx, secs);
-  match($0, g1_remark_refproc_re);
-  split(substr($0, RSTART , RLENGTH),recprof," ");
-  secs = recprof[3]; 
-  recordStats(g1_remark_refproc_idx, secs);
-  printInterval();
-  next;
-}
-
 $0 ~ ".* age .*" {
   next;
 };
@@ -1034,6 +1022,19 @@ getDateTimeStamp() < ts_start {
 getDateTimeStamp() > ts_end {
    exit;
 }
+
+$0 ~ ".*\\[GC remark [^\\[]+" {
+  sub(/GC remark [^\[]+/, "GC remark ", $0);
+  secs = $(NF-1);
+  recordStats(g1_remark_idx, secs);
+  match($0, g1_remark_refproc_re);
+  split(substr($0, RSTART , RLENGTH),recprof," ");
+  secs = recprof[3]; 
+  recordStats(g1_remark_refproc_idx, secs);
+  printInterval();
+  next;
+}
+
 
 # Match CMS initial mark output from PrintGCDetails.
 # 
