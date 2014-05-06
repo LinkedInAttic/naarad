@@ -37,6 +37,7 @@ def handle_single_url(url, outdir, outfile=None):
   if not outfile:
     segs = url.split('/')
     outfile = segs[-1]
+    outfile = urllib2.quote(outfile)
 
   output_file = os.path.join(outdir, outfile)
   if os.path.exists(output_file):
