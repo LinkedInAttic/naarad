@@ -711,9 +711,7 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
         metric.calculate_stats()
         check_slas(metric)
         if not skip_plots:
-          #graph_lock.acquire()
           metric.graph(graphing_library)
-          #graph_lock.release()
       else:
         logger.error('Parsing failed for metric: '  + metric.label)
     else:
