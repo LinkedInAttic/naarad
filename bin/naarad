@@ -305,6 +305,13 @@ def main():
     # ts_start in global section is overwritten by CLI -b option
     # CLI -b option is overwritten by ts_start in RUN-step section
     # ts_start in RUN-step section is overwritten by ts_start in metric section
+    if ts_start:
+      timestamp_format = naarad.utils.detect_timestamp_format(ts_start)
+      ts_start = naarad.utils.get_standardized_timestamp(ts_start, timestamp_format)
+    if ts_end:
+      timestamp_format = naarad.utils.detect_timestamp_format(ts_end)
+      ts_end = naarad.utils.get_standardized_timestamp(ts_end, timestamp_format)
+
     for metric in metrics:
       if ts_start and not metric.ts_start:
         metric.ts_start = ts_start
