@@ -193,7 +193,6 @@ class Metric(object):
           if ts == -1:
             continue
           ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
-          print 'JOY timestamp is: ', ts, 'run start time ', self.ts_start, 'run end time ', self.ts_end
           if self.ts_out_of_range(ts):
             continue
           qps[ts.split('.')[0]] += 1
