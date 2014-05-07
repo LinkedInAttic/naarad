@@ -277,7 +277,6 @@ class JmeterMetric(Metric):
           FH_IMP.write(csv_data + '\n')
       self.important_stats_files.append(imp_metric_stats_csv)
 
-
   def graph(self, graphing_library='matplotlib'):
     self.plot_timeseries(graphing_library)
     self.plot_cdf(graphing_library)
