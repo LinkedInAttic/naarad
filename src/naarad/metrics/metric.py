@@ -168,8 +168,8 @@ class Metric(object):
     groupby_idxes = None
     if self.groupby:
       groupby_idxes = self.get_groupby_indexes(self.groupby)
-    data = {}
-    aggregate_data = {}
+    data = defaultdict(list)
+    aggregate_data = defaultdict(list)
     for input_file in self.infile_list:
       logger.info("Working on " + input_file)
       timestamp_format = None
@@ -207,17 +207,9 @@ class Metric(object):
                 continue
               else:
                 out_csv = self.get_csv(self.columns[i], groupby_names)
-                if out_csv in data:
-                  data[out_csv].append(ts + ',' + words[i+1])
-                else:
-                  data[out_csv] = []
-                  data[out_csv].append(ts + ',' + words[i+1])
+                data[out_csv].append(ts + ',' + words[i+1])
                 out_csv = self.get_csv(self.columns[i], 'Overall_Summary')
-                if out_csv in aggregate_data:
-                  aggregate_data[out_csv].append(ts + ',' + words[i+1])
-                else:
-                  aggregate_data[out_csv] = []
-                  aggregate_data[out_csv].append(ts + ',' + words[i+1])
+                aggregate_data[out_csv].append(ts + ',' + words[i+1])
           else:
             for i in range(len(self.columns)):
               out_csv = self.get_csv(self.columns[i])
