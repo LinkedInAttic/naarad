@@ -745,7 +745,6 @@ def get_argument_parser():
   arg_parser.add_argument('--end', help="End time in the format of HH:MM:SS or YYYY-mm-dd_HH:MM:SS")
   arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
   arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
-  arg_parser.add_argument('-r', '--resource_path', help="output sub-directory where resources such as images/svg/csv etc will be stored", default='resources')
   arg_parser.add_argument('-V', '--variables', action="append", help="User defined variables (in form key=value) for substitution in the config file. Config should have the variable names in format %%(key)s")
   arg_parser.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
   arg_parser.add_argument('-l', '--log', help="log level")
