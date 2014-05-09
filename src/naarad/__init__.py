@@ -203,19 +203,18 @@ class Naarad(object):
     else:
       return CONSTANTS.INVALID_CONFIG
     metrics, run_steps, crossplots = self._process_naarad_config(config_object, analysis)
-    graph_lock = threading.Lock()
     for metric in metrics['metrics']:
       if analysis.ts_start and not metric.ts_start:
         metric.ts_start = analysis.ts_start
       if analysis.ts_end and not metric.ts_end:
         metric.ts_end = analysis.ts_end
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', graph_lock, True))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', True))
       thread.start()
       threads.append(thread)
     for t in threads:
       t.join()
     for metric in metrics['aggregate_metrics']:
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', graph_lock, True))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', True))
       thread.start()
       threads.append(thread)
     for t in threads:

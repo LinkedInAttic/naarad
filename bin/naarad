@@ -300,11 +300,15 @@ def main():
       ts_start, ts_end = naarad.utils.get_run_time_period(workload_run_steps)
 
     threads = []
-    graph_lock = threading.Lock()
 
     # ts_start in global section is overwritten by CLI -b option
     # CLI -b option is overwritten by ts_start in RUN-step section
     # ts_start in RUN-step section is overwritten by ts_start in metric section
+    if ts_start:
+      ts_start = naarad.utils.get_standardized_timestamp(ts_start, None)
+    if ts_end:
+      ts_end = naarad.utils.get_standardized_timestamp(ts_end, None)
+
     for metric in metrics:
       if ts_start and not metric.ts_start:
         metric.ts_start = ts_start
@@ -312,8 +316,7 @@ def main():
         metric.ts_end = ts_end
       thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone,
                                                                                          outdir_default, indir_default,
-                                                                                         graphing_library, graph_lock,
-                                                                                         skip_plots))
+                                                                                         graphing_library, skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
@@ -323,8 +326,7 @@ def main():
     for metric in aggregate_metrics:
       thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone,
                                                                                          outdir_default, indir_default,
-                                                                                         graphing_library, graph_lock,
-                                                                                         skip_plots))
+                                                                                         graphing_library, skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
