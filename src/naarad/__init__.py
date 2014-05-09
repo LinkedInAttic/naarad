@@ -51,6 +51,7 @@ class Naarad(object):
     self._input_directory = None
     self._output_directory = None
     self.return_exit_code = False
+    self.skip_plots = False
     naarad.metrics.metric.Metric.graphing_modules = graphing_modules
     naarad.metrics.metric.Metric.device_types = CONSTANTS.device_type_metrics
     naarad.reporting.diff.Diff.graphing_modules = graphing_modules
@@ -176,6 +177,8 @@ class Naarad(object):
     """
     if 'return_exit_code' in kwargs:
       self.return_exit_code = kwargs['return_exit_code']
+    if 'skip_plots' in kwargs:
+      self.skip_plots = kwargs['skip_plots']
     if len(self._analyses) == 0:
       if 'config' not in kwargs.keys():
         return CONSTANTS.ERROR
@@ -228,13 +231,13 @@ class Naarad(object):
         metric.ts_start = analysis.ts_start
       if analysis.ts_end and not metric.ts_end:
         metric.ts_end = analysis.ts_end
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', graph_lock, True))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', graph_lock, self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
       t.join()
     for metric in metrics['aggregate_metrics']:
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', graph_lock, True))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', graph_lock, self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
@@ -349,7 +352,7 @@ class Naarad(object):
                                                          ts_end, None)
           metrics['metrics'].extend(sar_metrics)
         else:
-          new_metric = naarad.utils.parse_metric_section(config, section, metric_classes, metrics, aggregate_metric_classes, output_directory, resource_path)
+          new_metric = naarad.utils.parse_metric_section(config, section, metric_classes, metrics['metrics'], aggregate_metric_classes, output_directory, resource_path)
           new_metric.bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
           metric_type = section.split('-')[0]
           if metric_type in aggregate_metric_classes:
