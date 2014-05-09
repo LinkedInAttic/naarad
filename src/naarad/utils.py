@@ -689,7 +689,7 @@ def check_slas(metric):
           for stat, sla in metric.sla_map[metric_label][sub_metric].items():
             FH.write('%s\n' % (sla.get_csv_repr()))
 
-def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock,
+def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library,
                                   skip_plots):
   metric.graph_timezone = graph_timezone
   if metric.outdir is None:
