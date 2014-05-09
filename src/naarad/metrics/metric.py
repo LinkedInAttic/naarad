@@ -209,7 +209,7 @@ class Metric(object):
                 out_csv = self.get_csv(self.columns[i], groupby_names)
                 data[out_csv].append(ts + ',' + words[i+1])
                 out_csv = self.get_csv(self.columns[i], 'Overall_Summary')
-                aggregate_data[out_csv].append(ts + ',' + words[i+1])
+                aggregate_data[out_csv].append((ts, words[i+1]))
           else:
             for i in range(len(self.columns)):
               out_csv = self.get_csv(self.columns[i])
@@ -227,9 +227,8 @@ class Metric(object):
     if self.groupby:
       for csv in aggregate_data.keys():
         new_data = defaultdict(int)
-        for d in aggregate_data[csv]:
-          timestamp, value = d.split(',')
-          new_data[timestamp] += int(value)
+        for timestamp, value in aggregate_data[csv]:
+          new_data[timestamp] += float(value)
         aggregate_data[csv] = []
         for ts, value in sorted(new_data.items()):
           aggregate_data[csv].append(str(ts) + ',' + str(value))
