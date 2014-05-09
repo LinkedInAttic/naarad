@@ -10,7 +10,6 @@ import ConfigParser
 import errno
 import logging
 import os
-import sys
 import threading
 import naarad.utils
 import naarad.naarad_constants as CONSTANTS
@@ -51,6 +50,7 @@ class Naarad(object):
     self._resource_path = 'resources'
     self._input_directory = None
     self._output_directory = None
+    self.return_exit_code = False
     naarad.metrics.metric.Metric.graphing_modules = graphing_modules
     naarad.metrics.metric.Metric.device_types = CONSTANTS.device_type_metrics
     naarad.reporting.diff.Diff.graphing_modules = graphing_modules
@@ -150,6 +150,22 @@ class Naarad(object):
       if exception.errno != errno.EEXIST:
         raise
 
+  def _run_pre(self, run_steps):
+    workload_run_steps = []
+    for run_step in sorted(run_steps, key=lambda step: step.run_rank):
+      run_step.run()
+      if run_step.run_type == CONSTANTS.RUN_TYPE_WORKLOAD:
+        workload_run_steps.append(run_step)
+    # Get analysis time period from workload run steps
+    if len(workload_run_steps) > 0:
+      ts_start, ts_end = naarad.utils.get_run_time_period(workload_run_steps)
+    return CONSTANTS.OK
+
+  def _run_post(self, run_steps):
+    for run_step in sorted(run_steps, key=lambda step: step.run_rank):
+      run_step.run()
+    return CONSTANTS.OK
+
   def analyze(self, input_directory, output_directory, **kwargs):
     """
     Run all the analysis saved in self._analyses, sorted by test_id
@@ -158,10 +174,12 @@ class Naarad(object):
     :param: **kwargs: Optional keyword args
     :return: int: status code.
     """
+    if 'return_exit_code' in kwargs:
+      self.return_exit_code = kwargs['return_exit_code']
     if len(self._analyses) == 0:
-      if 'config' not in kwargs:
+      if 'config' not in kwargs.keys():
         return CONSTANTS.ERROR
-      self._analyses[0] = _Analysis(None, kwargs['config'])
+      self._analyses[0] = _Analysis(None, kwargs['config'], test_id=0)
     error_count = 0
     self._input_directory = input_directory
     self._output_directory = output_directory
@@ -195,7 +213,7 @@ class Naarad(object):
     if isinstance(analysis.config, str):
       if not naarad.utils.is_valid_file(analysis.config):
         return CONSTANTS.INVALID_CONFIG
-      config_object = ConfigParser.ConfigParser(kwargs)
+      config_object = ConfigParser.ConfigParser(kwargs['variables'])
       config_object.optionxform = str
       config_object.read(analysis.config)
     elif isinstance(analysis.config, ConfigParser.ConfigParser):
@@ -204,6 +222,7 @@ class Naarad(object):
       return CONSTANTS.INVALID_CONFIG
     metrics, run_steps, crossplots = self._process_naarad_config(config_object, analysis)
     graph_lock = threading.Lock()
+    self._run_pre(run_steps['pre'])
     for metric in metrics['metrics']:
       if analysis.ts_start and not metric.ts_start:
         metric.ts_start = analysis.ts_start
@@ -220,16 +239,20 @@ class Naarad(object):
       threads.append(thread)
     for t in threads:
       t.join()
-
     self._set_sla_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
     self._set_stats_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
-
     if len(crossplots) > 0:
       correlated_plots = naarad.utils.nway_plotting(crossplots, metrics['metrics'] + metrics['aggregate_metrics'], os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path)
     else:
       correlated_plots = []
     rpt = reporting_modules['report'](None, analysis.output_directory, os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path, metrics['metrics'] + metrics['aggregate_metrics'], correlated_plots=correlated_plots)
     rpt.generate()
+    self._run_post(run_steps['post'])
+
+    if self.return_exit_code:
+      for metric in metrics['metrics'] + metrics['aggregate_metrics']:
+        if metric.status == CONSTANTS.SLA_FAILED:
+          return CONSTANTS.SLA_FAILURE
 
     return CONSTANTS.OK
 
@@ -247,7 +270,7 @@ class Naarad(object):
         output_directory = kwargs['output_directory']
     diff_report = Diff([NaaradReport(self._analyses[test_id_1].output_directory, None), NaaradReport(self._analyses[test_id_2].output_directory, None)], 'diff', output_directory, os.path.join(output_directory, self._resource_path), self._resource_path)
     if config:
-      naarad.utils.extract_sla_from_config_file(diff_report, config)
+      naarad.utils.extract_diff_sla_from_config_file(diff_report, config)
     diff_report.generate()
     if diff_report.sla_failures > 0:
       return CONSTANTS.SLA_FAILURE
@@ -269,7 +292,7 @@ class Naarad(object):
         output_directory = kwargs['output_directory']
     diff_report = Diff([NaaradReport(report1_location, None), NaaradReport(report2_location, None)], 'diff', output_directory, os.path.join(output_directory, self._resource_path), self._resource_path)
     if config:
-      naarad.utils.extract_sla_from_config_file(diff_report, config)
+      naarad.utils.extract_diff_sla_from_config_file(diff_report, config)
     diff_report.generate()
     if diff_report.sla_failures > 0:
       return CONSTANTS.SLA_FAILURE
