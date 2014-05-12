@@ -1,8 +1,10 @@
 # coding=utf-8
 """
 © 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License");?you may not use this file except in compliance with the License.?You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an "AS IS" BASIS,?WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");?you may not use this file except in compliance with the
+License.?You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an
+"AS IS" BASIS,?WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 
 from collections import defaultdict
@@ -38,6 +40,7 @@ class _Analysis(object):
     self.status = CONSTANTS.OK
     self.sla_data = {}
     self.stats_data = {}
+    self.variables = None
 
 class Naarad(object):
   """
@@ -61,7 +64,8 @@ class Naarad(object):
     """
     Initialize an analysis object and set ts_start for the analysis represented by test_id
     :param test_id: integer that represents the analysis
-    :param config: config can be a ConfigParser.ConfigParser object or a string specifying local or http(s) location for config
+    :param config: config can be a ConfigParser.ConfigParser object or a string specifying local or http(s) location
+     for config
     :return: test_id
     """
     if not test_id:
@@ -111,7 +115,8 @@ class Naarad(object):
 
   def _set_sla_data(self, test_id, metrics):
     """
-    Get sla data from each metric and set it in the _Analysis object specified by test_id to make it available for retrieval
+    Get sla data from each metric and set it in the _Analysis object specified by test_id to make it available
+    for retrieval
     :return: currently always returns CONSTANTS.OK. Maybe enhanced in future to return additional status
     """
     for metric in metrics:
@@ -127,7 +132,8 @@ class Naarad(object):
 
   def _set_stats_data(self, test_id, metrics):
     """
-    Get summary stats data from each metric and set it in the _Analysis object specified by test_id to make it available for retrieval
+    Get summary stats data from each metric and set it in the _Analysis object specified by test_id to make it available
+    for retrieval
     :return: currently always returns CONSTANTS.OK. Maybe enhanced in future to return additional status
     """
     for metric in metrics:
@@ -167,6 +173,19 @@ class Naarad(object):
       run_step.run()
     return CONSTANTS.OK
 
+  def _process_args(self, analysis, args):
+    if args.exit_code:
+      self.return_exit_code = args.exit_code
+    if args.no_plots:
+      self.skip_plots = args.no_plots
+    if args.start:
+      analysis.ts_start = args.start
+    if args.end:
+      analysis.ts_end = args.end
+    if args.variables:
+      analysis.variables = naarad.utils.get_variables(args)
+    return CONSTANTS.OK
+
   def analyze(self, input_directory, output_directory, **kwargs):
     """
     Run all the analysis saved in self._analyses, sorted by test_id
@@ -175,14 +194,12 @@ class Naarad(object):
     :param: **kwargs: Optional keyword args
     :return: int: status code.
     """
-    if 'return_exit_code' in kwargs:
-      self.return_exit_code = kwargs['return_exit_code']
-    if 'skip_plots' in kwargs:
-      self.skip_plots = kwargs['skip_plots']
     if len(self._analyses) == 0:
       if 'config' not in kwargs.keys():
         return CONSTANTS.ERROR
       self._analyses[0] = _Analysis(None, kwargs['config'], test_id=0)
+    if 'args' in kwargs:
+      self._process_args(self._analyses[0], kwargs['args'])
     error_count = 0
     self._input_directory = input_directory
     self._output_directory = output_directory
@@ -216,7 +233,7 @@ class Naarad(object):
     if isinstance(analysis.config, str):
       if not naarad.utils.is_valid_file(analysis.config):
         return CONSTANTS.INVALID_CONFIG
-      config_object = ConfigParser.ConfigParser(kwargs['variables'])
+      config_object = ConfigParser.ConfigParser(analysis.variables)
       config_object.optionxform = str
       config_object.read(analysis.config)
     elif isinstance(analysis.config, ConfigParser.ConfigParser):
@@ -231,13 +248,17 @@ class Naarad(object):
         metric.ts_start = analysis.ts_start
       if analysis.ts_end and not metric.ts_end:
         metric.ts_end = analysis.ts_end
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', graph_lock, self.skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics,
+                                args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib',
+                                      graph_lock, self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
       t.join()
     for metric in metrics['aggregate_metrics']:
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', graph_lock, self.skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics,
+                                args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib',
+                                      graph_lock, self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
@@ -245,10 +266,15 @@ class Naarad(object):
     self._set_sla_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
     self._set_stats_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
     if len(crossplots) > 0:
-      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics['metrics'] + metrics['aggregate_metrics'], os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path)
+      correlated_plots = naarad.utils.nway_plotting(crossplots, metrics['metrics'] + metrics['aggregate_metrics'],
+                                                    os.path.join(analysis.output_directory, analysis.resource_path),
+                                                    analysis.resource_path)
     else:
       correlated_plots = []
-    rpt = reporting_modules['report'](None, analysis.output_directory, os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path, metrics['metrics'] + metrics['aggregate_metrics'], correlated_plots=correlated_plots)
+    rpt = reporting_modules['report'](None, analysis.output_directory,
+                                      os.path.join(analysis.output_directory, analysis.resource_path),
+                                      analysis.resource_path, metrics['metrics'] + metrics['aggregate_metrics'],
+                                      correlated_plots=correlated_plots)
     rpt.generate()
     self._run_post(run_steps['post'])
 
@@ -271,7 +297,10 @@ class Naarad(object):
     if kwargs:
       if 'output_directory' in kwargs.keys():
         output_directory = kwargs['output_directory']
-    diff_report = Diff([NaaradReport(self._analyses[test_id_1].output_directory, None), NaaradReport(self._analyses[test_id_2].output_directory, None)], 'diff', output_directory, os.path.join(output_directory, self._resource_path), self._resource_path)
+    diff_report = Diff([NaaradReport(self._analyses[test_id_1].output_directory, None),
+                        NaaradReport(self._analyses[test_id_2].output_directory, None)],
+                       'diff', output_directory, os.path.join(output_directory, self._resource_path),
+                       self._resource_path)
     if config:
       naarad.utils.extract_diff_sla_from_config_file(diff_report, config)
     diff_report.generate()
@@ -293,7 +322,8 @@ class Naarad(object):
     if kwargs:
       if 'output_directory' in kwargs.keys():
         output_directory = kwargs['output_directory']
-    diff_report = Diff([NaaradReport(report1_location, None), NaaradReport(report2_location, None)], 'diff', output_directory, os.path.join(output_directory, self._resource_path), self._resource_path)
+    diff_report = Diff([NaaradReport(report1_location, None), NaaradReport(report2_location, None)], 'diff',
+                       output_directory, os.path.join(output_directory, self._resource_path), self._resource_path)
     if config:
       naarad.utils.extract_diff_sla_from_config_file(diff_report, config)
     diff_report.generate()
@@ -306,7 +336,8 @@ class Naarad(object):
 
   def _process_naarad_config(self, config, analysis):
     """
-    Process the config file associated with a particular analysis and return metrics, run_steps and crossplots. Also sets output directory and resource_path for an anlaysis
+    Process the config file associated with a particular analysis and return metrics, run_steps and crossplots.
+    Also sets output directory and resource_path for an anlaysis
     """
     output_directory = analysis.output_directory
     resource_path = analysis.resource_path
@@ -343,7 +374,8 @@ class Naarad(object):
       else:
         # section name is used to create sub-directories, so enforce it.
         if not naarad.utils.is_valid_metric_name(section):
-          logger.critical('Section name %s is invalid! Only letters, digits, dot(.), dash(-), underscore(_) are allowed' % section)
+          logger.critical('Section name %s is invalid! Only letters, digits, dot(.), dash(-), underscore(_) are allowed'
+                          % section)
           return CONSTANTS.CRITICAL_FAILURE
         if section == 'SAR-*':
           hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings = \
@@ -352,8 +384,10 @@ class Naarad(object):
                                                          ts_end, None)
           metrics['metrics'].extend(sar_metrics)
         else:
-          new_metric = naarad.utils.parse_metric_section(config, section, metric_classes, metrics['metrics'], aggregate_metric_classes, output_directory, resource_path)
-          new_metric.bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
+          new_metric = naarad.utils.parse_metric_section(config, section, metric_classes, metrics['metrics'],
+                                                         aggregate_metric_classes, output_directory, resource_path)
+          new_metric.bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__)))),'bin'))
           metric_type = section.split('-')[0]
           if metric_type in aggregate_metric_classes:
             metrics['aggregate_metrics'].append(new_metric)

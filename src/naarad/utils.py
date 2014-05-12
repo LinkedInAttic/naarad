@@ -720,7 +720,7 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
     else:
       logger.error('Fetch/Collect failed for metric: ' + metric.label)
 
-def init_logging(log_file, log_level):
+def init_logging(logger, log_file, log_level):
   with open(log_file, 'w'):
     pass
   numeric_level = getattr(logging, log_level.upper(), None) if log_level else logging.INFO

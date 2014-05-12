@@ -18,17 +18,17 @@ from naarad import Naarad
 import naarad.utils as Utils
 import naarad.naarad_constants as CONSTANTS
 
+
 def main():
-  logger = logging.getLogger('naarad')
   args = Utils.get_argument_parser().parse_args()
-  Utils.init_logging(CONSTANTS.NAARAD_LOG, args.log)
   Utils.validate_arguments(args)
+  logger = logging.getLogger('naarad')
+  Utils.init_logging(logger, CONSTANTS.NAARAD_LOG, args.log)
+  logger.info('Reports will be in %s', args.output_dir)
   if args.diff:
-    status = Naarad().diff_reports_by_location(args.diff[0], args.diff[1], args.output_dir, config=args.config,
-                                               return_exit_code=args.exit_code, variables=Utils.get_variables(args))
+    status = Naarad().diff_reports_by_location(args.diff[0], args.diff[1], args.output_dir, config=args.config, args=args)
   else:
-    status = Naarad().analyze(args.input_dir, args.output_dir, config=args.config, skip_plots=args.no_plots,
-                              return_exit_code=args.exit_code, variables=Utils.get_variables(args))
+    status = Naarad().analyze(args.input_dir, args.output_dir, config=args.config, skip_plots=args.no_plots, args=args)
   if args.exit_code:
     sys.exit(status)
 
