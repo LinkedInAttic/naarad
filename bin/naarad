@@ -169,7 +169,7 @@ def main():
   arg_parser.add_argument('-d', '--diff', nargs=2, help="Specify the location of two naarad reports to diff separated by a space. Can be local or http(s) locations. The first report is used as a baseline.", metavar=("report-1", "report-2"))
   arg_parser.add_argument('-n', '--no_plots', help="Don't generate plot images. Useful when you only want SLA calculations. Note that on-demand charts can still be generated through client-charting.", action="store_true")
   arg_parser.add_argument('-e', '--exit_code', help="optional argument to enable exit_code for naarad", action="store_true")
-  arg_parser.add_argument('--sub_important_enabled', help="Whether to enable display of important sub metric in the summary report 0:disabled, 1: enabled", action="store_true")
+  arg_parser.add_argument('--enable_default_stats', help="Whether to enable display of important sub metric in the summary report", action="store_true")
   #TODO(Ritesh) : Print a list of all templates supported with descriptions
   #arg_parser.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
 
@@ -261,10 +261,9 @@ def main():
           # put metrics in different thread groups 
           metric_type = section.split('-')[0]
           if section != 'JMETER':
-            if args and args.sub_important_enabled:
-              new_metric.summary_html_content_enabled = True
-            else:
-              new_metric.summary_html_content_enabled = False
+            if not (args and args.enable_default_stats):
+              if not new_metric.important_sub_metrics:
+                new_metric.summary_html_content_enabled = False
           if metric_type in aggregate_metric_classes:
             aggregate_metrics.append(new_metric)
           else:
