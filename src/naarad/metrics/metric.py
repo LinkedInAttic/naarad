@@ -57,6 +57,7 @@ class Metric(object):
     self.options = None
     self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
     self.groupby = None
+    # Leave the flag here for the future use to control summary page
     self.summary_html_content_enabled = True
     for (key, val) in rule_strings.iteritems():
       naarad.utils.set_sla(self, self.label, key, val)
