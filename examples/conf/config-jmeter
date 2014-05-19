@@ -6,5 +6,5 @@ Overall_Summary.ResponseTime.sla=mean<100 p95<20000
 
 [GRAPH]
 graphing_library=matplotlib
-graphs=JMETER.Overall_Summary.ResponseTime,JMETER.Overall_Summary.ErrorsPerSecond
+#graphs=JMETER.Overall_Summary.ResponseTime,JMETER.Overall_Summary.ErrorsPerSecond
 #graphs=JMETER.Overall_Summary.ResponseTime,JMETER.Overall_Summary.qps,JMETER.Overall_Summary.ErrorsPerSecond JMETER.Overall_Summary.ResponseTime,JMETER.Overall_Summary.ErrorsPerSecond
