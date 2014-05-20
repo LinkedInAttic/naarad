@@ -29,6 +29,7 @@ def main():
     status = Naarad().diff_reports_by_location(args.diff[0], args.diff[1], args.output_dir, config=args.config, args=args)
   else:
     status = Naarad().analyze(args.input_dir, args.output_dir, config=args.config, skip_plots=args.no_plots, args=args)
+  logger.info('Reports will be in %s', args.output_dir)
   if args.exit_code:
     sys.exit(status)
 
