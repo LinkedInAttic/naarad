@@ -351,7 +351,7 @@ class Metric(object):
         # The last element is .csv, don't need that in the name of the chart
         column = csv_filename.split('.')[-2]
         transaction_name = ' '.join(csv_filename.split('.')[1:-2])
-        plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name + '.' + column, y_label=self.sub_metric_description[column], precision=None, graph_height=500, graph_width=1200, graph_type='line')
+        plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name + '.' + column, y_label=column + ' (' + self.sub_metric_description[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line')
         if transaction_name in plot_data:
           plot_data[transaction_name].append(plot)
         else:
