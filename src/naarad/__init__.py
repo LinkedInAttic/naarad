@@ -157,7 +157,7 @@ class Naarad(object):
       if exception.errno != errno.EEXIST:
         raise
 
-  def _run_pre(self, run_steps):
+  def _run_pre(self, analysis, run_steps):
     workload_run_steps = []
     for run_step in sorted(run_steps, key=lambda step: step.run_rank):
       run_step.run()
@@ -165,7 +165,7 @@ class Naarad(object):
         workload_run_steps.append(run_step)
     # Get analysis time period from workload run steps
     if len(workload_run_steps) > 0:
-      ts_start, ts_end = naarad.utils.get_run_time_period(workload_run_steps)
+      analysis.ts_start, analysis.ts_end = naarad.utils.get_run_time_period(workload_run_steps)
     return CONSTANTS.OK
 
   def _run_post(self, run_steps):
@@ -228,8 +228,11 @@ class Naarad(object):
     :param **kwargs: Additional keyword args can be passed in here for future enhancements
     :return:
     """
+    api_call = False
     threads = []
     crossplots = []
+    if analysis.ts_start:
+      api_call = True
     if isinstance(analysis.config, str):
       if not naarad.utils.is_valid_file(analysis.config):
         return CONSTANTS.INVALID_CONFIG
@@ -241,11 +244,12 @@ class Naarad(object):
     else:
       return CONSTANTS.INVALID_CONFIG
     metrics, run_steps, crossplots = self._process_naarad_config(config_object, analysis)
-    self._run_pre(run_steps['pre'])
+    if not api_call:
+      self._run_pre(analysis, run_steps['pre'])
     for metric in metrics['metrics']:
-      if analysis.ts_start and not metric.ts_start:
+      if analysis.ts_start:
         metric.ts_start = analysis.ts_start
-      if analysis.ts_end and not metric.ts_end:
+      if analysis.ts_end:
         metric.ts_end = analysis.ts_end
       thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', self.skip_plots))
       thread.start()
@@ -271,7 +275,8 @@ class Naarad(object):
                                       analysis.resource_path, metrics['metrics'] + metrics['aggregate_metrics'],
                                       correlated_plots=correlated_plots)
     rpt.generate()
-    self._run_post(run_steps['post'])
+    if not api_call:
+      self._run_post(run_steps['post'])
 
     if self.return_exit_code:
       for metric in metrics['metrics'] + metrics['aggregate_metrics']:
