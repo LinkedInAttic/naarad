@@ -194,12 +194,14 @@ class Naarad(object):
     :param: **kwargs: Optional keyword args
     :return: int: status code.
     """
+    api_call = True
     if len(self._analyses) == 0:
       if 'config' not in kwargs.keys():
         return CONSTANTS.ERROR
       self._analyses[0] = _Analysis(None, kwargs['config'], test_id=0)
     if 'args' in kwargs:
       self._process_args(self._analyses[0], kwargs['args'])
+      api_call = False
     error_count = 0
     self._input_directory = input_directory
     self._output_directory = output_directory
@@ -214,7 +216,7 @@ class Naarad(object):
       if('config' in kwargs.keys()) and (not self._analyses[test_id].config):
         self._analyses[test_id].config = kwargs['config']
       self._create_output_directories(self._analyses[test_id])
-      self._analyses[test_id].status = self.run(self._analyses[test_id], **kwargs)
+      self._analyses[test_id].status = self.run(self._analyses[test_id], api_call, **kwargs)
       if self._analyses[test_id].status != CONSTANTS.OK:
         error_count += 1
     if error_count > 0:
@@ -222,17 +224,14 @@ class Naarad(object):
     else:
       return CONSTANTS.OK
 
-  def run(self, analysis, **kwargs):
+  def run(self, analysis, api_call, **kwargs):
     """
     :param analysis: Run naarad analysis for the specified analysis object
     :param **kwargs: Additional keyword args can be passed in here for future enhancements
     :return:
     """
-    api_call = False
     threads = []
     crossplots = []
-    if analysis.ts_start:
-      api_call = True
     if isinstance(analysis.config, str):
       if not naarad.utils.is_valid_file(analysis.config):
         return CONSTANTS.INVALID_CONFIG
