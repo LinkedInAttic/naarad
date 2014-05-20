@@ -8,11 +8,15 @@ columns=type size
 ts_start=2013-12-02 11:20:48
 ts_end=2013-12-02 11:21:00
 important_sub_metrics=size
-##============================
+groupby=type
+
+[TEST-Meminfo]
 # meminfo format -
 #2013-12-05_12:04:58.68382	MemTotal:       65899332 kB
-##infile=sample.meminfo.grpby.out
-##columns=type size
-##ts_start=2013-12-05 12:04:58 
-##ts_end=2013-12-05 12:05:37 
-groupby=type:
+sep= 
+infile=sample.vm.grpby.out
+columns=type size
+ts_start=2013-12-02 11:20:48
+ts_end=2013-12-02 11:21:00
+#important_sub_metrics=size
+groupby=type

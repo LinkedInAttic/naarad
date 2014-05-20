@@ -1,8 +1,8 @@
 [JMETER]
 infile=perf-result.xml
 aggregation_granularity=minute
-Overall_Summary.ResponseTime.sla=mean<100000 p95<20000
+Overall_Summary.ResponseTime.sla=mean<1000 p95<20000
 
 [GRAPH]
 graphing_library=matplotlib
-graphs=JMETER.Overall_Summary.ResponseTime,JMETER.Overall_Summary.qps,JMETER.Overall_Summary.ErrorsPerSecond
+graphs=JMETER.Overall_Summary.ResponseTime,JMETER.Overall_Summary.ErrorsPerSecond
