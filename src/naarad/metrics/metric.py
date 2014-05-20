@@ -57,6 +57,7 @@ class Metric(object):
     self.options = None
     self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
     self.groupby = None
+    self.summary_charts = []
     # Leave the flag here for the future use to control summary page
     self.summary_html_content_enabled = True
     for (key, val) in rule_strings.iteritems():
@@ -227,7 +228,7 @@ class Metric(object):
         fh.write('\n'.join(sorted(data[csv])))
     if self.groupby:
       for csv in aggregate_data.keys():
-        new_data = defaultdict(int)
+        new_data = defaultdict(float)
         for timestamp, value in aggregate_data[csv]:
           new_data[timestamp] += float(value)
         aggregate_data[csv] = []

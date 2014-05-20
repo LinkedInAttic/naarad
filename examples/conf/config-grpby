@@ -8,7 +8,7 @@ columns=type size
 ts_start=2013-12-02 11:20:48
 ts_end=2013-12-02 11:21:00
 important_sub_metrics=size
-groupby=type:
+groupby=type
 
 [TEST-Meminfo]
 # meminfo format -
@@ -19,4 +19,4 @@ columns=type size
 ts_start=2013-12-02 11:20:48
 ts_end=2013-12-02 11:21:00
 #important_sub_metrics=size
-groupby=type:
+groupby=type

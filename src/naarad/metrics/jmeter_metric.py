@@ -55,6 +55,7 @@ class JmeterMetric(Metric):
     self.calculated_percentiles = {}
     self.summary_stats = defaultdict(dict)
     self.summary_html_content_enabled = True
+    self.summary_charts = [self.label + '.Overall_Summary.div']
     if not self.important_sub_metrics:
       self.important_sub_metrics = important_sub_metrics_import['JMETER']
     if other_options:

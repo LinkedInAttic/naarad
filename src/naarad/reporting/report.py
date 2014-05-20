@@ -12,8 +12,6 @@ import shutil
 import naarad.utils
 import naarad.naarad_constants as CONSTANTS
 import naarad.resources
-import re
-
 
 logger = logging.getLogger('naarad.reporting.Report')
 
@@ -132,8 +130,7 @@ class Report(object):
       for plot_div in sorted(metric.plot_files):
         with open(plot_div,'r') as div_file:
           div_html += '\n' + div_file.read()
-          match =  re.search(r'Overall_Summary\.div', plot_div)
-          if match:
+          if os.path.basename(plot_div) in metric.summary_charts:
             div_file.seek(0)
             coplot_html_content += '\n' + div_file.read()
 
