@@ -158,6 +158,12 @@ class Naarad(object):
         raise
 
   def _run_pre(self, analysis, run_steps):
+    """
+    If Naarad is run in CLI mode, execute any pre run steps specified in the config. ts_start/ts_end are set based on
+    workload run steps if any.
+    :param: analysis: The analysis object being processed
+    :param: run_steps: list of post run steps
+    """
     workload_run_steps = []
     for run_step in sorted(run_steps, key=lambda step: step.run_rank):
       run_step.run()
@@ -169,11 +175,20 @@ class Naarad(object):
     return CONSTANTS.OK
 
   def _run_post(self, run_steps):
+    """
+    If Naarad is run in CLI mode, execute any post run steps specified in the config
+    :param: run_steps: list of post run steps
+    """
     for run_step in sorted(run_steps, key=lambda step: step.run_rank):
       run_step.run()
     return CONSTANTS.OK
 
   def _process_args(self, analysis, args):
+    """
+    When Naarad is run in CLI mode, get the CL arguments and update the analysis
+    :param: analysis: The analysis being processed
+    :param: args: Command Line Arguments received by naarad
+    """
     if args.exit_code:
       self.return_exit_code = args.exit_code
     if args.no_plots:
@@ -194,14 +209,14 @@ class Naarad(object):
     :param: **kwargs: Optional keyword args
     :return: int: status code.
     """
-    api_call = True
+    is_api_call = True
     if len(self._analyses) == 0:
       if 'config' not in kwargs.keys():
         return CONSTANTS.ERROR
       self._analyses[0] = _Analysis(None, kwargs['config'], test_id=0)
     if 'args' in kwargs:
       self._process_args(self._analyses[0], kwargs['args'])
-      api_call = False
+      is_api_call = False
     error_count = 0
     self._input_directory = input_directory
     self._output_directory = output_directory
@@ -216,7 +231,7 @@ class Naarad(object):
       if('config' in kwargs.keys()) and (not self._analyses[test_id].config):
         self._analyses[test_id].config = kwargs['config']
       self._create_output_directories(self._analyses[test_id])
-      self._analyses[test_id].status = self.run(self._analyses[test_id], api_call, **kwargs)
+      self._analyses[test_id].status = self.run(self._analyses[test_id], is_api_call, **kwargs)
       if self._analyses[test_id].status != CONSTANTS.OK:
         error_count += 1
     if error_count > 0:
@@ -224,7 +239,7 @@ class Naarad(object):
     else:
       return CONSTANTS.OK
 
-  def run(self, analysis, api_call, **kwargs):
+  def run(self, analysis, is_api_call, **kwargs):
     """
     :param analysis: Run naarad analysis for the specified analysis object
     :param **kwargs: Additional keyword args can be passed in here for future enhancements
@@ -243,7 +258,7 @@ class Naarad(object):
     else:
       return CONSTANTS.INVALID_CONFIG
     metrics, run_steps, crossplots = self._process_naarad_config(config_object, analysis)
-    if not api_call:
+    if not is_api_call:
       self._run_pre(analysis, run_steps['pre'])
     for metric in metrics['metrics']:
       if analysis.ts_start:
@@ -274,7 +289,7 @@ class Naarad(object):
                                       analysis.resource_path, metrics['metrics'] + metrics['aggregate_metrics'],
                                       correlated_plots=correlated_plots)
     rpt.generate()
-    if not api_call:
+    if not is_api_call:
       self._run_post(run_steps['post'])
 
     if self.return_exit_code:

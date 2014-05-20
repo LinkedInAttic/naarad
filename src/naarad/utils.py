@@ -719,6 +719,12 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
       logger.error('Fetch/Collect failed for metric: ' + metric.label)
 
 def init_logging(logger, log_file, log_level):
+  """
+  Initialize the naarad logger.
+  :param: logger: logger object to initialize
+  :param: log_file: log file name
+  :param: log_level: log level (debug, info, warn, error)
+  """
   with open(log_file, 'w'):
     pass
   numeric_level = getattr(logging, log_level.upper(), None) if log_level else logging.INFO
@@ -737,6 +743,10 @@ def init_logging(logger, log_file, log_level):
   return CONSTANTS.OK
 
 def get_argument_parser():
+  """
+  Initialize list of valid arguments accepted by Naarad CLI
+  :return: arg_parser: argeparse.ArgumentParser object initialized with naarad CLI parameters
+  """
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument('-c', '--config', help="file with specifications for each metric and graphs")
   arg_parser.add_argument('--start', help="Start time in the format of HH:MM:SS or YYYY-mm-dd_HH:MM:SS")
@@ -754,6 +764,10 @@ def get_argument_parser():
   return arg_parser
 
 def get_variables(args):
+  """
+  Return a dictionary of variables specified at CLI
+  :param: args: Command Line Arguments namespace
+  """
   variables_dict = {}
   if args.variables:
     for var in args.variables:
@@ -762,6 +776,10 @@ def get_variables(args):
   return variables_dict
 
 def validate_arguments(args):
+  """
+  Validate that the necessary argument for normal or diff analysis are specified.
+  :param: args: Command line arguments namespace
+  """
   if args.diff:
     if not args.output_dir:
       logger.error('No Output location specified')
@@ -772,6 +790,9 @@ def validate_arguments(args):
     sys.exit(0)
 
 def print_usage():
+  """
+  Print naarad CLI usage message
+  """
   print ("Usage: "
                "\n To generate a diff report      : naarad -d report1 report2 -o <output_location> -c <optional: config-file> -e <optional: turn on exit code>"
                "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file> -e <optional: turn on exit code>")
