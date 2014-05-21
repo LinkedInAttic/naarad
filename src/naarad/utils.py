@@ -5,6 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import argparse
 import calendar
 import ConfigParser
 import datetime
@@ -716,3 +717,83 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
         logger.error('Parsing failed for metric: '  + metric.label)
     else:
       logger.error('Fetch/Collect failed for metric: ' + metric.label)
+
+def init_logging(logger, log_file, log_level):
+  """
+  Initialize the naarad logger.
+  :param: logger: logger object to initialize
+  :param: log_file: log file name
+  :param: log_level: log level (debug, info, warn, error)
+  """
+  with open(log_file, 'w'):
+    pass
+  numeric_level = getattr(logging, log_level.upper(), None) if log_level else logging.INFO
+  if not isinstance(numeric_level, int):
+    raise ValueError('Invalid log level: %s' % log_level)
+  logger.setLevel(logging.DEBUG)
+  fh = logging.FileHandler(log_file)
+  fh.setLevel(logging.DEBUG)
+  ch = logging.StreamHandler()
+  ch.setLevel(numeric_level)
+  formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+  fh.setFormatter(formatter)
+  ch.setFormatter(formatter)
+  logger.addHandler(fh)
+  logger.addHandler(ch)
+  return CONSTANTS.OK
+
+def get_argument_parser():
+  """
+  Initialize list of valid arguments accepted by Naarad CLI
+  :return: arg_parser: argeparse.ArgumentParser object initialized with naarad CLI parameters
+  """
+  arg_parser = argparse.ArgumentParser()
+  arg_parser.add_argument('-c', '--config', help="file with specifications for each metric and graphs")
+  arg_parser.add_argument('--start', help="Start time in the format of HH:MM:SS or YYYY-mm-dd_HH:MM:SS")
+  arg_parser.add_argument('--end', help="End time in the format of HH:MM:SS or YYYY-mm-dd_HH:MM:SS")
+  arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
+  arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
+  arg_parser.add_argument('-V', '--variables', action="append", help="User defined variables (in form key=value) for substitution in the config file. Config should have the variable names in format %%(key)s")
+  arg_parser.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
+  arg_parser.add_argument('-l', '--log', help="log level")
+  arg_parser.add_argument('-d', '--diff', nargs=2, help="Specify the location of two naarad reports to diff separated by a space. Can be local or http(s) locations. The first report is used as a baseline.", metavar=("report-1", "report-2"))
+  arg_parser.add_argument('-n', '--no_plots', help="Don't generate plot images. Useful when you only want SLA calculations. Note that on-demand charts can still be generated through client-charting.", action="store_true")
+  arg_parser.add_argument('-e', '--exit_code', help="optional argument to enable exit_code for naarad", action="store_true")
+  #TODO(Ritesh) : Print a list of all templates supported with descriptions
+  #arg_parser.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
+  return arg_parser
+
+def get_variables(args):
+  """
+  Return a dictionary of variables specified at CLI
+  :param: args: Command Line Arguments namespace
+  """
+  variables_dict = {}
+  if args.variables:
+    for var in args.variables:
+      words = var.split('=')
+      variables_dict[words[0]] = words[1]
+  return variables_dict
+
+def validate_arguments(args):
+  """
+  Validate that the necessary argument for normal or diff analysis are specified.
+  :param: args: Command line arguments namespace
+  """
+  if args.diff:
+    if not args.output_dir:
+      logger.error('No Output location specified')
+      print_usage()
+      sys.exit(0)
+  elif not (args.config and args.output_dir):
+    print_usage()
+    sys.exit(0)
+
+def print_usage():
+  """
+  Print naarad CLI usage message
+  """
+  print ("Usage: "
+               "\n To generate a diff report      : naarad -d report1 report2 -o <output_location> -c <optional: config-file> -e <optional: turn on exit code>"
+               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file> -e <optional: turn on exit code>")
+
