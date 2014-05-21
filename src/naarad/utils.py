@@ -19,11 +19,11 @@ import re
 import sys
 import time
 import urllib
+from naarad.naarad_imports import metric_classes
 from naarad.sla import SLA
 from naarad.metrics.sar_metric import SARMetric
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData
-from naarad.run_steps.run_step import Run_Step
 from naarad.run_steps.local_cmd import Local_Cmd
 import naarad.naarad_constants as CONSTANTS
 
@@ -827,3 +827,24 @@ def print_usage():
                "\n To generate a diff report      : naarad -d report1 report2 -o <output_location> -c <optional: config-file> -e <optional: turn on exit code>"
                "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file> -e <optional: turn on exit code>")
 
+
+def discover_by_name(input_directory, output_directory):
+  """
+  Auto discover metric types from the files that exist in input_directory and return a list of metrics
+  :param: input_directory: The location to scan for log files
+  :param: output_directory: The location for the report
+  """
+  metric_list = []
+  bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
+  log_files = os.listdir(input_directory)
+  for log_file in log_files:
+    if log_file in CONSTANTS.SUPPORTED_FILENAME_MAPPING.keys():
+      if 'SAR' in CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file]:
+        metric_list.extend(get_all_sar_objects(metric_list, input_directory, None, output_directory, CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, None))
+      else:
+        new_metric = metric_classes[CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file]](
+          CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], os.path.join(input_directory, log_file), None, output_directory,
+          CONSTANTS.RESOURCE_PATH, CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, {}, None)
+        new_metric.bin_path = bin_path
+        metric_list.append(new_metric)
+  return metric_list
