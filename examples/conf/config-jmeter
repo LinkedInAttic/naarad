@@ -3,6 +3,9 @@ infile=perf-result.xml
 aggregation_granularity=minute
 Overall_Summary.ResponseTime.sla=mean<1000 p95<20000
 
+[REPORT]
+client_charting_template=sample_client_charting_page.html
+
 [GRAPH]
 graphing_library=matplotlib
 graphs=JMETER.Overall_Summary.ResponseTime,JMETER.Overall_Summary.ErrorsPerSecond
