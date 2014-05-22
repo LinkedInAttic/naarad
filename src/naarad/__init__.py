@@ -247,6 +247,7 @@ class Naarad(object):
     """
     threads = []
     crossplots = []
+    report_args = {}
     if isinstance(analysis.config, str):
       if not naarad.utils.is_valid_file(analysis.config):
         return CONSTANTS.INVALID_CONFIG
@@ -257,7 +258,7 @@ class Naarad(object):
       config_object = analysis.config
     else:
       return CONSTANTS.INVALID_CONFIG
-    metrics, run_steps, crossplots = self._process_naarad_config(config_object, analysis)
+    metrics, run_steps, crossplots, report_args = self._process_naarad_config(config_object, analysis)
     if not is_api_call:
       self._run_pre(analysis, run_steps['pre'])
     for metric in metrics['metrics']:
@@ -284,10 +285,7 @@ class Naarad(object):
                                                     analysis.resource_path)
     else:
       correlated_plots = []
-    rpt = reporting_modules['report'](None, analysis.output_directory,
-                                      os.path.join(analysis.output_directory, analysis.resource_path),
-                                      analysis.resource_path, metrics['metrics'] + metrics['aggregate_metrics'],
-                                      correlated_plots=correlated_plots)
+    rpt = reporting_modules['report'](None, analysis.output_directory, os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path, metrics['metrics'] + metrics['aggregate_metrics'], correlated_plots=correlated_plots, **report_args)
     rpt.generate()
     if not is_api_call:
       self._run_post(run_steps['post'])
@@ -359,12 +357,17 @@ class Naarad(object):
     metrics = defaultdict(list)
     indir_default = ''
     crossplots =[] 
+    report_args = {}
 
     if config.has_section('GLOBAL'):
       ts_start, ts_end = naarad.utils.parse_global_section(config, 'GLOBAL')
       if config.has_option('GLOBAL', 'user_defined_metrics'):
         naarad.utils.parse_user_defined_metric_classes(config, metric_classes)
       config.remove_section('GLOBAL')
+
+    if config.has_section('REPORT'):
+      report_args = naarad.utils.parse_report_section(config, 'REPORT')
+      config.remove_section('REPORT')
 
     for section in config.sections():
       # GRAPH section is optional
@@ -407,4 +410,4 @@ class Naarad(object):
             metrics['aggregate_metrics'].append(new_metric)
           else:
             metrics['metrics'].append(new_metric)
-    return metrics, run_steps, crossplots
+    return metrics, run_steps, crossplots, report_args
