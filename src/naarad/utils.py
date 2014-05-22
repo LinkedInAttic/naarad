@@ -842,13 +842,13 @@ def discover_by_name(input_directory, output_directory):
     if log_file in CONSTANTS.SUPPORTED_FILENAME_MAPPING.keys():
       if 'SAR' in CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file]:
         new_metric = metric_classes['SAR'](CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file],
-          [os.path.join(input_directory, log_file)], None, output_directory, CONSTANTS.RESOURCE_PATH,
+          [log_file], None, output_directory, CONSTANTS.RESOURCE_PATH,
           CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, {}, None)
         new_metric.bin_path = bin_path
         metric_list.append(new_metric)
       else:
         new_metric = metric_classes[CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file]](
-          CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], [os.path.join(input_directory, log_file)], None, output_directory,
+          CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], [log_file], None, output_directory,
           CONSTANTS.RESOURCE_PATH, CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, {}, None)
         new_metric.bin_path = bin_path
         metric_list.append(new_metric)
