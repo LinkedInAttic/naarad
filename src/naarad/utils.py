@@ -815,7 +815,8 @@ def validate_arguments(args):
       logger.error('No Output location specified')
       print_usage()
       sys.exit(0)
-  elif not (args.config and args.output_dir):
+  # elif not (args.config and args.output_dir):
+  elif not args.output_dir:
     print_usage()
     sys.exit(0)
 
@@ -825,7 +826,7 @@ def print_usage():
   """
   print ("Usage: "
                "\n To generate a diff report      : naarad -d report1 report2 -o <output_location> -c <optional: config-file> -e <optional: turn on exit code>"
-               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file> -e <optional: turn on exit code>")
+               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <optional: config_file> -e <optional: turn on exit code> -n <optional: disable plotting of images>")
 
 
 def discover_by_name(input_directory, output_directory):
@@ -840,11 +841,17 @@ def discover_by_name(input_directory, output_directory):
   for log_file in log_files:
     if log_file in CONSTANTS.SUPPORTED_FILENAME_MAPPING.keys():
       if 'SAR' in CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file]:
-        metric_list.extend(get_all_sar_objects(metric_list, input_directory, None, output_directory, CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, None))
+        new_metric = metric_classes['SAR'](CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file],
+          [os.path.join(input_directory, log_file)], None, output_directory, CONSTANTS.RESOURCE_PATH,
+          CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, {}, None)
+        new_metric.bin_path = bin_path
+        metric_list.append(new_metric)
       else:
         new_metric = metric_classes[CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file]](
-          CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], os.path.join(input_directory, log_file), None, output_directory,
+          CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], [os.path.join(input_directory, log_file)], None, output_directory,
           CONSTANTS.RESOURCE_PATH, CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, {}, None)
         new_metric.bin_path = bin_path
         metric_list.append(new_metric)
+    else:
+      logger.warning('Unable to determine metric type for file: %s', log_file)
   return metric_list

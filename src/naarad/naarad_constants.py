@@ -86,9 +86,13 @@ SECONDS_TO_KILL_AFTER_SIGTERM = 5
 SUPPORTED_FILENAME_MAPPING = {
   'gc.log' : 'GC',
   'perf-results.xml' : 'JMETER',
+  'perf-result.xml' : 'JMETER',
   'proc.vmstat.out' : 'PROCVMSTAT',
+  'procvmstat.out' : 'PROCVMSTAT',
   'proc.meminfo.out' : 'PROCMEMINFO',
+  'procmeminfo.out' : 'PROCMEMINFO',
   'proc.zoneinfo.out' : 'PROCZONEINFO',
+  'proczoneinfo.out' : 'PROCZONEINFO',
   'sar.cpuhz.out' : 'SAR-cpuhz',
   'sar.cpuusage.out' : 'SAR-cpuusage',
   'sar.device.out' : 'SAR-device',
