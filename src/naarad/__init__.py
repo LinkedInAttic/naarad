@@ -370,7 +370,7 @@ class Naarad(object):
     run_steps = defaultdict(list)
     metrics = defaultdict(list)
     indir_default = ''
-    crossplots =[]
+    crossplots = []
     report_args = {}
 
     if config.has_section('GLOBAL'):
