@@ -839,6 +839,21 @@ def discover_by_name(input_directory, output_directory):
   return metric_list
 
 def initialize_metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options):
+  """
+  Initialize appropriate metric based on type of metric.
+  :param: section: config section name or auto discovered metric type
+  :param: infile_list: list of input log files for the metric
+  :param: hostname: hostname associated with the logs origin
+  :param: output_directory: report location
+  :param: resource_path: resource path for report
+  :param: label: label for config section or auto discovered metric type
+  :param: ts_start: start time for analysis
+  :param: ts_end: end time for analysis
+  :param: rule_strings: list of slas
+  :param: important_sub_metrics: list of important sub metrics
+  :param: other_options: kwargs
+  :return: metric object
+  """
   bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
   metric = None
   metric_type = section.split('-')[0]
@@ -853,6 +868,22 @@ def initialize_metric(section, infile_list, hostname, output_directory, resource
   return metric
 
 def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options):
+  """
+  Initialize aggregate metric
+  :param: section: config section name
+  :param: aggr_hosts: list of hostnames to aggregate
+  :param: aggr_metrics: list of metrics to aggregate
+  :param: metrics: list of metric objects associated with the current naarad analysis
+  :param: outdir_default: report location
+  :param: resource_path: resource path for report
+  :param: label: label for config section
+  :param: ts_start: start time for analysis
+  :param: ts_end: end time for analysis
+  :param: rule_strings: list of slas
+  :param: important_sub_metrics: list of important sub metrics
+  :param: other_options: kwargs
+  :return: metric object
+  """
   bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
   metric = None
   metric_type = section.split('-')[0]
