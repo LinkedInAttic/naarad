@@ -88,7 +88,7 @@ class Naarad(object):
     :param test_id: integer that represents the analysis
     :return: test_id
     """
-    if not test_id:
+    if test_id is None:
       test_id = self._default_test_id
     if self._analyses[test_id].ts_end:
       return CONSTANTS.OK
