@@ -12,6 +12,7 @@ function switch_diff_table(metric)
 
 var chartsList = [];
 var syncRange;
+var chartState;
 var colorSets = [
 ["#1F78B4", "#B2DF8A", "#A6CEE3"],
 ["#993399", "#B3CDE3", "#CCEBC5"],
@@ -114,6 +115,67 @@ function add_chart(container_div)
   document.getElementById(chartingDiv + count.toString()).innerHTML="";
 }
 
+function remove_chart(chart_div, chart)
+{
+  var current_chart_div = document.getElementById(chart_div);
+  current_chart_div.parentNode.removeChild(current_chart_div);
+  var index = chartsList.indexOf(chart);
+  chartsList.splice(index, 1); 
+}
 
+function save_chart_state()
+{
+  chartState = window.location.toString().split("?")[0] + "?charts=";
+  for(var i=0; i<chartsList.length; i++)
+  {
+    chartState += chartsList[i].file_ + "," ;
+  } 
+  chartState = chartState.replace(/,$/,"");
+  chartState += "&range=" + syncRange ;
+  return chartState;
+}
 
+function load_saved_chart()
+{
+  var urlComponents =window.location.toString().split(/[?&]/);
+  var charts =[];
+  var range = [];
+  for(var i=1; i < urlComponents.length; i++)
+  {
+    if(urlComponents[i].indexOf("charts=") >=0 )
+    {
+      charts = urlComponents[i].split(/[=,]/);
+    } else if(urlComponents[i].indexOf("range=") >= 0 )
+    {
+      range = urlComponents[i].split(/[=,]/);
+      syncRange = [parseFloat(range[1]),parseFloat(range[2])];
+    }
+  }
+  for(var i=1;i<charts.length;i++)
+  {
+    if(i==1)
+    {
+      selectDropdown('select-chart-' + i, charts[i]);
+      plot('select-chart-' + i,'charting-div-' + i,0,false,'csv-url-div-' + i);
+    } else
+    {
+      var idx = i + 2;
+      add_chart('chart-parent-div');
+      selectDropdown('select-chart-' + idx, charts[i]);
+      plot('select-chart-' + idx,'charting-div-' + idx,0,false,'csv-url-div-' + idx);
+    }
+  }
+}
 
+function selectDropdown(dropdownId, dropdownValue)
+{
+  var dropdown = document.getElementById(dropdownId);
+  for(var i=0; i<dropdown.options.length; i++)
+  {
+    if(dropdown.options[i].value == dropdownValue)
+    {
+      dropdown.options[i].selected = true;
+      return;
+    }
+  }
+}
