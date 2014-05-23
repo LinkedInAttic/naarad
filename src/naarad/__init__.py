@@ -88,7 +88,7 @@ class Naarad(object):
     :param test_id: integer that represents the analysis
     :return: test_id
     """
-    if not test_id:
+    if test_id is None:
       test_id = self._default_test_id
     if self._analyses[test_id].ts_end:
       return CONSTANTS.OK
@@ -248,6 +248,10 @@ class Naarad(object):
     threads = []
     crossplots = []
     report_args = {}
+    metrics = defaultdict()
+    run_steps = defaultdict(list)
+    discovery_mode = False
+
     if isinstance(analysis.config, str):
       if not naarad.utils.is_valid_file(analysis.config):
         return CONSTANTS.INVALID_CONFIG
@@ -257,8 +261,18 @@ class Naarad(object):
     elif isinstance(analysis.config, ConfigParser.ConfigParser):
       config_object = analysis.config
     else:
-      return CONSTANTS.INVALID_CONFIG
-    metrics, run_steps, crossplots, report_args = self._process_naarad_config(config_object, analysis)
+      if is_api_call:
+        return CONSTANTS.INVALID_CONFIG
+      else:
+        metrics['metrics'] = naarad.utils.discover_by_name(analysis.input_directory, analysis.output_directory)
+        if len(metrics['metrics']) == 0:
+          logger.warning('Unable to auto detect metrics in the specified input directory: %s', analysis.input_directory)
+          return CONSTANTS.ERROR
+        else:
+          discovery_mode = True
+          metrics['aggregate_metrics'] = []
+    if not discovery_mode:
+      metrics, run_steps, crossplots, report_args = self._process_naarad_config(config_object, analysis)
     if not is_api_call:
       self._run_pre(analysis, run_steps['pre'])
     for metric in metrics['metrics']:
@@ -356,7 +370,7 @@ class Naarad(object):
     run_steps = defaultdict(list)
     metrics = defaultdict(list)
     indir_default = ''
-    crossplots =[] 
+    crossplots = []
     report_args = {}
 
     if config.has_section('GLOBAL'):
