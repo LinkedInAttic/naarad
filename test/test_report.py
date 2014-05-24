@@ -35,16 +35,28 @@ def setup_module():
   with open(os.path.join(input_log_directory,'b.csv'), 'w') as TestFile1:
     TestFile1.write('2014-03-26 00:00:00, 1')
 
+def get_three_metrics(output_directory, resource_path, rules):
+  metrics = [Metric('MetricOne', 'TestOne.csv', 'HostnameOne', output_directory, resource_path, 'MetricOne', None, None, rules, None),
+                 Metric('MetricTwo', 'TestTwo.csv', 'HostnameOne', output_directory, resource_path, 'MetricTwo', None, None, rules, None),
+                 Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules, None)
+                 ]
+  return metrics
+
+def get_two_metrics(output_directory, resource_path, rules):
+  metrics = [Metric('MetricOne', 'TestOne.csv', 'HostnameOne', output_directory, resource_path, 'MetricOne', None, None, rules, None),
+                 Metric('MetricTwo', 'TestTwo.csv', 'HostnameOne', output_directory, resource_path, 'MetricTwo', None, None, rules, None),
+                 ]
+  return metrics
+
+
 def test_metrics_without_summary_with_error():
   """
   Tests to verify that metric reports are not generated if the metrics are in error. Also no summary report should be created.
   """
   global output_directory
+  global resource_path
   rules = {}
-  metrics = [Metric('MetricOne', 'TestOne.csv', 'HostnameOne', output_directory, resource_path, 'MetricOne', None, None, rules),
-                 Metric('MetricTwo', 'TestTwo.csv', 'HostnameOne', output_directory, resource_path, 'MetricTwo', None, None, rules),
-                 Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules)
-                 ]
+  metrics = get_three_metrics(output_directory, resource_path, rules)
   aggregate_metrics = []
   correlated_plots = []
   rpt = Report(None, output_directory, resource_directory, resource_path, metrics + aggregate_metrics, correlated_plots=correlated_plots)
@@ -65,10 +77,7 @@ def test_metrics_without_summary_without_error():
   global input_log_directory
   global resource_path
   rules = {}
-  metrics = [Metric('MetricOne', 'TestOne.csv', 'HostnameOne', output_directory, resource_path, 'MetricOne', None, None, rules),
-                 Metric('MetricTwo', 'TestTwo.csv', 'HostnameOne', output_directory, resource_path, 'MetricTwo', None, None, rules),
-                 Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules)
-                 ]
+  metrics = get_three_metrics(output_directory, resource_path, rules)
   for metric in metrics:
     files_list = [os.path.join(input_log_directory,'a.csv'), os.path.join(input_log_directory,'b.csv')]
     metric.csv_files = files_list
@@ -96,10 +105,7 @@ def test_metrics_with_summary_without_error():
   global input_log_directory
   global resource_path
   rules = {}
-  metrics = [Metric('MetricOne', 'TestOne.csv', 'HostnameOne', output_directory, resource_path, 'MetricOne', None, None, rules),
-                 Metric('MetricTwo', 'TestTwo.csv', 'HostnameOne', output_directory, resource_path, 'MetricTwo', None, None, rules),
-                 Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules)
-                 ]
+  metrics = get_three_metrics(output_directory, resource_path, rules)
   for metric in metrics:
     files_list = [os.path.join(input_log_directory,'a.csv'), os.path.join(input_log_directory,'b.csv')]
     metric.csv_files = files_list
@@ -128,9 +134,7 @@ def test_metrics_with_summary_with_partial_error():
   global input_log_directory
   global resource_path
   rules = {}
-  metrics = [Metric('MetricOne', 'TestOne.csv', 'HostnameOne', output_directory, resource_path, 'MetricOne', None, None, rules),
-                 Metric('MetricTwo', 'TestTwo.csv', 'HostnameOne', output_directory, resource_path, 'MetricTwo', None, None, rules),
-                 ]
+  metrics = get_two_metrics(output_directory, resource_path, rules)
   files_list = [os.path.join(input_log_directory,'a.csv'), os.path.join(input_log_directory,'b.csv')]
   for metric in metrics:
     metric.csv_files = files_list
@@ -139,7 +143,7 @@ def test_metrics_with_summary_with_partial_error():
     metric.important_stats_files = files_list
     metric.percentiles_files = files_list
 
-  metrics.append(Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules))
+  metrics.append(Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules, None))
 
   aggregate_metrics = []
   correlated_plots = []
@@ -161,9 +165,7 @@ def test_metrics_without_summary_with_partial_error():
   global input_log_directory
   global resource_path
   rules = {}
-  metrics = [Metric('MetricOne', 'TestOne.csv', 'HostnameOne', output_directory, resource_path, 'MetricOne', None, None, rules),
-                 Metric('MetricTwo', 'TestTwo.csv', 'HostnameOne', output_directory, resource_path, 'MetricTwo', None, None, rules),
-                 ]
+  metrics = get_two_metrics(output_directory, resource_path, rules)
   files_list = [os.path.join(input_log_directory,'a.csv'), os.path.join(input_log_directory,'b.csv')]
   for metric in metrics:
     metric.csv_files = files_list
@@ -171,7 +173,7 @@ def test_metrics_without_summary_with_partial_error():
     metric.timeseries_csv_list = files_list
     metric.percentiles_files = files_list
 
-  metrics.append(Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules))
+  metrics.append(Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules, None))
 
   aggregate_metrics = []
   correlated_plots = []

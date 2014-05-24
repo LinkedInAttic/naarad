@@ -5,6 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import argparse
 import calendar
 import ConfigParser
 import datetime
@@ -18,11 +19,11 @@ import re
 import sys
 import time
 import urllib
+from naarad.naarad_imports import metric_classes, aggregate_metric_classes
 from naarad.sla import SLA
 from naarad.metrics.sar_metric import SARMetric
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData
-from naarad.run_steps.run_step import Run_Step
 from naarad.run_steps.local_cmd import Local_Cmd
 import naarad.naarad_constants as CONSTANTS
 
@@ -222,16 +223,10 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
 
   #TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
-  if metric_type in metric_classes: # regular metrics
-    new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start,
-                                             ts_end, rule_strings, important_sub_metrics, **other_options)
-  elif metric_type in aggregate_metric_classes:       #aggregate metrics
-    new_metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default,
-                                                       resource_path, label, ts_start, ts_end, rule_strings,
-                                                       important_sub_metrics, **other_options)
-  else:            # new metrics. 
-    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings,
-                        important_sub_metrics, **other_options)
+  if metric_type in aggregate_metric_classes:
+    new_metric = initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options)
+  else:
+    new_metric = initialize_metric(section, infile , hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options)
 
   if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
     new_metric.ignore = True
@@ -330,6 +325,36 @@ def parse_graph_section(config_obj, section, outdir_default, indir_default):
       logger.warn('Unsupported timezone ' + graph_timezone + ' specified in option graph_timezone. Will use UTC instead')
       graph_timezone = "UTC"
   return graphing_library, crossplots, outdir_default, indir_default, graph_timezone
+
+def parse_report_section(config_obj, section):
+  """
+  parse the [REPORT] section of a config file to extract various reporting options to be passed to the Report object
+  :param: config_obj : configparser object for the config file passed in to naarad
+  :param: section: name of the section. 'REPORT' should be passed in here
+  :return: report_kwargs: dictionary of Reporting options and values specified in config.
+  """
+  report_kwargs = {}
+  if config_obj.has_option(section, 'stylesheet_includes'):
+    report_kwargs['stylesheet_includes'] = config_obj.get(section, 'stylesheet_includes')
+  if config_obj.has_option(section, 'javascript_includes'):
+    report_kwargs['javascript_includes'] = config_obj.get(section, 'javascript_includes')
+  if config_obj.has_option(section, 'header_template'):
+    report_kwargs['header_template'] = config_obj.get(section, 'header_template')
+  if config_obj.has_option(section, 'footer_template'):
+    report_kwargs['footer_template'] = config_obj.get(section, 'footer_template')
+  if config_obj.has_option(section, 'summary_content_template'):
+    report_kwargs['summary_content_template'] = config_obj.get(section, 'summary_content_template')
+  if config_obj.has_option(section, 'summary_page_template'):
+    report_kwargs['summary_page_template'] = config_obj.get(section, 'summary_page_template')
+  if config_obj.has_option(section, 'metric_page_template'):
+    report_kwargs['metric_page_template'] = config_obj.get(section, 'metric_page_template')
+  if config_obj.has_option(section, 'client_charting_template'):
+    report_kwargs['client_charting_template'] = config_obj.get(section, 'client_charting_template')
+  if config_obj.has_option(section, 'diff_client_charting_template'):
+    report_kwargs['diff_client_charting_template'] = config_obj.get(section, 'diff_client_charting_template')
+  if config_obj.has_option(section, 'diff_page_template'):
+    report_kwargs['diff_page_template'] = config_obj.get(section, 'diff_page_template')
+  return report_kwargs
 
 def reconcile_timezones(begin_ts, ts_timezone, graph_timezone):
   if not graph_timezone:
@@ -689,7 +714,7 @@ def check_slas(metric):
           for stat, sla in metric.sla_map[metric_label][sub_metric].items():
             FH.write('%s\n' % (sla.get_csv_repr()))
 
-def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library, graph_lock,
+def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library,
                                   skip_plots):
   metric.graph_timezone = graph_timezone
   if metric.outdir is None:
@@ -711,10 +736,157 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
         metric.calculate_stats()
         check_slas(metric)
         if not skip_plots:
-          graph_lock.acquire()
           metric.graph(graphing_library)
-          graph_lock.release()
       else:
         logger.error('Parsing failed for metric: '  + metric.label)
     else:
       logger.error('Fetch/Collect failed for metric: ' + metric.label)
+
+def init_logging(logger, log_file, log_level):
+  """
+  Initialize the naarad logger.
+  :param: logger: logger object to initialize
+  :param: log_file: log file name
+  :param: log_level: log level (debug, info, warn, error)
+  """
+  with open(log_file, 'w'):
+    pass
+  numeric_level = getattr(logging, log_level.upper(), None) if log_level else logging.INFO
+  if not isinstance(numeric_level, int):
+    raise ValueError('Invalid log level: %s' % log_level)
+  logger.setLevel(logging.DEBUG)
+  fh = logging.FileHandler(log_file)
+  fh.setLevel(logging.DEBUG)
+  ch = logging.StreamHandler()
+  ch.setLevel(numeric_level)
+  formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+  fh.setFormatter(formatter)
+  ch.setFormatter(formatter)
+  logger.addHandler(fh)
+  logger.addHandler(ch)
+  return CONSTANTS.OK
+
+def get_argument_parser():
+  """
+  Initialize list of valid arguments accepted by Naarad CLI
+  :return: arg_parser: argeparse.ArgumentParser object initialized with naarad CLI parameters
+  """
+  arg_parser = argparse.ArgumentParser()
+  arg_parser.add_argument('-c', '--config', help="file with specifications for each metric and graphs")
+  arg_parser.add_argument('--start', help="Start time in the format of HH:MM:SS or YYYY-mm-dd_HH:MM:SS")
+  arg_parser.add_argument('--end', help="End time in the format of HH:MM:SS or YYYY-mm-dd_HH:MM:SS")
+  arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
+  arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
+  arg_parser.add_argument('-V', '--variables', action="append", help="User defined variables (in form key=value) for substitution in the config file. Config should have the variable names in format %%(key)s")
+  arg_parser.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
+  arg_parser.add_argument('-l', '--log', help="log level")
+  arg_parser.add_argument('-d', '--diff', nargs=2, help="Specify the location of two naarad reports to diff separated by a space. Can be local or http(s) locations. The first report is used as a baseline.", metavar=("report-1", "report-2"))
+  arg_parser.add_argument('-n', '--no_plots', help="Don't generate plot images. Useful when you only want SLA calculations. Note that on-demand charts can still be generated through client-charting.", action="store_true")
+  arg_parser.add_argument('-e', '--exit_code', help="optional argument to enable exit_code for naarad", action="store_true")
+  #TODO(Ritesh) : Print a list of all templates supported with descriptions
+  #arg_parser.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
+  return arg_parser
+
+def get_variables(args):
+  """
+  Return a dictionary of variables specified at CLI
+  :param: args: Command Line Arguments namespace
+  """
+  variables_dict = {}
+  if args.variables:
+    for var in args.variables:
+      words = var.split('=')
+      variables_dict[words[0]] = words[1]
+  return variables_dict
+
+def validate_arguments(args):
+  """
+  Validate that the necessary argument for normal or diff analysis are specified.
+  :param: args: Command line arguments namespace
+  """
+  if args.diff:
+    if not args.output_dir:
+      logger.error('No Output location specified')
+      print_usage()
+      sys.exit(0)
+  # elif not (args.config and args.output_dir):
+  elif not args.output_dir:
+    print_usage()
+    sys.exit(0)
+
+def print_usage():
+  """
+  Print naarad CLI usage message
+  """
+  print ("Usage: "
+               "\n To generate a diff report      : naarad -d report1 report2 -o <output_location> -c <optional: config-file> -e <optional: turn on exit code>"
+               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <optional: config_file> -e <optional: turn on exit code> -n <optional: disable plotting of images>")
+
+
+def discover_by_name(input_directory, output_directory):
+  """
+  Auto discover metric types from the files that exist in input_directory and return a list of metrics
+  :param: input_directory: The location to scan for log files
+  :param: output_directory: The location for the report
+  """
+  metric_list = []
+  log_files = os.listdir(input_directory)
+  for log_file in log_files:
+    if log_file in CONSTANTS.SUPPORTED_FILENAME_MAPPING.keys():
+      metric_list.append(initialize_metric(CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], [log_file], None, output_directory, CONSTANTS.RESOURCE_PATH, CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, {}, None, {}))
+    else:
+      logger.warning('Unable to determine metric type for file: %s', log_file)
+  return metric_list
+
+def initialize_metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options):
+  """
+  Initialize appropriate metric based on type of metric.
+  :param: section: config section name or auto discovered metric type
+  :param: infile_list: list of input log files for the metric
+  :param: hostname: hostname associated with the logs origin
+  :param: output_directory: report location
+  :param: resource_path: resource path for report
+  :param: label: label for config section or auto discovered metric type
+  :param: ts_start: start time for analysis
+  :param: ts_end: end time for analysis
+  :param: rule_strings: list of slas
+  :param: important_sub_metrics: list of important sub metrics
+  :param: other_options: kwargs
+  :return: metric object
+  """
+  bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
+  metric = None
+  metric_type = section.split('-')[0]
+  if metric_type in metric_classes:
+    if 'SAR' in metric_type:
+      metric = metric_classes['SAR'](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+    else:
+      metric = metric_classes[metric_type](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+  else:
+    metric = Metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+  metric.bin_path = bin_path
+  return metric
+
+def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options):
+  """
+  Initialize aggregate metric
+  :param: section: config section name
+  :param: aggr_hosts: list of hostnames to aggregate
+  :param: aggr_metrics: list of metrics to aggregate
+  :param: metrics: list of metric objects associated with the current naarad analysis
+  :param: outdir_default: report location
+  :param: resource_path: resource path for report
+  :param: label: label for config section
+  :param: ts_start: start time for analysis
+  :param: ts_end: end time for analysis
+  :param: rule_strings: list of slas
+  :param: important_sub_metrics: list of important sub metrics
+  :param: other_options: kwargs
+  :return: metric object
+  """
+  bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
+  metric = None
+  metric_type = section.split('-')[0]
+  metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+  metric.bin_path = bin_path
+  return metric

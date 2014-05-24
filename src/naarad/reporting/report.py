@@ -13,7 +13,6 @@ import naarad.utils
 import naarad.naarad_constants as CONSTANTS
 import naarad.resources
 
-
 logger = logging.getLogger('naarad.reporting.Report')
 
 class Report(object):
@@ -30,6 +29,14 @@ class Report(object):
     self.correlated_plots = correlated_plots
     self.stylesheet_includes = CONSTANTS.STYLESHEET_INCLUDES
     self.javascript_includes = CONSTANTS.JAVASCRIPT_INCLUDES
+    self.header_template = CONSTANTS.TEMPLATE_HEADER
+    self.footer_template = CONSTANTS.TEMPLATE_FOOTER
+    self.summary_content_template = CONSTANTS.TEMPLATE_SUMMARY_CONTENT
+    self.summary_page_template = CONSTANTS.TEMPLATE_SUMMARY_PAGE
+    self.metric_page_template  = CONSTANTS.TEMPLATE_METRIC_PAGE
+    self.client_charting_template = CONSTANTS.TEMPLATE_CLIENT_CHARTING
+    self.diff_client_charting_template = CONSTANTS.TEMPLATE_DIFF_CLIENT_CHARTING
+    self.diff_page_template = CONSTANTS.TEMPLATE_DIFF_PAGE
     if other_options:
       for (key, val) in other_options.iteritems():
         setattr(self, key, val)
@@ -81,9 +88,9 @@ class Report(object):
     return False
 
   def generate_summary_page(self, template_environment, summary_html_content, coplot_html_content, header_template_data):
-    summary_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(**header_template_data) + '\n'
-    summary_html += template_environment.get_template(CONSTANTS.TEMPLATE_SUMMARY_PAGE).render(metric_list=sorted(self.metric_list), summary_html_content=summary_html_content, overlaid_plot_content=coplot_html_content) + '\n'
-    summary_html += template_environment.get_template(CONSTANTS.TEMPLATE_FOOTER).render()
+    summary_html = template_environment.get_template(self.header_template).render(**header_template_data) + '\n'
+    summary_html += template_environment.get_template(self.summary_page_template).render(metric_list=sorted(self.metric_list), summary_html_content=summary_html_content, overlaid_plot_content=coplot_html_content) + '\n'
+    summary_html += template_environment.get_template(self.footer_template).render()
     return summary_html
 
   def strip_file_extension(self, file_name):
@@ -91,8 +98,8 @@ class Report(object):
     return '.'.join(filename[0:-1])
 
   def generate_client_charting_page(self, template_environment, timeseries_csv_list, percentiles_csv_list, summary_enabled, header_template_data):
-    client_charting_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(**header_template_data) + '\n'
-    client_charting_html += template_environment.get_template(CONSTANTS.TEMPLATE_CLIENT_CHARTING).render(metric_list=sorted(self.metric_list), timeseries_data=sorted(timeseries_csv_list), percentiles_data=sorted(percentiles_csv_list), summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
+    client_charting_html = template_environment.get_template(self.header_template).render(**header_template_data) + '\n'
+    client_charting_html += template_environment.get_template(self.client_charting_template).render(metric_list=sorted(self.metric_list), timeseries_data=sorted(timeseries_csv_list), percentiles_data=sorted(percentiles_csv_list), summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
     with open(os.path.join(self.resource_directory, CONSTANTS.PLOTS_CSV_LIST_FILE),'w') as FH:
       FH.write(','.join(sorted(timeseries_csv_list)))
     with open(os.path.join(self.resource_directory, CONSTANTS.CDF_PLOTS_CSV_LIST_FILE),'w') as FH:
@@ -130,24 +137,28 @@ class Report(object):
       div_html = ''
       for plot_div in sorted(metric.plot_files):
         with open(plot_div,'r') as div_file:
-            div_html += '\n' + div_file.read()
+          div_html += '\n' + div_file.read()
+          if os.path.basename(plot_div) in metric.summary_charts:
+            div_file.seek(0)
+            coplot_html_content += '\n' + div_file.read()
 
-      for summary_stats_file in metric.important_stats_files:
-        if naarad.utils.is_valid_file(summary_stats_file):
-          summary_stats = self.get_summary_table(summary_stats_file)
-          summary_html_content += template_environment.get_template(CONSTANTS.TEMPLATE_SUMMARY_CONTENT).render(metric_stats=summary_stats, metric=metric) + '\n'
+      if metric.summary_html_content_enabled:
+        for summary_stats_file in metric.important_stats_files:
+          if naarad.utils.is_valid_file(summary_stats_file):
+            summary_stats = self.get_summary_table(summary_stats_file)
+            summary_html_content += template_environment.get_template(self.summary_content_template).render(metric_stats=summary_stats, metric=metric) + '\n'
 
       for metric_stats_file in metric.stats_files:
         metric_template_data = {}
         if naarad.utils.is_valid_file(metric_stats_file) or len(metric.plot_files) > 0:
           stats_files.append(os.path.basename(metric_stats_file))
-          metric_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(**header_template_data)
+          metric_html = template_environment.get_template(self.header_template).render(**header_template_data)
           metric_template_data = {'plot_div_content': div_html,
                                   'metric': metric,
                                   'metric_list': sorted(self.metric_list),
                                   'summary_enabled': summary_enabled}
-          metric_html += template_environment.get_template(CONSTANTS.TEMPLATE_METRIC_PAGE).render(**metric_template_data)
-          metric_html += template_environment.get_template(CONSTANTS.TEMPLATE_FOOTER).render()
+          metric_html += template_environment.get_template(self.metric_page_template).render(**metric_template_data)
+          metric_html += template_environment.get_template(self.footer_template).render()
       if metric_html != '':
         with open(os.path.join(self.output_directory, metric.label + CONSTANTS.METRIC_REPORT_SUFFIX), 'w') as metric_report:
           metric_report.write(metric_html)

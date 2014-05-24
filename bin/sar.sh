@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x 
+#set -x 
 
 PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin
 NOW=`date +%s`
@@ -10,7 +10,13 @@ INTERVAL=2
 export PATH
 
 t=`date +"%Y-%m-%d"`
-export RESULT="/export/content/data/perf/sar-results-$t"
+if [ -z "$1" ]
+then
+        echo "No argument supplied, using current directory as base output directory."
+        export RESULT="sar-results-$t"
+else
+        export RESULT="$1/sar-results-$t"
+fi
 
 mkdir -p $RESULT
 

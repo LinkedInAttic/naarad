@@ -5,12 +5,14 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
  
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-import os
 import nose  
-import sys
-import uuid
+from nose.plugins.attrib import attr
+import os
 import shutil
+import sys
 import time
+import uuid
+
 # add the path of ~/naarad/src;   the testing py is under ~/naarad/test 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')))
 
@@ -63,6 +65,7 @@ def delete_tmp_dir():
   global tmp_dir
   shutil.rmtree(tmp_dir)
   
+@attr('local')
 def test_list_of_urls_no_output():
   ''' list of abosulute urls with no output file name'''
   global tmp_dir
@@ -80,6 +83,7 @@ def test_list_of_urls_no_output():
     os.remove(os.path.join(outdir, "naarad"));   
 
 
+@attr('local')
 def test_list_of_urls_with_output():
   ''' list of abosulute urls with output file name given'''
   global tmp_dir
@@ -98,6 +102,7 @@ def test_list_of_urls_with_output():
   if os.path.exists(os.path.join(outdir, "1a.html")):
     os.remove(os.path.join(outdir, "1a.html"));  
       
+@attr('local')
 def test_regex_urls():
   '''a seeding url, and a regex expression of urls '''
   global tmp_dir
