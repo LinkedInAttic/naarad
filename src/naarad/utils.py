@@ -19,11 +19,11 @@ import re
 import sys
 import time
 import urllib
+from naarad.naarad_imports import metric_classes, aggregate_metric_classes
 from naarad.sla import SLA
 from naarad.metrics.sar_metric import SARMetric
 from naarad.metrics.metric import Metric
 from naarad.graphing.plot_data import PlotData
-from naarad.run_steps.run_step import Run_Step
 from naarad.run_steps.local_cmd import Local_Cmd
 import naarad.naarad_constants as CONSTANTS
 
@@ -223,16 +223,10 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
 
   #TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
-  if metric_type in metric_classes: # regular metrics
-    new_metric = metric_classes[metric_type](section, infile, hostname, outdir_default, resource_path, label, ts_start,
-                                             ts_end, rule_strings, important_sub_metrics, **other_options)
-  elif metric_type in aggregate_metric_classes:       #aggregate metrics
-    new_metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default,
-                                                       resource_path, label, ts_start, ts_end, rule_strings,
-                                                       important_sub_metrics, **other_options)
-  else:            # new metrics. 
-    new_metric = Metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings,
-                        important_sub_metrics, **other_options)
+  if metric_type in aggregate_metric_classes:
+    new_metric = initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options)
+  else:
+    new_metric = initialize_metric(section, infile , hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options)
 
   if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
     new_metric.ignore = True
@@ -815,7 +809,8 @@ def validate_arguments(args):
       logger.error('No Output location specified')
       print_usage()
       sys.exit(0)
-  elif not (args.config and args.output_dir):
+  # elif not (args.config and args.output_dir):
+  elif not args.output_dir:
     print_usage()
     sys.exit(0)
 
@@ -825,5 +820,73 @@ def print_usage():
   """
   print ("Usage: "
                "\n To generate a diff report      : naarad -d report1 report2 -o <output_location> -c <optional: config-file> -e <optional: turn on exit code>"
-               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <config_file> -e <optional: turn on exit code>")
+               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <optional: config_file> -e <optional: turn on exit code> -n <optional: disable plotting of images>")
 
+
+def discover_by_name(input_directory, output_directory):
+  """
+  Auto discover metric types from the files that exist in input_directory and return a list of metrics
+  :param: input_directory: The location to scan for log files
+  :param: output_directory: The location for the report
+  """
+  metric_list = []
+  log_files = os.listdir(input_directory)
+  for log_file in log_files:
+    if log_file in CONSTANTS.SUPPORTED_FILENAME_MAPPING.keys():
+      metric_list.append(initialize_metric(CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], [log_file], None, output_directory, CONSTANTS.RESOURCE_PATH, CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, {}, None, {}))
+    else:
+      logger.warning('Unable to determine metric type for file: %s', log_file)
+  return metric_list
+
+def initialize_metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options):
+  """
+  Initialize appropriate metric based on type of metric.
+  :param: section: config section name or auto discovered metric type
+  :param: infile_list: list of input log files for the metric
+  :param: hostname: hostname associated with the logs origin
+  :param: output_directory: report location
+  :param: resource_path: resource path for report
+  :param: label: label for config section or auto discovered metric type
+  :param: ts_start: start time for analysis
+  :param: ts_end: end time for analysis
+  :param: rule_strings: list of slas
+  :param: important_sub_metrics: list of important sub metrics
+  :param: other_options: kwargs
+  :return: metric object
+  """
+  bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
+  metric = None
+  metric_type = section.split('-')[0]
+  if metric_type in metric_classes:
+    if 'SAR' in metric_type:
+      metric = metric_classes['SAR'](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+    else:
+      metric = metric_classes[metric_type](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+  else:
+    metric = Metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+  metric.bin_path = bin_path
+  return metric
+
+def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options):
+  """
+  Initialize aggregate metric
+  :param: section: config section name
+  :param: aggr_hosts: list of hostnames to aggregate
+  :param: aggr_metrics: list of metrics to aggregate
+  :param: metrics: list of metric objects associated with the current naarad analysis
+  :param: outdir_default: report location
+  :param: resource_path: resource path for report
+  :param: label: label for config section
+  :param: ts_start: start time for analysis
+  :param: ts_end: end time for analysis
+  :param: rule_strings: list of slas
+  :param: important_sub_metrics: list of important sub metrics
+  :param: other_options: kwargs
+  :return: metric object
+  """
+  bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
+  metric = None
+  metric_type = section.split('-')[0]
+  metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+  metric.bin_path = bin_path
+  return metric
