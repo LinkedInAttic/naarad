@@ -55,26 +55,11 @@ class Naarad(object):
     self._output_directory = None
     self.return_exit_code = False
     self.skip_plots = False
-    self.available_graphing_modules = self._find_available_graphing_modules(graphing_modules)
+    self.available_graphing_modules = graphing_modules
+    logger.info('Available graphing modules: %s ', ','.join(self.available_graphing_modules.keys()))
     naarad.metrics.metric.Metric.graphing_modules = self.available_graphing_modules
     naarad.reporting.diff.Diff.graphing_modules = self.available_graphing_modules
     naarad.metrics.metric.Metric.device_types = CONSTANTS.device_type_metrics
-
-  def _find_available_graphing_modules(self, graphing_modules):
-    """
-    Auto detect which graphing modules are installed/available to use
-    :param graphing_modules: list of naarad supported graphing modules
-    :return: available module dict
-    """
-    available_modules = {}
-    for name, module in graphing_modules.items():
-      try:
-        import module
-      except ImportError:
-        pass
-      else:
-        available_modules[name] = module
-    return available_modules
 
   def signal_start(self, config, test_id=None, **kwargs):
     """
