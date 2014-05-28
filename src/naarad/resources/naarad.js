@@ -10,7 +10,8 @@ function switch_diff_table(metric)
     }
 }
 
-var chartsList = [];
+var timeseriesChartsList = [];
+var cdfChartsList = [];
 var syncRange;
 var chartState;
 var colorSets = [
@@ -19,8 +20,9 @@ var colorSets = [
 null
 ];
 
-function plot(selector_id, div_id, colorset_id, advanced_source, url_div)
+function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div)
 {
+  document.getElementById(reset_selector_id).selectedIndex=0;
   var chart_data_selector = document.getElementById(selector_id);
   var chart_data_source = "";
   var chart_data_title = "" ;
@@ -55,10 +57,10 @@ function plot(selector_id, div_id, colorset_id, advanced_source, url_div)
       if (blockRedraw || initial) return;
       blockRedraw = true;
       syncRange = me.xAxisRange();
-      for (var i = 0; i < chartsList.length; i++)
+      for (var i = 0; i < timeseriesChartsList.length; i++)
       {
-        if (chartsList[i] == me) continue;
-        chartsList[i].updateOptions({
+        if (timeseriesChartsList[i] == me) continue;
+        timeseriesChartsList[i].updateOptions({
           dateWindow: syncRange
         });
       }
@@ -67,11 +69,12 @@ function plot(selector_id, div_id, colorset_id, advanced_source, url_div)
   }
   );
   chart_1.resize(div_width, window.screen.height*0.75/2);
-  chartsList.push(chart_1);
+  timeseriesChartsList.push(chart_1);
 }
 
-function plot_cdf(selector_id, div_id, colorset_id, advanced_source, url_div)
+function plot_cdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div)
 {
+    document.getElementById(reset_selector_id).selectedIndex=0;
   var chart_data_selector = document.getElementById(selector_id);
   var chart_data_source = "";
   var chart_data_title = "" ;
@@ -95,6 +98,7 @@ function plot_cdf(selector_id, div_id, colorset_id, advanced_source, url_div)
   }
   );
   chart_1.resize(div_width, window.screen.height*0.75/2);
+  cdfChartsList.push(chart_1);
 }
 
 function add_chart(container_div)
@@ -119,16 +123,34 @@ function remove_chart(chart_div, chart)
 {
   var current_chart_div = document.getElementById(chart_div);
   current_chart_div.parentNode.removeChild(current_chart_div);
-  var index = chartsList.indexOf(chart);
-  chartsList.splice(index, 1); 
+  var index = timeseriesChartsList.indexOf(chart);
+  timeseriesChartsList.splice(index, 1);
+}
+
+function get_active_charts()
+{
+    var activeCharts = []
+    var selectorList = document.getElementsByTagName("select");
+    for(var i=0;i<selectorList.length;i++)
+    {
+        if (selectorList[i].selectedIndex > 0)
+        {
+            activeCharts.push(selectorList[i].options[selectorList[i].selectedIndex].value);
+        }
+    }
+    return activeCharts;
 }
 
 function save_chart_state()
 {
-  chartState = window.location.toString().split("?")[0] + "?charts=";
-  for(var i=0; i<chartsList.length; i++)
+  var activeChartsList = get_active_charts();
+  var chartState = window.location.toString().split("?")[0] + "?charts=";
+  for(var i=0; i<timeseriesChartsList.length; i++)
   {
-    chartState += chartsList[i].file_ + "," ;
+    if (activeChartsList.indexOf(timeseriesChartsList[i].file_) >=0)
+    {
+        chartState += timeseriesChartsList[i].file_ + "," ;
+    }
   } 
   chartState = chartState.replace(/,$/,"");
   chartState += "&range=" + syncRange ;
@@ -156,13 +178,13 @@ function load_saved_chart()
     if(i==1)
     {
       selectDropdown('select-chart-' + i, charts[i]);
-      plot('select-chart-' + i,'charting-div-' + i,0,false,'csv-url-div-' + i);
+      plot('select-chart-' + i,'select-percentiles-' + i,'charting-div-' + i,0,false,'csv-url-div-' + i);
     } else
     {
       var idx = i + 2;
       add_chart('chart-parent-div');
       selectDropdown('select-chart-' + idx, charts[i]);
-      plot('select-chart-' + idx,'charting-div-' + idx,0,false,'csv-url-div-' + idx);
+      plot('select-chart-' + idx,'select-percentiles-' + idx,'charting-div-' + idx,0,false,'csv-url-div-' + idx);
     }
   }
 }
