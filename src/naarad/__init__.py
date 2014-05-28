@@ -194,9 +194,9 @@ class Naarad(object):
     if args.no_plots:
       self.skip_plots = args.no_plots
     if args.start:
-      analysis.ts_start = args.start
+      analysis.ts_start = naarad.utils.get_standardized_timestamp(args.start, None)
     if args.end:
-      analysis.ts_end = args.end
+      analysis.ts_end = naarad.utils.get_standardized_timestamp(args.end, None)
     if args.variables:
       analysis.variables = naarad.utils.get_variables(args)
     return CONSTANTS.OK
@@ -272,7 +272,7 @@ class Naarad(object):
           discovery_mode = True
           metrics['aggregate_metrics'] = []
     if not discovery_mode:
-      metrics, run_steps, crossplots, report_args = self._process_naarad_config(config_object, analysis)
+      metrics, run_steps, crossplots, report_args, graph_timezone = self._process_naarad_config(config_object, analysis)
     if not is_api_call:
       self._run_pre(analysis, run_steps['pre'])
     for metric in metrics['metrics']:
@@ -280,13 +280,13 @@ class Naarad(object):
         metric.ts_start = analysis.ts_start
       if analysis.ts_end:
         metric.ts_end = analysis.ts_end
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', self.skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone, analysis.output_directory, analysis.input_directory, 'matplotlib', self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
       t.join()
     for metric in metrics['aggregate_metrics']:
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', self.skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone, analysis.output_directory, analysis.input_directory, 'matplotlib', self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
@@ -365,6 +365,7 @@ class Naarad(object):
     Process the config file associated with a particular analysis and return metrics, run_steps and crossplots.
     Also sets output directory and resource_path for an anlaysis
     """
+    graph_timezone = None
     output_directory = analysis.output_directory
     resource_path = analysis.resource_path
     run_steps = defaultdict(list)
@@ -424,4 +425,4 @@ class Naarad(object):
             metrics['aggregate_metrics'].append(new_metric)
           else:
             metrics['metrics'].append(new_metric)
-    return metrics, run_steps, crossplots, report_args
+    return metrics, run_steps, crossplots, report_args, graph_timezone
