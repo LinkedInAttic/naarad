@@ -40,8 +40,8 @@
     <div id="selection-div-1" class="row">
       <div class="span3">
         <label>
-            <select id="select-chart-1" onchange="plot('select-chart-1','charting-div-1',0,false,'csv-url-div-1')">
-                <option selected disabled hidden value=''>Select...</option>
+            <select id="select-chart-1" onchange="plot('select-chart-1','select-percentiles-1','charting-div-1',0,false,'csv-url-div-1')">
+                <option selected disabled hidden value=''>View Timeseries</option>
                 {%- for data_series in timeseries_data %}
                 <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
                 {%- endfor %}
@@ -50,8 +50,8 @@
       </div>
       <div class="span3">
         <label>
-            <select id="select-percentiles-1" onchange="plot_cdf('select-percentiles-1','charting-div-1',0,false,'csv-url-div-1')">
-                <option selected disabled hidden value=''>Select...</option>
+            <select id="select-percentiles-1" onchange="plot_cdf('select-percentiles-1','select-chart-1','charting-div-1',0,false,'csv-url-div-1')">
+                <option selected disabled hidden value=''>View CDF</option>
                 {%- for data_series in percentiles_data %}
                 <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
                 {%- endfor %}
