@@ -107,7 +107,7 @@ def get_run_time_period(run_steps):
   :param run_steps: list of Run_Step objects
   :return: tuple of start and end timestamps
   """
-  init_ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
+  init_ts_start = get_standardized_timestamp('now', None)
   ts_start = init_ts_start
   ts_end = '0'
   for run_step in run_steps:
