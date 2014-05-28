@@ -301,7 +301,7 @@ class Naarad(object):
       t.join()
     self._set_sla_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
     self._set_stats_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
-    if len(crossplots) > 0 and not skip_plots:
+    if len(crossplots) > 0 and not self.skip_plots:
       correlated_plots = naarad.utils.nway_plotting(crossplots, metrics['metrics'] + metrics['aggregate_metrics'],
                                                     os.path.join(analysis.output_directory, analysis.resource_path),
                                                     analysis.resource_path, graphing_library)
