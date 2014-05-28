@@ -301,10 +301,10 @@ class Naarad(object):
       t.join()
     self._set_sla_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
     self._set_stats_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
-    if len(crossplots) > 0:
+    if len(crossplots) > 0 and not skip_plots:
       correlated_plots = naarad.utils.nway_plotting(crossplots, metrics['metrics'] + metrics['aggregate_metrics'],
                                                     os.path.join(analysis.output_directory, analysis.resource_path),
-                                                    analysis.resource_path)
+                                                    analysis.resource_path, graphing_library)
     else:
       correlated_plots = []
     rpt = reporting_modules['report'](None, analysis.output_directory, os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path, metrics['metrics'] + metrics['aggregate_metrics'], correlated_plots=correlated_plots, **report_args)
