@@ -505,7 +505,7 @@ def tscsv_nway_file_merge(outfile, filelist, filler):
             outwords.append(filler)
       outf.write( ','.join(outwords) + '\n' )
 
-def nway_plotting(crossplots, metrics, output_directory, resource_path):
+def nway_plotting(crossplots, metrics, output_directory, resource_path, graphing_library):
   listlen = len(crossplots)
   if listlen == 0:
     return ''
@@ -522,7 +522,7 @@ def nway_plotting(crossplots, metrics, output_directory, resource_path):
         csv_file = get_default_csv(output_directory, val)
         plot_data.append(PlotData(input_csv=csv_file, csv_column=1, series_name=sanitize_string(val), y_label=sanitize_string(val), precision=None, graph_height=500, graph_width=1200, graph_type='line'))
       png_name = get_merged_plot_link_name(vals)
-      graphed, div_file = Metric.graphing_modules['matplotlib'].graph_data(plot_data, output_directory, resource_path, png_name)
+      graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, output_directory, resource_path, png_name)
       if graphed:
         correlated_plots.append(div_file)
     else:

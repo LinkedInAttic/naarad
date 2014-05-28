@@ -5,9 +5,6 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 
-
-from naarad.graphing import matplotlib_naarad
-from naarad.graphing import pygal_naarad
 from naarad.metrics.linkedin_android_rum_metric import LinkedInAndroidRumMetric
 from naarad.metrics.gc_metric import GCMetric
 from naarad.metrics.innotop_metric import INNOMetric
@@ -39,10 +36,20 @@ aggregate_metric_classes = {
     'CLUSTER' : ClusterMetric,
     }    
 
-graphing_modules = {
-    'matplotlib': matplotlib_naarad,
-    'svg': pygal_naarad
-    }
+graphing_modules = {}
+try:
+  from naarad.graphing import matplotlib_naarad
+except ImportError:
+  pass
+else:
+  graphing_modules['matplotlib'] = matplotlib_naarad
+
+try:
+  from naarad.graphing import pygal_naarad
+except ImportError:
+  pass
+else:
+  graphing_modules['svg'] = pygal_naarad
 
 reporting_modules = {
     'report': Report
