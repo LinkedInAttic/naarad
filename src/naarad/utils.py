@@ -304,7 +304,7 @@ def parse_graph_section(config_obj, section, outdir_default, indir_default):
   :return: List of options extracted from the GRAPH section
   """
   graph_timezone = None
-  graphing_library = 'matplotlib'
+  graphing_library = CONSTANTS.DEFAULT_GRAPHING_LIBRARY
   crossplots = []
 
   if config_obj.has_option(section, 'graphing_library'):
