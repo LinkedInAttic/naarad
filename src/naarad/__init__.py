@@ -55,10 +55,26 @@ class Naarad(object):
     self._output_directory = None
     self.return_exit_code = False
     self.skip_plots = False
-    naarad.metrics.metric.Metric.graphing_modules = graphing_modules
+    self.available_graphing_modules = self._find_available_graphing_module(graphing_modules)
+    naarad.metrics.metric.Metric.graphing_modules = self.available_graphing_modules
+    naarad.reporting.diff.Diff.graphing_modules = self.available_graphing_modules
     naarad.metrics.metric.Metric.device_types = CONSTANTS.device_type_metrics
-    naarad.reporting.diff.Diff.graphing_modules = graphing_modules
 
+  def _find_available_graphing_module(self, graphing_modules):
+    """
+    Auto detect which graphing modules are installed/available to use
+    :param graphing_modules: list of naarad supported graphing modules
+    :return: available module dict
+    """
+    available_modules = {}
+    for name, module in graphing_modules.items():
+      try:
+        import module
+      except ImportError:
+        pass
+      else:
+        available_modules[name] = module
+    return available_modules
 
   def signal_start(self, config, test_id=None, **kwargs):
     """
@@ -251,6 +267,7 @@ class Naarad(object):
     metrics = defaultdict()
     run_steps = defaultdict(list)
     discovery_mode = False
+    graphing_library = CONSTANTS.DEFAULT_GRAPHING_LIBRARY
 
     if isinstance(analysis.config, str):
       if not naarad.utils.is_valid_file(analysis.config):
@@ -272,7 +289,13 @@ class Naarad(object):
           discovery_mode = True
           metrics['aggregate_metrics'] = []
     if not discovery_mode:
-      metrics, run_steps, crossplots, report_args = self._process_naarad_config(config_object, analysis)
+      metrics, run_steps, crossplots, report_args, graphing_library = self._process_naarad_config(config_object, analysis)
+
+    # If graphing libraries are not installed, skip static images
+    if not graphing_library in self.available_graphing_modules.keys():
+      logger.error("Naarad cannot import graphing library %s on your system. Will not generate static charts", graphing_library)
+      self.skip_plots = True
+
     if not is_api_call:
       self._run_pre(analysis, run_steps['pre'])
     for metric in metrics['metrics']:
@@ -280,13 +303,13 @@ class Naarad(object):
         metric.ts_start = analysis.ts_start
       if analysis.ts_end:
         metric.ts_end = analysis.ts_end
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', self.skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, graphing_library, self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
       t.join()
     for metric in metrics['aggregate_metrics']:
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', self.skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, graphing_library, self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
@@ -424,4 +447,4 @@ class Naarad(object):
             metrics['aggregate_metrics'].append(new_metric)
           else:
             metrics['metrics'].append(new_metric)
-    return metrics, run_steps, crossplots, report_args
+    return metrics, run_steps, crossplots, report_args, graphing_library

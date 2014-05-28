@@ -278,14 +278,9 @@ class JmeterMetric(Metric):
           FH_IMP.write(csv_data + '\n')
       self.important_stats_files.append(imp_metric_stats_csv)
 
-  def graph(self, graphing_library='matplotlib'):
-    self.plot_timeseries(graphing_library)
-    self.plot_cdf(graphing_library)
-    return True
-
   def plot_timeseries(self, graphing_library='matplotlib'):
     if graphing_library != 'matplotlib':
-     return Metric.graph(self, graphing_library)
+     return Metric.plot_timeseries(self, graphing_library)
     else:
       logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
       plot_data = {}
