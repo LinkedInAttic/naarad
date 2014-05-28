@@ -184,10 +184,10 @@ def parse_basic_metric_options(config_obj, section):
 
     label = sanitize_string_section_name(section)
     if config_obj.has_option(section, 'ts_start'):
-      ts_start = config_obj.get(section, 'ts_start')
+      ts_start = get_standardized_timestamp(config_obj.get(section, 'ts_start'), None)
       config_obj.remove_option(section, 'ts_start')
     if config_obj.has_option(section, 'ts_end'):
-      ts_end = config_obj.get(section, 'ts_end')
+      ts_end = get_standardized_timestamp(config_obj.get(section, 'ts_end'), None)
       config_obj.remove_option(section, 'ts_end')
     if config_obj.has_option(section, 'precision'):
       precision = config_obj.get(section, 'precision')
@@ -245,10 +245,10 @@ def parse_global_section(config_obj, section):
   ts_start = None
   ts_end = None
   if config_obj.has_option(section, 'ts_start'):
-    ts_start = config_obj.get(section, 'ts_start')
+    ts_start = get_standardized_timestamp(config_obj.get(section, 'ts_start'), None)
     config_obj.remove_option(section, 'ts_start')
   if config_obj.has_option(section, 'ts_end'):
-    ts_end = config_obj.get(section, 'ts_end')
+    ts_end = get_standardized_timestamp(config_obj.get(section, 'ts_end'), None)
     config_obj.remove_option(section, 'ts_end')
   return ts_start, ts_end
 
