@@ -39,17 +39,15 @@ aggregate_metric_classes = {
 graphing_modules = {}
 try:
   from naarad.graphing import matplotlib_naarad
+  graphing_modules['matplotlib'] = matplotlib_naarad
 except ImportError:
   pass
-else:
-  graphing_modules['matplotlib'] = matplotlib_naarad
 
 try:
   from naarad.graphing import pygal_naarad
+  graphing_modules['svg'] = pygal_naarad
 except ImportError:
   pass
-else:
-  graphing_modules['svg'] = pygal_naarad
 
 reporting_modules = {
     'report': Report
