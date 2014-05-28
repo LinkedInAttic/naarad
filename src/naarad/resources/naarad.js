@@ -1,3 +1,14 @@
+var chartsList = [];
+var timeseriesChartsList = [];
+var cdfChartsList = [];
+var chartIndex = 0;
+var syncRange;
+var colorSets = [
+["#1F78B4", "#B2DF8A", "#A6CEE3"],
+["#993399", "#B3CDE3", "#CCEBC5"],
+null
+];
+
 function switch_diff_table(metric)
 {
     display_choice = document.getElementById("radio-diff-" + metric).checked;
@@ -10,19 +21,10 @@ function switch_diff_table(metric)
     }
 }
 
-var timeseriesChartsList = [];
-var cdfChartsList = [];
-var syncRange;
-var chartState;
-var colorSets = [
-["#1F78B4", "#B2DF8A", "#A6CEE3"],
-["#993399", "#B3CDE3", "#CCEBC5"],
-null
-];
-
 function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div)
 {
   document.getElementById(reset_selector_id).selectedIndex=0;
+  var chartIndex = parseInt(selector_id.split("-")[2]);
   var chart_data_selector = document.getElementById(selector_id);
   var chart_data_source = "";
   var chart_data_title = "" ;
@@ -60,21 +62,29 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
       for (var i = 0; i < timeseriesChartsList.length; i++)
       {
         if (timeseriesChartsList[i] == me) continue;
-        timeseriesChartsList[i].updateOptions({
-          dateWindow: syncRange
-        });
+        if (timeseriesChartsList[i] != null)
+        {
+            timeseriesChartsList[i].updateOptions({
+                dateWindow: syncRange
+            });
+        }
       }
+    update_share_url("text-share-report-url");
     blockRedraw = false;
     }
   }
   );
   chart_1.resize(div_width, window.screen.height*0.75/2);
-  timeseriesChartsList.push(chart_1);
+  chartsList[chartIndex] = chart_1;
+  timeseriesChartsList[chartIndex] = chart_1;
+  cdfChartsList[chartIndex] = null;
+  update_share_url("text-share-report-url");
 }
 
 function plot_cdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div)
 {
-    document.getElementById(reset_selector_id).selectedIndex=0;
+  document.getElementById(reset_selector_id).selectedIndex=0;
+  var chartIndex = parseInt(selector_id.split("-")[2]);
   var chart_data_selector = document.getElementById(selector_id);
   var chart_data_source = "";
   var chart_data_title = "" ;
@@ -98,25 +108,27 @@ function plot_cdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_
   }
   );
   chart_1.resize(div_width, window.screen.height*0.75/2);
-  cdfChartsList.push(chart_1);
+  chartsList[chartIndex] = chart_1;
+  cdfChartsList[chartIndex] = chart_1;
+  timeseriesChartsList[chartIndex] = null;
+  update_share_url("text-share-report-url");
 }
 
 function add_chart(container_div)
 {
   var chartDiv = document.createElement("div");
-  var template_div = "chart-div-1";
+  var template_div = "chart-div-0";
   var labelChartingDiv = "labels-charting-div-";
   var chartingDiv = "charting-div-";
-  var children = document.getElementById(container_div).childNodes;
-  var count = children.length + 1;
   var innerHTMLContent = document.getElementById(template_div).innerHTML;
-  var newInnerHTMLContent = innerHTMLContent.replace(/-1/g, "-" + count.toString());
+  chartIndex++;
+  var newInnerHTMLContent = innerHTMLContent.replace(/-0/g, "-" + chartIndex.toString());
   chartDiv.className = "content";
-  chartDiv.setAttribute("id","chart-div-" + count.toString());
+  chartDiv.setAttribute("id","chart-div-" + chartIndex.toString());
   chartDiv.innerHTML = newInnerHTMLContent;
   document.getElementById(container_div).appendChild(chartDiv);
-  document.getElementById(labelChartingDiv + count.toString()).innerHTML="";
-  document.getElementById(chartingDiv + count.toString()).innerHTML="";
+  document.getElementById(labelChartingDiv + chartIndex.toString()).innerHTML="";
+  document.getElementById(chartingDiv + chartIndex.toString()).innerHTML="";
 }
 
 function remove_chart(chart_div, chart)
@@ -127,30 +139,21 @@ function remove_chart(chart_div, chart)
   timeseriesChartsList.splice(index, 1);
 }
 
-function get_active_charts()
+function update_share_url(text_id)
 {
-    var activeCharts = []
-    var selectorList = document.getElementsByTagName("select");
-    for(var i=0;i<selectorList.length;i++)
-    {
-        if (selectorList[i].selectedIndex > 0)
-        {
-            activeCharts.push(selectorList[i].options[selectorList[i].selectedIndex].value);
-        }
-    }
-    return activeCharts;
+    document.getElementById(text_id).value = save_chart_state();
 }
 
 function save_chart_state()
 {
-  var activeChartsList = get_active_charts();
-  var chartState = window.location.toString().split("?")[0] + "?charts=";
-  for(var i=0; i<timeseriesChartsList.length; i++)
+  if (chartsList.length == 0)
   {
-    if (activeChartsList.indexOf(timeseriesChartsList[i].file_) >=0)
-    {
-        chartState += timeseriesChartsList[i].file_ + "," ;
-    }
+      return window.location.toString();
+  }
+  var chartState = window.location.toString().split("?")[0] + "?charts=";
+  for(var i=0; i<chartsList.length; i++)
+  {
+        chartState += chartsList[i].file_ + "," ;
   } 
   chartState = chartState.replace(/,$/,"");
   chartState += "&range=" + syncRange ;
@@ -170,23 +173,29 @@ function load_saved_chart()
     } else if(urlComponents[i].indexOf("range=") >= 0 )
     {
       range = urlComponents[i].split(/[=,]/);
-      syncRange = [parseFloat(range[1]),parseFloat(range[2])];
+      if (range.length == 3)
+      {
+        syncRange = [parseFloat(range[1]),parseFloat(range[2])];
+      }
     }
   }
   for(var i=1;i<charts.length;i++)
   {
-    if(i==1)
+    if(i>1)
     {
-      selectDropdown('select-chart-' + i, charts[i]);
-      plot('select-chart-' + i,'select-percentiles-' + i,'charting-div-' + i,0,false,'csv-url-div-' + i);
+      add_chart('chart-parent-div');
+    }
+    if(charts[i].indexOf("percentiles.csv")>0)
+    {
+        selectDropdown('select-percentiles-' + (i-1), charts[i]);
+        plot_cdf('select-percentiles-' + (i-1),'select-chart-' + (i-1),'charting-div-' + (i-1),0,false,'csv-url-div-' + (i-1));
     } else
     {
-      var idx = i + 2;
-      add_chart('chart-parent-div');
-      selectDropdown('select-chart-' + idx, charts[i]);
-      plot('select-chart-' + idx,'select-percentiles-' + idx,'charting-div-' + idx,0,false,'csv-url-div-' + idx);
+        selectDropdown('select-chart-' + (i-1), charts[i]);
+        plot('select-chart-' + (i-1),'select-percentiles-' + (i-1),'charting-div-' + (i-1),0,false,'csv-url-div-' + (i-1));
     }
   }
+  update_share_url("text-share-report-url");
 }
 
 function selectDropdown(dropdownId, dropdownValue)
