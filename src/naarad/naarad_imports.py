@@ -34,20 +34,16 @@ metric_classes = {
 #Custom metrics;  aggregate_metric can only processed after regular metrics are done
 aggregate_metric_classes = {    
     'CLUSTER' : ClusterMetric,
-    }    
+    }
 
+graphing_imports = {'matplotlib':'naarad.graphing.matplotlib_naarad', 'svg':'naarad.graphing.pygal_naarad', 'nonexistantmodule':'nonexistantmodule'}
 graphing_modules = {}
-try:
-  from naarad.graphing import matplotlib_naarad
-  graphing_modules['matplotlib'] = matplotlib_naarad
-except ImportError:
-  pass
 
-try:
-  from naarad.graphing import pygal_naarad
-  graphing_modules['svg'] = pygal_naarad
-except ImportError:
-  pass
+for graphing_module in graphing_imports.keys():
+  try:
+    graphing_modules[graphing_module] = __import__(graphing_imports[graphing_module], globals(), locals(), [graphing_module], -1)
+  except ImportError:
+    pass
 
 reporting_modules = {
     'report': Report
