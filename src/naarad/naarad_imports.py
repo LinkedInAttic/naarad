@@ -5,46 +5,46 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 
-from naarad.metrics.linkedin_android_rum_metric import LinkedInAndroidRumMetric
-from naarad.metrics.gc_metric import GCMetric
-from naarad.metrics.innotop_metric import INNOMetric
-from naarad.metrics.jmeter_metric import JmeterMetric
-from naarad.metrics.procvmstat_metric import ProcVmstatMetric
-from naarad.metrics.procmeminfo_metric import ProcMeminfoMetric
-from naarad.metrics.proczoneinfo_metric import ProcZoneinfoMetric
-from naarad.metrics.sar_metric import SARMetric
 from naarad.reporting.report import Report
 from naarad.metrics.cluster_metric import ClusterMetric
-from naarad.metrics.netstat_metric import NetstatMetric
 
-#Custom metrics
-metric_classes = {
-    #'MyMetric' : MyMetricParserClass
-    'GC' : GCMetric,
-    'INNOTOP' : INNOMetric,
-    'JMETER' : JmeterMetric,
-    'LINKEDINANDROIDRUM' : LinkedInAndroidRumMetric,
-    'PROCVMSTAT' : ProcVmstatMetric,
-    'PROCMEMINFO' : ProcMeminfoMetric, 
-    'PROCZONEINFO' : ProcZoneinfoMetric,
-    'SAR' : SARMetric, 
-    'NETSTAT' : NetstatMetric
-    }
+metric_classes = {}
+metric_imports_dict = {
+  'GC' : 'naarad.metrics.gc_metric.GCMetric',
+  'INNOTOP' : 'naarad.metrics.innotop_metric.INNOMetric',
+  'JMETER' : 'naarad.metrics.jmeter_metric.JmeterMetric',
+  'LINKEDINANDROIDRUM' : 'naarad.metrics.linkedin_android_rum_metric.LinkedInAndroidRumMetric',
+  'PROCVMSTAT' : 'naarad.metrics.procvmstat_metric.ProcVmstatMetric',
+  'PROCMEMINFO' : 'naarad.metrics.procmeminfo_metric.ProcMeminfoMetric',
+  'PROCZONEINFO' : 'naarad.metrics.proczoneinfo_metric.ProcZoneinfoMetric',
+  'SAR' : 'naarad.metrics.sar_metric.SARMetric',
+  'NETSTAT' : 'naarad.metrics.netstat_metric.NetstatMetric'
+}
 
-#Custom metrics;  aggregate_metric can only processed after regular metrics are done
-aggregate_metric_classes = {    
-    'CLUSTER' : ClusterMetric,
-    }
-
-graphing_imports = {'matplotlib':'naarad.graphing.matplotlib_naarad', 'svg':'naarad.graphing.pygal_naarad', 'nonexistantmodule':'nonexistantmodule'}
-graphing_modules = {}
-
-for graphing_module in graphing_imports.keys():
+for metric_name in metric_imports_dict.keys():
   try:
-    graphing_modules[graphing_module] = __import__(graphing_imports[graphing_module], globals(), locals(), [graphing_module], -1)
+    file_name, class_name = metric_imports_dict[metric_name].rsplit('.', 1)
+    mod = __import__(file_name, fromlist=[class_name])
+    metric_classes[metric_name] = getattr(mod, class_name)
   except ImportError:
     pass
 
+graphing_modules = {}
+graphing_imports_dict = {
+  'matplotlib':'naarad.graphing.matplotlib_naarad',
+  'svg':'naarad.graphing.pygal_naarad'
+}
+
+for graphing_module_name in graphing_imports_dict.keys():
+  try:
+    graphing_modules[graphing_module_name] = __import__(graphing_imports_dict[graphing_module_name], globals(), locals(), [graphing_module_name], -1)
+  except ImportError:
+    pass
+
+aggregate_metric_classes = {
+  'CLUSTER' : ClusterMetric,
+}
+
 reporting_modules = {
-    'report': Report
+  'report': Report
 }
