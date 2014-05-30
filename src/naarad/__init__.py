@@ -382,6 +382,7 @@ class Naarad(object):
     indir_default = ''
     crossplots = []
     report_args = {}
+    graphing_library = None
 
     if config.has_section('GLOBAL'):
       ts_start, ts_end = naarad.utils.parse_global_section(config, 'GLOBAL')
