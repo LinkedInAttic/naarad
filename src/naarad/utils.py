@@ -29,6 +29,19 @@ import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.utils')
 
+def import_modules(module_dict, is_class_type=True):
+  return_dict = {}
+  for module_name, module_string in module_dict.items():
+    try:
+      if is_class_type:
+        file_name, class_name = module_string.rsplit('.', 1)
+        mod = __import__(file_name, fromlist=[class_name])
+        return_dict[module_name] = getattr(mod, class_name)
+      else:
+        return_dict[module_name] = __import__(module_string, fromlist=[module_string])
+    except ImportError:
+      pass
+  return return_dict
 
 def parse_user_defined_metric_classes(config_obj, metric_classes):
   """
@@ -304,7 +317,7 @@ def parse_graph_section(config_obj, section, outdir_default, indir_default):
   :return: List of options extracted from the GRAPH section
   """
   graph_timezone = None
-  graphing_library = 'matplotlib'
+  graphing_library = CONSTANTS.DEFAULT_GRAPHING_LIBRARY
   crossplots = []
 
   if config_obj.has_option(section, 'graphing_library'):
@@ -505,7 +518,7 @@ def tscsv_nway_file_merge(outfile, filelist, filler):
             outwords.append(filler)
       outf.write( ','.join(outwords) + '\n' )
 
-def nway_plotting(crossplots, metrics, output_directory, resource_path):
+def nway_plotting(crossplots, metrics, output_directory, resource_path, graphing_library):
   listlen = len(crossplots)
   if listlen == 0:
     return ''
@@ -522,7 +535,7 @@ def nway_plotting(crossplots, metrics, output_directory, resource_path):
         csv_file = get_default_csv(output_directory, val)
         plot_data.append(PlotData(input_csv=csv_file, csv_column=1, series_name=sanitize_string(val), y_label=sanitize_string(val), precision=None, graph_height=500, graph_width=1200, graph_type='line'))
       png_name = get_merged_plot_link_name(vals)
-      graphed, div_file = Metric.graphing_modules['matplotlib'].graph_data(plot_data, output_directory, resource_path, png_name)
+      graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, output_directory, resource_path, png_name)
       if graphed:
         correlated_plots.append(div_file)
     else:
