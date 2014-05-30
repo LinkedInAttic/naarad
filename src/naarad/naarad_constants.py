@@ -48,6 +48,9 @@ TEMPLATE_DIFF_CLIENT_CHARTING = 'default_diff_client_charting_page.html'
 TEMPLATE_DIFF_PAGE = 'default_diff_page.html'
 SUBMETRIC_HEADER = 'sub_metric'
 
+# Graphing constants
+DEFAULT_GRAPHING_LIBRARY = 'matplotlib'
+
 # Matplotlib Constants
 COLOR_PALETTE = ['black', 'steelblue', 'm', 'red', 'cyan', 'g', 'orange', 'gray']
 SUBPLOT_BOTTOM_OFFSET = 0.1

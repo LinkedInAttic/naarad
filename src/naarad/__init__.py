@@ -55,10 +55,11 @@ class Naarad(object):
     self._output_directory = None
     self.return_exit_code = False
     self.skip_plots = False
-    naarad.metrics.metric.Metric.graphing_modules = graphing_modules
+    self.available_graphing_modules = graphing_modules
+    logger.info('Available graphing modules: %s ', ','.join(self.available_graphing_modules.keys()))
+    naarad.metrics.metric.Metric.graphing_modules = self.available_graphing_modules
+    naarad.reporting.diff.Diff.graphing_modules = self.available_graphing_modules
     naarad.metrics.metric.Metric.device_types = CONSTANTS.device_type_metrics
-    naarad.reporting.diff.Diff.graphing_modules = graphing_modules
-
 
   def signal_start(self, config, test_id=None, **kwargs):
     """
@@ -194,9 +195,9 @@ class Naarad(object):
     if args.no_plots:
       self.skip_plots = args.no_plots
     if args.start:
-      analysis.ts_start = args.start
+      analysis.ts_start = naarad.utils.get_standardized_timestamp(args.start, None)
     if args.end:
-      analysis.ts_end = args.end
+      analysis.ts_end = naarad.utils.get_standardized_timestamp(args.end, None)
     if args.variables:
       analysis.variables = naarad.utils.get_variables(args)
     return CONSTANTS.OK
@@ -251,6 +252,8 @@ class Naarad(object):
     metrics = defaultdict()
     run_steps = defaultdict(list)
     discovery_mode = False
+    graphing_library = CONSTANTS.DEFAULT_GRAPHING_LIBRARY
+    graph_timezone = None
 
     if isinstance(analysis.config, str):
       if not naarad.utils.is_valid_file(analysis.config):
@@ -272,7 +275,13 @@ class Naarad(object):
           discovery_mode = True
           metrics['aggregate_metrics'] = []
     if not discovery_mode:
-      metrics, run_steps, crossplots, report_args = self._process_naarad_config(config_object, analysis)
+      metrics, run_steps, crossplots, report_args, graph_timezone, graphing_library = self._process_naarad_config(config_object, analysis)
+
+    # If graphing libraries are not installed, skip static images
+    if not graphing_library in self.available_graphing_modules.keys():
+      logger.error("Naarad cannot import graphing library %s on your system. Will not generate static charts", graphing_library)
+      self.skip_plots = True
+
     if not is_api_call:
       self._run_pre(analysis, run_steps['pre'])
     for metric in metrics['metrics']:
@@ -280,23 +289,23 @@ class Naarad(object):
         metric.ts_start = analysis.ts_start
       if analysis.ts_end:
         metric.ts_end = analysis.ts_end
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', self.skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone, analysis.output_directory, analysis.input_directory, graphing_library, self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
       t.join()
     for metric in metrics['aggregate_metrics']:
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, 'UTC', analysis.output_directory, analysis.input_directory, 'matplotlib', self.skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone, analysis.output_directory, analysis.input_directory, graphing_library, self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
       t.join()
     self._set_sla_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
     self._set_stats_data(analysis.test_id, metrics['metrics'] + metrics['aggregate_metrics'])
-    if len(crossplots) > 0:
+    if len(crossplots) > 0 and not self.skip_plots:
       correlated_plots = naarad.utils.nway_plotting(crossplots, metrics['metrics'] + metrics['aggregate_metrics'],
                                                     os.path.join(analysis.output_directory, analysis.resource_path),
-                                                    analysis.resource_path)
+                                                    analysis.resource_path, graphing_library)
     else:
       correlated_plots = []
     rpt = reporting_modules['report'](None, analysis.output_directory, os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path, metrics['metrics'] + metrics['aggregate_metrics'], correlated_plots=correlated_plots, **report_args)
@@ -365,6 +374,7 @@ class Naarad(object):
     Process the config file associated with a particular analysis and return metrics, run_steps and crossplots.
     Also sets output directory and resource_path for an anlaysis
     """
+    graph_timezone = None
     output_directory = analysis.output_directory
     resource_path = analysis.resource_path
     run_steps = defaultdict(list)
@@ -424,4 +434,4 @@ class Naarad(object):
             metrics['aggregate_metrics'].append(new_metric)
           else:
             metrics['metrics'].append(new_metric)
-    return metrics, run_steps, crossplots, report_args
+    return metrics, run_steps, crossplots, report_args, graph_timezone, graphing_library
