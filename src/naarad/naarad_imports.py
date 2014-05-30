@@ -8,7 +8,20 @@ Unless required by applicable law or agreed to in writing, software distribute
 from naarad.reporting.report import Report
 from naarad.metrics.cluster_metric import ClusterMetric
 
-metric_classes = {}
+def import_module(module_dict, is_class_type=True):
+  return_dict = {}
+  for module_name, module_string in module_dict.items():
+    try:
+      if is_class_type:
+        file_name, class_name = module_string.rsplit('.', 1)
+        mod = __import__(file_name, fromlist=[class_name])
+        return_dict[module_name] = getattr(mod, class_name)
+      else:
+        return_dict[module_name] = __import__(module_string, fromlist=[module_string])
+    except ImportError:
+      pass
+  return return_dict
+
 metric_imports_dict = {
   'GC' : 'naarad.metrics.gc_metric.GCMetric',
   'INNOTOP' : 'naarad.metrics.innotop_metric.INNOMetric',
@@ -21,30 +34,23 @@ metric_imports_dict = {
   'NETSTAT' : 'naarad.metrics.netstat_metric.NetstatMetric'
 }
 
-for metric_name in metric_imports_dict.keys():
-  try:
-    file_name, class_name = metric_imports_dict[metric_name].rsplit('.', 1)
-    mod = __import__(file_name, fromlist=[class_name])
-    metric_classes[metric_name] = getattr(mod, class_name)
-  except ImportError:
-    pass
-
-graphing_modules = {}
 graphing_imports_dict = {
   'matplotlib':'naarad.graphing.matplotlib_naarad',
   'svg':'naarad.graphing.pygal_naarad'
 }
 
-for graphing_module_name in graphing_imports_dict.keys():
-  try:
-    graphing_modules[graphing_module_name] = __import__(graphing_imports_dict[graphing_module_name], globals(), locals(), [graphing_module_name], -1)
-  except ImportError:
-    pass
-
-aggregate_metric_classes = {
-  'CLUSTER' : ClusterMetric,
+aggregate_metric_imports_dict = {
+  'CLUSTER': 'naarad.metrics.cluster_metric.ClusterMetric'
 }
 
-reporting_modules = {
-  'report': Report
+reporting_imports_dict = {
+  'report' : 'naarad.reporting.report.Report'
 }
+
+metric_classes = import_module(metric_imports_dict)
+
+graphing_modules = import_module(graphing_imports_dict, is_class_type=False)
+
+aggregate_metric_classes = import_module(aggregate_metric_imports_dict)
+
+reporting_modules = import_module(reporting_imports_dict)
