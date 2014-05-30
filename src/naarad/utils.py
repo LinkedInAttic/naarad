@@ -29,6 +29,19 @@ import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.utils')
 
+def import_modules(module_dict, is_class_type=True):
+  return_dict = {}
+  for module_name, module_string in module_dict.items():
+    try:
+      if is_class_type:
+        file_name, class_name = module_string.rsplit('.', 1)
+        mod = __import__(file_name, fromlist=[class_name])
+        return_dict[module_name] = getattr(mod, class_name)
+      else:
+        return_dict[module_name] = __import__(module_string, fromlist=[module_string])
+    except ImportError:
+      pass
+  return return_dict
 
 def parse_user_defined_metric_classes(config_obj, metric_classes):
   """

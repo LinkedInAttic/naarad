@@ -5,12 +5,9 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not us
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 
-from naarad.reporting.report import Report
-from naarad.metrics.cluster_metric import ClusterMetric
-
-def import_module(module_dict, is_class_type=True):
+def import_modules(modules_dict, is_class_type=True):
   return_dict = {}
-  for module_name, module_string in module_dict.items():
+  for module_name, module_string in modules_dict.items():
     try:
       if is_class_type:
         file_name, class_name = module_string.rsplit('.', 1)
@@ -47,10 +44,10 @@ reporting_imports_dict = {
   'report' : 'naarad.reporting.report.Report'
 }
 
-metric_classes = import_module(metric_imports_dict)
+metric_classes = import_modules(metric_imports_dict)
 
-graphing_modules = import_module(graphing_imports_dict, is_class_type=False)
+graphing_modules = import_modules(graphing_imports_dict, is_class_type=False)
 
-aggregate_metric_classes = import_module(aggregate_metric_imports_dict)
+aggregate_metric_classes = import_modules(aggregate_metric_imports_dict)
 
-reporting_modules = import_module(reporting_imports_dict)
+reporting_modules = import_modules(reporting_imports_dict)
