@@ -1,4 +1,4 @@
-<body data-spy="scroll" data-target=".topbar" data-offset="90">
+<body data-spy="scroll" data-target=".topbar" data-offset="90" onload="load_saved_chart()">
 <div class="topbar navbar navbar-fixed-top navbar-inverse">
   <div class="navbar-inner">
    <div class="container">
@@ -36,12 +36,12 @@
  </div><!-- /topbar-inner -->
 </div><!-- /topbar -->
 <div id="chart-parent-div" class="container">
-  <div id="chart-div-1" class="content">
-    <div id="selection-div-1" class="row">
+  <div id="chart-div-0" class="content">
+    <div id="selection-div-0" class="row">
       <div class="span3">
         <label>
-            <select id="select-chart-1" onchange="plot('select-chart-1','charting-div-1',0,false,'csv-url-div-1')">
-                <option selected disabled hidden value=''>Select...</option>
+            <select id="select-chart-0" onchange="plot('select-chart-0','select-percentiles-0','charting-div-0',0,false,'csv-url-div-0')">
+                <option selected disabled hidden value=''>View Timeseries</option>
                 {%- for data_series in timeseries_data %}
                 <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
                 {%- endfor %}
@@ -50,8 +50,8 @@
       </div>
       <div class="span3">
         <label>
-            <select id="select-percentiles-1" onchange="plot_cdf('select-percentiles-1','charting-div-1',0,false,'csv-url-div-1')">
-                <option selected disabled hidden value=''>Select...</option>
+            <select id="select-percentiles-0" onchange="plot_cdf('select-percentiles-0','select-chart-0','charting-div-0',0,false,'csv-url-div-0')">
+                <option selected disabled hidden value=''>View CDF</option>
                 {%- for data_series in percentiles_data %}
                 <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
                 {%- endfor %}
@@ -59,12 +59,21 @@
         </label>
       </div>
       <div class="span3">
-        <button type="button" class="btn" onclick="add_chart('chart-parent-div')">+</button>
+        <button type="button" class="btn btn-primary" onclick="add_chart('chart-parent-div')">+</button>
       </div>  
     </div>
-    <div id="labels-charting-div-1"></div>
-    <div id="charting-div-1" style="height:50%; width:100%;" class="row"></div>
-    <div id="csv-url-div-1"></div>
+    <div id="labels-charting-div-0"></div>
+    <div id="charting-div-0" style="height:50%; width:100%;" class="row"></div>
+    <div id="csv-url-div-0"></div>
  </div>
+</div>
+<div class="container">
+    <div class="content">
+        <div class="row">
+            <div class="span12">
+               <input id="text-share-report-url" class="span12" readonly="readonly" onclick="this.select()"/>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
