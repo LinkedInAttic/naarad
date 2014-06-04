@@ -69,7 +69,7 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
             });
         }
       }
-    update_share_url("text-share-report-url");
+    update_share_url();
     blockRedraw = false;
     }
   }
@@ -78,7 +78,7 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
   chartsList[chartIndex] = chart_1;
   timeseriesChartsList[chartIndex] = chart_1;
   cdfChartsList[chartIndex] = null;
-  update_share_url("text-share-report-url");
+  update_share_url();
 }
 
 function plot_cdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div)
@@ -111,7 +111,7 @@ function plot_cdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_
   chartsList[chartIndex] = chart_1;
   cdfChartsList[chartIndex] = chart_1;
   timeseriesChartsList[chartIndex] = null;
-  update_share_url("text-share-report-url");
+  update_share_url();
 }
 
 function add_chart(container_div)
@@ -139,9 +139,9 @@ function remove_chart(chart_div, chart)
   timeseriesChartsList.splice(index, 1);
 }
 
-function update_share_url(text_id)
+function update_share_url()
 {
-    document.getElementById(text_id).value = save_chart_state();
+    document.getElementById("text-share-report-url").value = save_chart_state();
 }
 
 function save_chart_state()
@@ -162,12 +162,12 @@ function save_chart_state()
 
 function load_saved_chart()
 {
-  var urlComponents =window.location.toString().split(/[?&]/);
-  var charts =[];
+  var urlComponents = window.location.toString().split(/[?&]/);
+  var charts = [];
   var range = [];
   for(var i=1; i < urlComponents.length; i++)
   {
-    if(urlComponents[i].indexOf("charts=") >=0 )
+    if(urlComponents[i].indexOf("charts=") >= 0 )
     {
       charts = urlComponents[i].split(/[=,]/);
     } else if(urlComponents[i].indexOf("range=") >= 0 )
@@ -185,7 +185,7 @@ function load_saved_chart()
     {
       add_chart('chart-parent-div');
     }
-    if(charts[i].indexOf("percentiles.csv")>0)
+    if(charts[i].indexOf("percentiles.csv") > 0)
     {
         selectDropdown('select-percentiles-' + (i-1), charts[i]);
         plot_cdf('select-percentiles-' + (i-1),'select-chart-' + (i-1),'charting-div-' + (i-1),0,false,'csv-url-div-' + (i-1));
@@ -195,7 +195,7 @@ function load_saved_chart()
         plot('select-chart-' + (i-1),'select-percentiles-' + (i-1),'charting-div-' + (i-1),0,false,'csv-url-div-' + (i-1));
     }
   }
-  update_share_url("text-share-report-url");
+  update_share_url();
 }
 
 function selectDropdown(dropdownId, dropdownValue)
