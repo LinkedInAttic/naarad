@@ -116,27 +116,62 @@ function plot_cdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_
 
 function add_chart(container_div)
 {
-  var chartDiv = document.createElement("div");
-  var template_div = "chart-div-0";
-  var labelChartingDiv = "labels-charting-div-";
-  var chartingDiv = "charting-div-";
-  var innerHTMLContent = document.getElementById(template_div).innerHTML;
   chartIndex++;
-  var newInnerHTMLContent = innerHTMLContent.replace(/-0/g, "-" + chartIndex.toString());
+
+  var chartDiv = document.createElement("div");
   chartDiv.className = "content";
   chartDiv.setAttribute("id","chart-div-" + chartIndex.toString());
-  chartDiv.innerHTML = newInnerHTMLContent;
+
+  var selectionDiv = document.createElement("div");
+  selectionDiv.className = "row";
+  selectionDiv.innerHTML = document.getElementById("selection-div-0").innerHTML.replace(/-0/g, "-" + chartIndex.toString());;
+  chartDiv.appendChild(selectionDiv);
+
+  var removeChartButton = document.createElement("button");
+  removeChartButton.className = "btn btn-danger";
+  removeChartButton.type = "button";
+  var removeChartButtonText = document.createTextNode("-");
+  removeChartButton.appendChild(removeChartButtonText);
+  removeChartButton.setAttribute("onclick", "remove_chart('chart-div-" + chartIndex.toString() + "'," + chartIndex.toString() + ")");
+
+  var labelsChartingDiv = document.createElement("div");
+  labelsChartingDiv.setAttribute("id","labels-charting-div-" + chartIndex.toString());
+  chartDiv.appendChild(labelsChartingDiv);
+
+  var chartingDiv = document.createElement("div");
+  chartingDiv.setAttribute("id","charting-div-" + chartIndex.toString());
+  chartDiv.appendChild(chartingDiv);
+
+  var csvURLDiv = document.createElement("div");
+  csvURLDiv.setAttribute("id","csv-url-div-" + chartIndex.toString());
+  chartDiv.appendChild(csvURLDiv);
+
   document.getElementById(container_div).appendChild(chartDiv);
-  document.getElementById(labelChartingDiv + chartIndex.toString()).innerHTML="";
-  document.getElementById(chartingDiv + chartIndex.toString()).innerHTML="";
+  document.getElementById("button-div-" + chartIndex.toString()).appendChild(removeChartButton);
 }
 
-function remove_chart(chart_div, chart)
+function upload_file()
+{
+    var formData = new FormData();
+    var xhr = new XMLHttpRequest();
+    for(var i=0;i<document.getElementById("the-file").files.length;i++)
+    {
+        formData.append("file[]", document.getElementById("the-file").files[i]);
+    }
+    xhr.open("POST", "/analyze", true);
+    xhr.send(formData);
+    document.getElementById("the-file").value = "";
+    document.getElementById("status-div").innerHTML = "Upload Complete. Request has been queued for analysis."
+}
+
+function remove_chart(chart_div, index)
 {
   var current_chart_div = document.getElementById(chart_div);
   current_chart_div.parentNode.removeChild(current_chart_div);
-  var index = timeseriesChartsList.indexOf(chart);
-  timeseriesChartsList.splice(index, 1);
+  timeseriesChartsList[index] = null;
+  cdfChartsList[index] = null;
+  chartsList[index] = null;
+  update_share_url();
 }
 
 function update_share_url()
@@ -153,7 +188,10 @@ function save_chart_state()
   var chartState = window.location.toString().split("?")[0] + "?charts=";
   for(var i=0; i<chartsList.length; i++)
   {
-        chartState += chartsList[i].file_ + "," ;
+        if (chartsList[i] != null)
+        {
+           chartState += chartsList[i].file_ + "," ;
+        }
   } 
   chartState = chartState.replace(/,$/,"");
   chartState += "&range=" + syncRange ;
