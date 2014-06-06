@@ -13,7 +13,7 @@ null
 var resourcesPrefix = "resources/";
 var resourcesSuffix = ".csv";
 
-function switch_diff_table(metric)
+function switchDiffTable(metric)
 {
     display_choice = document.getElementById("radio-diff-" + metric).checked;
     if (display_choice) {
@@ -73,7 +73,7 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
             });
         }
       }
-    update_share_url();
+    updateShareUrl();
     blockRedraw = false;
     }
   }
@@ -82,10 +82,10 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
   chartsList[chartIndex] = chart_1;
   timeseriesChartsList[chartIndex] = chart_1;
   cdfChartsList[chartIndex] = null;
-  update_share_url();
+  updateShareUrl();
 }
 
-function plot_cdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div)
+function plotCdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div)
 {
   document.getElementById(reset_selector_id).selectedIndex=0;
   var chartIndex = parseInt(selector_id.split("-")[2]);
@@ -115,10 +115,10 @@ function plot_cdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_
   chartsList[chartIndex] = chart_1;
   cdfChartsList[chartIndex] = chart_1;
   timeseriesChartsList[chartIndex] = null;
-  update_share_url();
+  updateShareUrl();
 }
 
-function add_chart(container_div)
+function addChart(container_div)
 {
   chartIndex++;
 
@@ -136,7 +136,7 @@ function add_chart(container_div)
   removeChartButton.type = "button";
   var removeChartButtonText = document.createTextNode("-");
   removeChartButton.appendChild(removeChartButtonText);
-  removeChartButton.setAttribute("onclick", "remove_chart('chart-div-" + chartIndex.toString() + "'," + chartIndex.toString() + ")");
+  removeChartButton.setAttribute("onclick", "removeChart('chart-div-" + chartIndex.toString() + "'," + chartIndex.toString() + ")");
 
   var labelsChartingDiv = document.createElement("div");
   labelsChartingDiv.setAttribute("id","labels-charting-div-" + chartIndex.toString());
@@ -155,11 +155,11 @@ function add_chart(container_div)
   resetFilter('select-chart-' + chartIndex.toString(), 'select-percentiles-' + chartIndex.toString(), 'filter-text-' + chartIndex.toString());
 }
 
-function upload_file()
+function uploadFile()
 {
     var formData = new FormData();
     var xhr = new XMLHttpRequest();
-    for(var i=0;i<document.getElementById("the-file").files.length;i++)
+    for(var i = 0; i < document.getElementById("the-file").files.length; i++)
     {
         formData.append("file[]", document.getElementById("the-file").files[i]);
     }
@@ -169,29 +169,29 @@ function upload_file()
     document.getElementById("status-div").innerHTML = "Upload Complete. Request has been queued for analysis."
 }
 
-function remove_chart(chart_div, index)
+function removeChart(chart_div, index)
 {
   var current_chart_div = document.getElementById(chart_div);
   current_chart_div.parentNode.removeChild(current_chart_div);
   timeseriesChartsList[index] = null;
   cdfChartsList[index] = null;
   chartsList[index] = null;
-  update_share_url();
+  updateShareUrl();
 }
 
-function update_share_url()
+function updateShareUrl()
 {
-    document.getElementById("text-share-report-url").value = save_chart_state();
+    document.getElementById("text-share-report-url").value = saveChartState();
 }
 
-function save_chart_state()
+function saveChartState()
 {
   if (chartsList.length == 0)
   {
       return window.location.toString();
   }
   var chartState = window.location.toString().split("?")[0] + "?charts=";
-  for(var i=0; i<chartsList.length; i++)
+  for(var i = 0; i < chartsList.length; i++)
   {
         if (chartsList[i] != null)
         {
@@ -205,23 +205,23 @@ function save_chart_state()
 
 function getOptions()
 {
-  for(var i=0; i < document.getElementById('select-chart-0').options.length; i++)
+  for(var i = 0; i < document.getElementById('select-chart-0').options.length; i++)
   {
     timeseriesOptionsList[i] = document.getElementById('select-chart-0').options[i].label;
   }
-  for(var i=0; i < document.getElementById('select-percentiles-0').options.length; i++)
+  for(var i = 0; i < document.getElementById('select-percentiles-0').options.length; i++)
   {
     cdfOptionsList[i] = document.getElementById('select-percentiles-0').options[i].label;
   }
 }
 
-function load_saved_chart()
+function loadSavedChart()
 {
   var urlComponents = window.location.toString().split(/[?&]/);
   var charts = [];
   var range = [];
   getOptions();
-  for(var i=1; i < urlComponents.length; i++)
+  for(var i = 1; i < urlComponents.length; i++)
   {
     if(urlComponents[i].indexOf("charts=") >= 0 )
     {
@@ -235,29 +235,29 @@ function load_saved_chart()
       }
     }
   }
-  for(var i=1;i<charts.length;i++)
+  for(var i = 1; i < charts.length; i++)
   {
-    if(i>1)
+    if(i > 1)
     {
-      add_chart('chart-parent-div');
+      addChart('chart-parent-div');
     }
     if(charts[i].indexOf("percentiles.csv") > 0)
     {
         selectDropdown('select-percentiles-' + (i-1), charts[i]);
-        plot_cdf('select-percentiles-' + (i-1),'select-chart-' + (i-1),'charting-div-' + (i-1),0,false,'csv-url-div-' + (i-1));
+        plotCdf('select-percentiles-' + (i-1),'select-chart-' + (i-1),'charting-div-' + (i-1),0,false,'csv-url-div-' + (i-1));
     } else
     {
         selectDropdown('select-chart-' + (i-1), charts[i]);
         plot('select-chart-' + (i-1),'select-percentiles-' + (i-1),'charting-div-' + (i-1),0,false,'csv-url-div-' + (i-1));
     }
   }
-  update_share_url();
+  updateShareUrl();
 }
 
 function selectDropdown(dropdownId, dropdownValue)
 {
   var dropdown = document.getElementById(dropdownId);
-  for(var i=0; i<dropdown.options.length; i++)
+  for(var i = 0; i < dropdown.options.length; i++)
   {
     if(dropdown.options[i].value == dropdownValue)
     {
@@ -335,7 +335,7 @@ function addOptions(selectorId, list)
 
 function resetFilter(timeseriesSelector, cdfSelector, filterId)
 {
-  document.getElementById(filterId).value="";
+  document.getElementById(filterId).value = "";
   purgeOptions(timeseriesSelector);
   addOptions(timeseriesSelector,timeseriesOptionsList);
   purgeOptions(cdfSelector);

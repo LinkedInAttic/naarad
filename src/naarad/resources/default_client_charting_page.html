@@ -1,4 +1,4 @@
-<body data-spy="scroll" data-target=".topbar" data-offset="90" onload="load_saved_chart()">
+<body data-spy="scroll" data-target=".topbar" data-offset="90" onload="loadSavedChart()">
 <div class="topbar navbar navbar-fixed-top navbar-inverse">
   <div class="navbar-inner">
    <div class="container">
@@ -50,7 +50,7 @@
       </div>
       <div class="span3">
         <label>
-            <select id="select-percentiles-0" onchange="plot_cdf('select-percentiles-0','select-chart-0','charting-div-0',0,false,'csv-url-div-0')">
+            <select id="select-percentiles-0" onchange="plotCdf('select-percentiles-0','select-chart-0','charting-div-0',0,false,'csv-url-div-0')">
                 <option selected disabled hidden value=''>View CDF</option>
                 {%- for data_series in percentiles_data %}
                 <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
@@ -64,7 +64,7 @@
         <button type="button" class="btn" onclick="resetFilter('select-chart-0','select-percentiles-0','filter-text-0')">Reset</button>
       </div>
       <div class="span2" id="button-div-0">
-        <button type="button" class="btn btn-primary" onclick="add_chart('chart-parent-div')">+</button>
+        <button type="button" class="btn btn-primary" onclick="addChart('chart-parent-div')">+</button>
       </div> 
     </div>
     <div id="labels-charting-div-0"></div>
