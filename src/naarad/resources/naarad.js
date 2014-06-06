@@ -1,6 +1,8 @@
 var chartsList = [];
 var timeseriesChartsList = [];
 var cdfChartsList = [];
+var timeseriesOptionsList = [];
+var cdfOptionsList = [] ;
 var chartIndex = 0;
 var syncRange;
 var colorSets = [
@@ -8,6 +10,8 @@ var colorSets = [
 ["#993399", "#B3CDE3", "#CCEBC5"],
 null
 ];
+var resourcesPrefix = "resources/";
+var resourcesSuffix = ".csv";
 
 function switch_diff_table(metric)
 {
@@ -148,6 +152,7 @@ function add_chart(container_div)
 
   document.getElementById(container_div).appendChild(chartDiv);
   document.getElementById("button-div-" + chartIndex.toString()).appendChild(removeChartButton);
+  resetFilter('select-chart-' + chartIndex.toString(), 'select-percentiles-' + chartIndex.toString(), 'filter-text-' + chartIndex.toString());
 }
 
 function upload_file()
@@ -198,11 +203,24 @@ function save_chart_state()
   return chartState;
 }
 
+function getOptions()
+{
+  for(var i=0; i < document.getElementById('select-chart-0').options.length; i++)
+  {
+    timeseriesOptionsList[i] = document.getElementById('select-chart-0').options[i].label;
+  }
+  for(var i=0; i < document.getElementById('select-percentiles-0').options.length; i++)
+  {
+    cdfOptionsList[i] = document.getElementById('select-percentiles-0').options[i].label;
+  }
+}
+
 function load_saved_chart()
 {
   var urlComponents = window.location.toString().split(/[?&]/);
   var charts = [];
   var range = [];
+  getOptions();
   for(var i=1; i < urlComponents.length; i++)
   {
     if(urlComponents[i].indexOf("charts=") >= 0 )
@@ -247,4 +265,79 @@ function selectDropdown(dropdownId, dropdownValue)
       return;
     }
   }
+}
+
+function filter(timeseriesSelector, cdfSelector, filterId)
+{
+  var filteredTimeseriesList = [];
+  var filteredCDFList = [];
+  var filters = [];
+  var filterText = document.getElementById(filterId).value.trim().replace(/[ ]+/," ");
+  if(filterText.length > 0)
+  {
+    filters = filterText.split(" ");
+    filteredTimeseriesList = filterList(filters,timeseriesOptionsList);
+    if (filteredTimeseriesList.length > 1)
+    {
+      purgeOptions(timeseriesSelector);
+      addOptions(timeseriesSelector, filteredTimeseriesList);
+    }
+    filteredCDFList = filterList(filters,cdfOptionsList);
+    if (filteredCDFList.length > 1)
+    {
+      purgeOptions(cdfSelector);
+      addOptions(cdfSelector, filteredCDFList);
+    }
+  }
+}
+
+function filterList(filters, list)
+{
+  var filteredList = [];
+  filteredList[0] = list[0];
+  for(var i = 1; i < list.length; i++)
+  {
+    for(var j = 0; j < filters.length; j++)
+    {
+      if(list[i].indexOf(filters[j]) > -1)
+      {
+        filteredList.push(list[i]);
+        continue;
+      }
+    }
+  }
+  return filteredList; 
+}
+
+function getOptionElement(text)
+{
+  var option = document.createElement("option");
+  option.text = text;
+  option.value = resourcesPrefix + text + resourcesSuffix;
+  return option
+}
+
+
+function purgeOptions(selectorId)
+{
+  var select = document.getElementById(selectorId);
+  select.innerHTML = "";
+}
+
+function addOptions(selectorId, list)
+{
+  var select = document.getElementById(selectorId);
+  for(var i = 0; i < list.length; i++)
+  {
+    select.add(getOptionElement(list[i]));
+  }
+}
+
+function resetFilter(timeseriesSelector, cdfSelector, filterId)
+{
+  document.getElementById(filterId).value="";
+  purgeOptions(timeseriesSelector);
+  addOptions(timeseriesSelector,timeseriesOptionsList);
+  purgeOptions(cdfSelector);
+  addOptions(cdfSelector,cdfOptionsList);
 }

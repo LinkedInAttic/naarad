@@ -58,9 +58,14 @@
             </select>
         </label>
       </div>
-      <div class="span3" id="button-div-0">
+      <div class="input-append span4">
+        <input type="text" id="filter-text-0" class="span2 search-query">
+        <button type="button" class="btn" onclick="filter('select-chart-0','select-percentiles-0','filter-text-0')">Filter</button>
+        <button type="button" class="btn" onclick="resetFilter('select-chart-0','select-percentiles-0','filter-text-0')">Reset</button>
+      </div>
+      <div class="span2" id="button-div-0">
         <button type="button" class="btn btn-primary" onclick="add_chart('chart-parent-div')">+</button>
-      </div>  
+      </div> 
     </div>
     <div id="labels-charting-div-0"></div>
     <div id="charting-div-0" style="height:50%; width:100%;" class="row"></div>
