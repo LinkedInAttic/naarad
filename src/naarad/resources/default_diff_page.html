@@ -76,8 +76,8 @@
             <span class="text">{{ metric }}</span>
           </h2>
           <form>
-            <input type="radio" name="radio-diff-{{ metric }}" id="radio-diff-{{ metric }}" value="%" checked onclick="switch_diff_table('{{ metric }}')">%
-            <input type="radio" name="radio-diff-{{ metric }}" value="#" onclick="switch_diff_table('{{ metric }}')">#
+            <input type="radio" name="radio-diff-{{ metric }}" id="radio-diff-{{ metric }}" value="%" checked onclick="switchDiffTable('{{ metric }}')">%
+            <input type="radio" name="radio-diff-{{ metric }}" value="#" onclick="switchDiffTable('{{ metric }}')">#
           </form>
           <table id="table-diff-percent-{{ metric }}" class="table table-bordered table-striped sortable">
             <caption>{{ metric }} : % diff</caption>

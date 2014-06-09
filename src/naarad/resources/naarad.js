@@ -1,6 +1,8 @@
 var chartsList = [];
 var timeseriesChartsList = [];
 var cdfChartsList = [];
+var timeseriesOptionsList = [];
+var cdfOptionsList = [] ;
 var chartIndex = 0;
 var syncRange;
 var colorSets = [
@@ -8,8 +10,10 @@ var colorSets = [
 ["#993399", "#B3CDE3", "#CCEBC5"],
 null
 ];
+var resourcesPrefix = "resources/";
+var resourcesSuffix = ".csv";
 
-function switch_diff_table(metric)
+function switchDiffTable(metric)
 {
     display_choice = document.getElementById("radio-diff-" + metric).checked;
     if (display_choice) {
@@ -69,7 +73,7 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
             });
         }
       }
-    update_share_url();
+    updateShareUrl();
     blockRedraw = false;
     }
   }
@@ -78,10 +82,10 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
   chartsList[chartIndex] = chart_1;
   timeseriesChartsList[chartIndex] = chart_1;
   cdfChartsList[chartIndex] = null;
-  update_share_url();
+  updateShareUrl();
 }
 
-function plot_cdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div)
+function plotCdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div)
 {
   document.getElementById(reset_selector_id).selectedIndex=0;
   var chartIndex = parseInt(selector_id.split("-")[2]);
@@ -111,61 +115,113 @@ function plot_cdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_
   chartsList[chartIndex] = chart_1;
   cdfChartsList[chartIndex] = chart_1;
   timeseriesChartsList[chartIndex] = null;
-  update_share_url();
+  updateShareUrl();
 }
 
-function add_chart(container_div)
+function addChart(container_div)
 {
-  var chartDiv = document.createElement("div");
-  var template_div = "chart-div-0";
-  var labelChartingDiv = "labels-charting-div-";
-  var chartingDiv = "charting-div-";
-  var innerHTMLContent = document.getElementById(template_div).innerHTML;
   chartIndex++;
-  var newInnerHTMLContent = innerHTMLContent.replace(/-0/g, "-" + chartIndex.toString());
+
+  var chartDiv = document.createElement("div");
   chartDiv.className = "content";
   chartDiv.setAttribute("id","chart-div-" + chartIndex.toString());
-  chartDiv.innerHTML = newInnerHTMLContent;
+
+  var selectionDiv = document.createElement("div");
+  selectionDiv.className = "row";
+  selectionDiv.innerHTML = document.getElementById("selection-div-0").innerHTML.replace(/-0/g, "-" + chartIndex.toString());;
+  chartDiv.appendChild(selectionDiv);
+
+  var removeChartButton = document.createElement("button");
+  removeChartButton.className = "btn btn-danger";
+  removeChartButton.type = "button";
+  var removeChartButtonText = document.createTextNode("-");
+  removeChartButton.appendChild(removeChartButtonText);
+  removeChartButton.setAttribute("onclick", "removeChart('chart-div-" + chartIndex.toString() + "'," + chartIndex.toString() + ")");
+
+  var labelsChartingDiv = document.createElement("div");
+  labelsChartingDiv.setAttribute("id","labels-charting-div-" + chartIndex.toString());
+  chartDiv.appendChild(labelsChartingDiv);
+
+  var chartingDiv = document.createElement("div");
+  chartingDiv.setAttribute("id","charting-div-" + chartIndex.toString());
+  chartDiv.appendChild(chartingDiv);
+
+  var csvURLDiv = document.createElement("div");
+  csvURLDiv.setAttribute("id","csv-url-div-" + chartIndex.toString());
+  chartDiv.appendChild(csvURLDiv);
+
   document.getElementById(container_div).appendChild(chartDiv);
-  document.getElementById(labelChartingDiv + chartIndex.toString()).innerHTML="";
-  document.getElementById(chartingDiv + chartIndex.toString()).innerHTML="";
+  document.getElementById("button-div-" + chartIndex.toString()).appendChild(removeChartButton);
+  resetFilter('select-chart-' + chartIndex.toString(), 'select-percentiles-' + chartIndex.toString(), 'filter-text-' + chartIndex.toString());
 }
 
-function remove_chart(chart_div, chart)
+function uploadFile()
+{
+    var formData = new FormData();
+    var xhr = new XMLHttpRequest();
+    for(var i = 0; i < document.getElementById("the-file").files.length; i++)
+    {
+        formData.append("file[]", document.getElementById("the-file").files[i]);
+    }
+    xhr.open("POST", "/analyze", true);
+    xhr.send(formData);
+    document.getElementById("the-file").value = "";
+    document.getElementById("status-div").innerHTML = "Upload Complete. Request has been queued for analysis."
+}
+
+function removeChart(chart_div, index)
 {
   var current_chart_div = document.getElementById(chart_div);
   current_chart_div.parentNode.removeChild(current_chart_div);
-  var index = timeseriesChartsList.indexOf(chart);
-  timeseriesChartsList.splice(index, 1);
+  timeseriesChartsList[index] = null;
+  cdfChartsList[index] = null;
+  chartsList[index] = null;
+  updateShareUrl();
 }
 
-function update_share_url()
+function updateShareUrl()
 {
-    document.getElementById("text-share-report-url").value = save_chart_state();
+    document.getElementById("text-share-report-url").value = saveChartState();
 }
 
-function save_chart_state()
+function saveChartState()
 {
   if (chartsList.length == 0)
   {
       return window.location.toString();
   }
   var chartState = window.location.toString().split("?")[0] + "?charts=";
-  for(var i=0; i<chartsList.length; i++)
+  for(var i = 0; i < chartsList.length; i++)
   {
-        chartState += chartsList[i].file_ + "," ;
+        if (chartsList[i] != null)
+        {
+           chartState += chartsList[i].file_ + "," ;
+        }
   } 
   chartState = chartState.replace(/,$/,"");
   chartState += "&range=" + syncRange ;
   return chartState;
 }
 
-function load_saved_chart()
+function getOptions()
+{
+  for(var i = 0; i < document.getElementById('select-chart-0').options.length; i++)
+  {
+    timeseriesOptionsList[i] = document.getElementById('select-chart-0').options[i].label;
+  }
+  for(var i = 0; i < document.getElementById('select-percentiles-0').options.length; i++)
+  {
+    cdfOptionsList[i] = document.getElementById('select-percentiles-0').options[i].label;
+  }
+}
+
+function loadSavedChart()
 {
   var urlComponents = window.location.toString().split(/[?&]/);
   var charts = [];
   var range = [];
-  for(var i=1; i < urlComponents.length; i++)
+  getOptions();
+  for(var i = 1; i < urlComponents.length; i++)
   {
     if(urlComponents[i].indexOf("charts=") >= 0 )
     {
@@ -179,29 +235,29 @@ function load_saved_chart()
       }
     }
   }
-  for(var i=1;i<charts.length;i++)
+  for(var i = 1; i < charts.length; i++)
   {
-    if(i>1)
+    if(i > 1)
     {
-      add_chart('chart-parent-div');
+      addChart('chart-parent-div');
     }
     if(charts[i].indexOf("percentiles.csv") > 0)
     {
         selectDropdown('select-percentiles-' + (i-1), charts[i]);
-        plot_cdf('select-percentiles-' + (i-1),'select-chart-' + (i-1),'charting-div-' + (i-1),0,false,'csv-url-div-' + (i-1));
+        plotCdf('select-percentiles-' + (i-1),'select-chart-' + (i-1),'charting-div-' + (i-1),0,false,'csv-url-div-' + (i-1));
     } else
     {
         selectDropdown('select-chart-' + (i-1), charts[i]);
         plot('select-chart-' + (i-1),'select-percentiles-' + (i-1),'charting-div-' + (i-1),0,false,'csv-url-div-' + (i-1));
     }
   }
-  update_share_url();
+  updateShareUrl();
 }
 
 function selectDropdown(dropdownId, dropdownValue)
 {
   var dropdown = document.getElementById(dropdownId);
-  for(var i=0; i<dropdown.options.length; i++)
+  for(var i = 0; i < dropdown.options.length; i++)
   {
     if(dropdown.options[i].value == dropdownValue)
     {
@@ -209,4 +265,79 @@ function selectDropdown(dropdownId, dropdownValue)
       return;
     }
   }
+}
+
+function filter(timeseriesSelector, cdfSelector, filterId)
+{
+  var filteredTimeseriesList = [];
+  var filteredCDFList = [];
+  var filters = [];
+  var filterText = document.getElementById(filterId).value.trim().replace(/[ ]+/," ");
+  if(filterText.length > 0)
+  {
+    filters = filterText.split(" ");
+    filteredTimeseriesList = filterList(filters,timeseriesOptionsList);
+    if (filteredTimeseriesList.length > 1)
+    {
+      purgeOptions(timeseriesSelector);
+      addOptions(timeseriesSelector, filteredTimeseriesList);
+    }
+    filteredCDFList = filterList(filters,cdfOptionsList);
+    if (filteredCDFList.length > 1)
+    {
+      purgeOptions(cdfSelector);
+      addOptions(cdfSelector, filteredCDFList);
+    }
+  }
+}
+
+function filterList(filters, list)
+{
+  var filteredList = [];
+  filteredList[0] = list[0];
+  for(var i = 1; i < list.length; i++)
+  {
+    for(var j = 0; j < filters.length; j++)
+    {
+      if(list[i].indexOf(filters[j]) > -1)
+      {
+        filteredList.push(list[i]);
+        continue;
+      }
+    }
+  }
+  return filteredList; 
+}
+
+function getOptionElement(text)
+{
+  var option = document.createElement("option");
+  option.text = text;
+  option.value = resourcesPrefix + text + resourcesSuffix;
+  return option
+}
+
+
+function purgeOptions(selectorId)
+{
+  var select = document.getElementById(selectorId);
+  select.innerHTML = "";
+}
+
+function addOptions(selectorId, list)
+{
+  var select = document.getElementById(selectorId);
+  for(var i = 0; i < list.length; i++)
+  {
+    select.add(getOptionElement(list[i]));
+  }
+}
+
+function resetFilter(timeseriesSelector, cdfSelector, filterId)
+{
+  document.getElementById(filterId).value = "";
+  purgeOptions(timeseriesSelector);
+  addOptions(timeseriesSelector,timeseriesOptionsList);
+  purgeOptions(cdfSelector);
+  addOptions(cdfSelector,cdfOptionsList);
 }
