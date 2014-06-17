@@ -218,7 +218,7 @@ class JmeterMetric(Metric):
     return status
 
   def _sanitize_label(self, raw_label):
-    return raw_label.replace('/', '').replace('?', '_')
+    return raw_label.replace('/', '_').replace('?', '_')
 
   def parse_xml_jtl(self, granularity):
     """
