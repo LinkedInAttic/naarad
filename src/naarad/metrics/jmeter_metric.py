@@ -141,21 +141,6 @@ class JmeterMetric(Metric):
             data[self.get_csv(transaction, metric)].append(','.join([time_stamp, str(metric_data/float(averaging_factor))]))
     return None
 
-  def get_aggregation_timestamp(self, timestamp, granularity='minute'):
-    """
-    Return a timestamp from the raw epoch time based on the granularity preferences passed in.
-
-    :param string timestamp: raw epoch timestamp from the jmeter log line
-    :param string granularity: aggregation granularity used for plots.
-    :return: string aggregate_timestamp that will be used for metrics aggregation in all functions for JmeterMetric
-    """
-    if granularity == 'hour':
-      return datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H') + ':00:00', 3600
-    elif granularity == 'minute':
-      return datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H:%M') + ':00', 60
-    else:
-      return datetime.datetime.utcfromtimestamp(int(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S'), 1
-
   def calculate_key_stats(self, metric_store):
     """
     Calculate key statistics for given data and store in the class variables calculated_stats and calculated_percentiles

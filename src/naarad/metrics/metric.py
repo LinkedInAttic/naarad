@@ -16,7 +16,6 @@ import naarad.httpdownload
 import naarad.naarad_constants as CONSTANTS
 import datetime
 import operator
-import numpy
 
 logger = logging.getLogger('naarad.metrics.metric')
 
@@ -178,11 +177,11 @@ class Metric(object):
     :return: string aggregate_timestamp: timestamp used for metrics aggregation in all functions
     """
     if granularity == 'hour':
-      return datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000).strftime('%Y-%m-%d %H') + ':00:00', 3600
+      return naarad.utils.reconcile_timezones(datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000), 'UTC', self.graph_timezone).strftime('%Y-%m-%d %H') + ':00:00', 3600
     elif granularity == 'minute':
-      return datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000).strftime('%Y-%m-%d %H:%M') + ':00', 60
+      return naarad.utils.reconcile_timezones(datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000), 'UTC', self.graph_timezone).strftime('%Y-%m-%d %H:%M') + ':00', 60
     else:
-      return datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S'), 1
+      return naarad.utils.reconcile_timezones(datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000), 'UTC', self.graph_timezone).strftime('%Y-%m-%d %H:%M:%S'), 1
 
   def aggregate_count_over_time(self, metric_store, groupby_name, aggregate_timestamp):
     """
@@ -224,7 +223,7 @@ class Metric(object):
     """
     Create the time series for the various metrics, averaged over the aggregation period being used for plots
 
-    :param dict metric_store: The metric store used to store all the parsed jmeter log data
+    :param dict metric_store: The metric store used to store all the parsed log data
     :param dict data: Dict with all the metric data to be output to csv
     :param float averaging_factor: averaging factor to be used for calculating the average per second metrics
     :return: None
@@ -305,6 +304,12 @@ class Metric(object):
     return True
 
   def calc_key_stats(self, metric_store):
+    """
+    Calculate stats such as percentile and mean
+
+    :param dict metric_store: The metric store used to store all the parsed log data
+    :return: None
+    """
     stats_to_calculate = ['mean', 'std', 'min', 'max']  # TODO: get input from user
     percentiles_to_calculate = range(0, 100, 1)  # TODO: get input from user
     for column, groups_store in metric_store.items():
@@ -328,7 +333,7 @@ class Metric(object):
       for sub_metric in self.calculated_stats:
         percentile_data = self.calculated_percentiles[sub_metric]
         stats_data = self.calculated_stats[sub_metric]
-        csv_data = ','.join([sub_metric,str(numpy.round_(stats_data['mean'], 2)),str(numpy.round_(stats_data['std'], 2)),str(numpy.round_(percentile_data[50], 2)),str(numpy.round_(percentile_data[75], 2)),str(numpy.round_(percentile_data[90], 2)),str(numpy.round_(percentile_data[95], 2)),str(numpy.round_(percentile_data[99], 2)),str(numpy.round_(stats_data['min'], 2)),str(numpy.round_(stats_data['max'], 2))])
+        csv_data = ','.join([sub_metric,str(round(stats_data['mean'], 2)),str(round(stats_data['std'], 2)),str(round(percentile_data[50], 2)),str(round(percentile_data[75], 2)),str(round(percentile_data[90], 2)),str(round(percentile_data[95], 2)),str(round(percentile_data[99], 2)),str(round(stats_data['min'], 2)),str(round(stats_data['max'], 2))])
         FH.write(csv_data + '\n')
       self.stats_files.append(metric_stats_csv_file)
     for column in self.calculated_percentiles:
@@ -337,7 +342,7 @@ class Metric(object):
       percentile_data = self.calculated_percentiles[column]
       with open(percentiles_csv_file,'w') as FH:
         for percentile in sorted(percentile_data):
-          FH.write(str(percentile) + ',' + str(numpy.round_(percentile_data[percentile],2)) + '\n')
+          FH.write(str(percentile) + ',' + str(round(percentile_data[percentile],2)) + '\n')
         self.percentiles_files.append(percentiles_csv_file)
 
   def calc(self):
