@@ -178,16 +178,17 @@ class JmeterMetric(Metric):
                                      stats_to_calculate, percentiles_to_calculate)
       self.update_summary_stats(transaction_key)
       transaction_key = transaction + '.' + 'qps'
-      self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
-        naarad.utils.calculate_stats(metric_store['qps'][transaction].values(),
-                                     stats_to_calculate, percentiles_to_calculate)
-      self.update_summary_stats(transaction_key)
+      if len(metric_store['qps'][transaction].values()) > 0:
+        self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
+          naarad.utils.calculate_stats(metric_store['qps'][transaction].values(),
+                                       stats_to_calculate, percentiles_to_calculate)
+        self.update_summary_stats(transaction_key)
       transaction_key = transaction + '.' + 'ResponseSize'
       self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
         naarad.utils.calculate_stats(list(heapq.merge(*metric_store['by'][transaction].values())),
                                      stats_to_calculate, percentiles_to_calculate)
       self.update_summary_stats(transaction_key)
-      if 'eqps' in metric_store.keys():
+      if 'eqps' in metric_store.keys() and transaction in metric_store['eqps'].keys():
         transaction_key = transaction + '.' + 'ErrorsPerSecond'
         self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
           naarad.utils.calculate_stats(metric_store['eqps'][transaction].values(),
@@ -216,6 +217,9 @@ class JmeterMetric(Metric):
     gc.collect()
     return status
 
+  def _sanitize_label(self, raw_label):
+    return raw_label.replace('/', '_').replace('?', '_')
+
   def parse_xml_jtl(self, granularity):
     """
     Parse Jmeter workload output in XML format and extract overall and per transaction data and key statistics
@@ -234,8 +238,8 @@ class JmeterMetric(Metric):
             continue
           line_data = dict(re.findall(line_regex, line))
           aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(line_data['ts'], granularity)
-          self.aggregate_count_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], aggregate_timestamp)
-          self.aggregate_values_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], ['t', 'by'], aggregate_timestamp)
+          self.aggregate_count_over_time(processed_data, line_data, [self._sanitize_label(line_data['lb']), 'Overall_Summary'], aggregate_timestamp)
+          self.aggregate_values_over_time(processed_data, line_data, [self._sanitize_label(line_data['lb']), 'Overall_Summary'], ['t', 'by'], aggregate_timestamp)
         logger.info('Finished parsing : %s', input_file)
     logger.info('Processing metrics for output to csv')
     self.average_values_for_plot(processed_data, data, averaging_factor)
