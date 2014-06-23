@@ -28,6 +28,7 @@ metric_imports_dict = {
   'PROCMEMINFO' : 'naarad.metrics.procmeminfo_metric.ProcMeminfoMetric',
   'PROCZONEINFO' : 'naarad.metrics.proczoneinfo_metric.ProcZoneinfoMetric',
   'SAR' : 'naarad.metrics.sar_metric.SARMetric',
+  'TOP' : 'naarad.metrics.top_metric.TopMetric',
   'NETSTAT' : 'naarad.metrics.netstat_metric.NetstatMetric'
 }
 

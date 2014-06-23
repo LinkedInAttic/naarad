@@ -1,0 +1,300 @@
+2014-06-23
+top - 00:00:02 up 18 days,  7:08, 19 users,  load average: 0.05, 0.03, 0.00
+Tasks: 447 total,   1 running, 443 sleeping,   2 stopped,   1 zombie
+Cpu(s):  1.6%us,  0.5%sy,  0.0%ni, 97.9%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+Mem:    62.841G total,   15.167G used,   47.675G free,  643.434M buffers
+Swap:   63.998G total,    0.000k used,   63.998G free,   11.324G cached
+
+  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND            
+ 1730 root      20   0 4457m  10m 3328 S  1.9  0.0  80:13.45 lwregd             
+ 9609 root      20   0 35300 2568 1664 R  1.9  0.0   0:00.01 top                
+16089 zzhuang   20   0  935m  93m  22m S  1.9  0.1  75:14.30 plugin-containe    
+    1 root      20   0 37180 2552 1892 S  0.0  0.0   0:04.80 init               
+    2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kthreadd           
+    3 root      RT   0     0    0    0 S  0.0  0.0   0:57.99 migration/0        
+    4 root      20   0     0    0    0 S  0.0  0.0   0:15.85 ksoftirqd/0        
+    5 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/0        
+    6 root      RT   0     0    0    0 S  0.0  0.0   0:01.57 watchdog/0         
+    7 root      RT   0     0    0    0 S  0.0  0.0   2:19.02 migration/1        
+    8 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/1        
+    9 root      20   0     0    0    0 S  0.0  0.0   0:16.84 ksoftirqd/1        
+   10 root      RT   0     0    0    0 S  0.0  0.0   0:01.74 watchdog/1         
+   11 root      RT   0     0    0    0 S  0.0  0.0   0:18.85 migration/2        
+   12 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/2        
+   13 root      20   0     0    0    0 S  0.0  0.0   0:13.70 ksoftirqd/2        
+   14 root      RT   0     0    0    0 S  0.0  0.0   0:01.44 watchdog/2         
+   15 root      RT   0     0    0    0 S  0.0  0.0   0:07.56 migration/3        
+   16 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/3        
+   17 root      20   0     0    0    0 S  0.0  0.0   0:11.98 ksoftirqd/3        
+   18 root      RT   0     0    0    0 S  0.0  0.0   0:01.38 watchdog/3         
+   19 root      RT   0     0    0    0 S  0.0  0.0   0:09.28 migration/4        
+   20 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/4        
+   21 root      20   0     0    0    0 S  0.0  0.0   0:13.69 ksoftirqd/4        
+   22 root      RT   0     0    0    0 S  0.0  0.0   0:01.35 watchdog/4         
+   23 root      RT   0     0    0    0 S  0.0  0.0   0:12.11 migration/5        
+   24 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/5        
+   25 root      20   0     0    0    0 S  0.0  0.0   0:12.22 ksoftirqd/5        
+   26 root      RT   0     0    0    0 S  0.0  0.0   0:01.39 watchdog/5         
+   27 root      RT   0     0    0    0 S  0.0  0.0   0:27.20 migration/6        
+   28 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/6        
+   29 root      20   0     0    0    0 S  0.0  0.0   0:09.54 ksoftirqd/6        
+   30 root      RT   0     0    0    0 S  0.0  0.0   0:01.41 watchdog/6         
+   31 root      RT   0     0    0    0 S  0.0  0.0   0:30.44 migration/7        
+--
+top - 00:00:04 up 18 days,  7:08, 19 users,  load average: 0.04, 0.03, 0.00
+Tasks: 446 total,   1 running, 441 sleeping,   2 stopped,   2 zombie
+Cpu(s):  0.2%us,  0.5%sy,  0.0%ni, 99.2%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+Mem:    62.841G total,   15.169G used,   47.673G free,  643.434M buffers
+Swap:   63.998G total,    0.000k used,   63.998G free,   11.324G cached
+
+  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND            
+ 3316 root      20   0 35308 2688 1760 S  1.0  0.0   0:06.09 top                
+ 9609 root      20   0 35308 2692 1760 R  1.0  0.0   0:00.03 top                
+16089 zzhuang   20   0  935m  93m  22m S  1.0  0.1  75:14.32 plugin-containe    
+ 3702 root      20   0 34884 4192 1692 S  0.5  0.0  31:37.08 cf-serverd         
+ 9624 root      20   0  4120  720  624 S  0.5  0.0   0:00.01 sadc               
+ 9626 root      20   0  4120  728  624 S  0.5  0.0   0:00.01 sadc               
+13526 zzhuang   20   0 2671m 1.2g  52m S  0.5  1.9  91:34.99 firefox            
+    1 root      20   0 37180 2552 1892 S  0.0  0.0   0:04.80 init               
+    2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kthreadd           
+    3 root      RT   0     0    0    0 S  0.0  0.0   0:57.99 migration/0        
+    4 root      20   0     0    0    0 S  0.0  0.0   0:15.85 ksoftirqd/0        
+    5 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/0        
+    6 root      RT   0     0    0    0 S  0.0  0.0   0:01.57 watchdog/0         
+    7 root      RT   0     0    0    0 S  0.0  0.0   2:19.02 migration/1        
+    8 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/1        
+    9 root      20   0     0    0    0 S  0.0  0.0   0:16.84 ksoftirqd/1        
+   10 root      RT   0     0    0    0 S  0.0  0.0   0:01.74 watchdog/1         
+   11 root      RT   0     0    0    0 S  0.0  0.0   0:18.85 migration/2        
+   12 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/2        
+   13 root      20   0     0    0    0 S  0.0  0.0   0:13.70 ksoftirqd/2        
+   14 root      RT   0     0    0    0 S  0.0  0.0   0:01.44 watchdog/2         
+   15 root      RT   0     0    0    0 S  0.0  0.0   0:07.56 migration/3        
+   16 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/3        
+   17 root      20   0     0    0    0 S  0.0  0.0   0:11.98 ksoftirqd/3        
+   18 root      RT   0     0    0    0 S  0.0  0.0   0:01.38 watchdog/3         
+   19 root      RT   0     0    0    0 S  0.0  0.0   0:09.28 migration/4        
+   20 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/4        
+   21 root      20   0     0    0    0 S  0.0  0.0   0:13.69 ksoftirqd/4        
+   22 root      RT   0     0    0    0 S  0.0  0.0   0:01.35 watchdog/4         
+   23 root      RT   0     0    0    0 S  0.0  0.0   0:12.11 migration/5        
+   24 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/5        
+   25 root      20   0     0    0    0 S  0.0  0.0   0:12.22 ksoftirqd/5        
+   26 root      RT   0     0    0    0 S  0.0  0.0   0:01.39 watchdog/5         
+   27 root      RT   0     0    0    0 S  0.0  0.0   0:27.20 migration/6        
+--
+top - 00:00:06 up 18 days,  7:08, 19 users,  load average: 0.04, 0.03, 0.00
+Tasks: 446 total,   1 running, 441 sleeping,   2 stopped,   2 zombie
+Cpu(s):  0.2%us,  0.4%sy,  0.0%ni, 99.4%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+Mem:    62.841G total,   15.168G used,   47.674G free,  643.434M buffers
+Swap:   63.998G total,    0.000k used,   63.998G free,   11.324G cached
+
+  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND            
+ 3316 root      20   0 35308 2692 1760 S  0.5  0.0   0:06.10 top                
+ 3702 root      20   0 34884 4192 1692 S  0.5  0.0  31:37.09 cf-serverd         
+ 9609 root      20   0 35308 2692 1760 R  0.5  0.0   0:00.04 top                
+ 9618 root      20   0  4120  724  624 S  0.5  0.0   0:00.01 sadc               
+ 9620 root      20   0  4120  720  624 S  0.5  0.0   0:00.01 sadc               
+ 9630 root      20   0  4120  728  624 S  0.5  0.0   0:00.01 sadc               
+ 9632 root      20   0  4120  724  624 S  0.5  0.0   0:00.01 sadc               
+ 9640 root      20   0  4120  724  624 S  0.5  0.0   0:00.01 sadc               
+ 9643 root      20   0  4120  728  624 S  0.5  0.0   0:00.01 sadc               
+ 9645 root      20   0  4120  724  624 S  0.5  0.0   0:00.01 sadc               
+ 9646 root      20   0  4120  728  624 S  0.5  0.0   0:00.01 sadc               
+13526 zzhuang   20   0 2671m 1.2g  52m S  0.5  1.9  91:35.00 firefox            
+16089 zzhuang   20   0  935m  93m  22m S  0.5  0.1  75:14.33 plugin-containe    
+    1 root      20   0 37180 2552 1892 S  0.0  0.0   0:04.80 init               
+    2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kthreadd           
+    3 root      RT   0     0    0    0 S  0.0  0.0   0:57.99 migration/0        
+    4 root      20   0     0    0    0 S  0.0  0.0   0:15.85 ksoftirqd/0        
+    5 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/0        
+    6 root      RT   0     0    0    0 S  0.0  0.0   0:01.57 watchdog/0         
+    7 root      RT   0     0    0    0 S  0.0  0.0   2:19.02 migration/1        
+    8 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/1        
+    9 root      20   0     0    0    0 S  0.0  0.0   0:16.84 ksoftirqd/1        
+   10 root      RT   0     0    0    0 S  0.0  0.0   0:01.74 watchdog/1         
+   11 root      RT   0     0    0    0 S  0.0  0.0   0:18.85 migration/2        
+   12 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/2        
+   13 root      20   0     0    0    0 S  0.0  0.0   0:13.70 ksoftirqd/2        
+   14 root      RT   0     0    0    0 S  0.0  0.0   0:01.44 watchdog/2         
+   15 root      RT   0     0    0    0 S  0.0  0.0   0:07.56 migration/3        
+   16 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/3        
+   17 root      20   0     0    0    0 S  0.0  0.0   0:11.98 ksoftirqd/3        
+   18 root      RT   0     0    0    0 S  0.0  0.0   0:01.38 watchdog/3         
+   19 root      RT   0     0    0    0 S  0.0  0.0   0:09.28 migration/4        
+   20 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/4        
+   21 root      20   0     0    0    0 S  0.0  0.0   0:13.69 ksoftirqd/4        
+--
+top - 00:00:08 up 18 days,  7:09, 19 users,  load average: 0.04, 0.03, 0.00
+Tasks: 443 total,   2 running, 438 sleeping,   2 stopped,   1 zombie
+Cpu(s):  0.3%us,  0.4%sy,  0.0%ni, 99.1%id,  0.2%wa,  0.0%hi,  0.0%si,  0.0%st
+Mem:    62.841G total,   15.167G used,   47.675G free,  643.434M buffers
+Swap:   63.998G total,    0.000k used,   63.998G free,   11.324G cached
+
+  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND            
+16089 zzhuang   20   0  935m  93m  22m S  1.5  0.1  75:14.36 plugin-containe    
+ 1938 root      20   0 7603m  31m 6608 S  0.5  0.0   6:47.28 lsassd             
+ 9609 root      20   0 35308 2692 1760 R  0.5  0.0   0:00.05 top                
+ 9616 root      20   0  4120  724  624 S  0.5  0.0   0:00.01 sadc               
+ 9622 root      20   0  4120  724  624 S  0.5  0.0   0:00.01 sadc               
+ 9651 root      20   0  4120  724  624 S  0.5  0.0   0:00.01 sadc               
+13526 zzhuang   20   0 2671m 1.2g  52m R  0.5  1.9  91:35.01 firefox            
+    1 root      20   0 37180 2552 1892 S  0.0  0.0   0:04.80 init               
+    2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kthreadd           
+    3 root      RT   0     0    0    0 S  0.0  0.0   0:57.99 migration/0        
+    4 root      20   0     0    0    0 S  0.0  0.0   0:15.85 ksoftirqd/0        
+    5 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/0        
+    6 root      RT   0     0    0    0 S  0.0  0.0   0:01.57 watchdog/0         
+    7 root      RT   0     0    0    0 S  0.0  0.0   2:19.02 migration/1        
+    8 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/1        
+    9 root      20   0     0    0    0 S  0.0  0.0   0:16.84 ksoftirqd/1        
+   10 root      RT   0     0    0    0 S  0.0  0.0   0:01.74 watchdog/1         
+   11 root      RT   0     0    0    0 S  0.0  0.0   0:18.85 migration/2        
+   12 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/2        
+   13 root      20   0     0    0    0 S  0.0  0.0   0:13.70 ksoftirqd/2        
+   14 root      RT   0     0    0    0 S  0.0  0.0   0:01.44 watchdog/2         
+   15 root      RT   0     0    0    0 S  0.0  0.0   0:07.56 migration/3        
+   16 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/3        
+   17 root      20   0     0    0    0 S  0.0  0.0   0:11.98 ksoftirqd/3        
+   18 root      RT   0     0    0    0 S  0.0  0.0   0:01.38 watchdog/3         
+   19 root      RT   0     0    0    0 S  0.0  0.0   0:09.28 migration/4        
+   20 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/4        
+   21 root      20   0     0    0    0 S  0.0  0.0   0:13.69 ksoftirqd/4        
+   22 root      RT   0     0    0    0 S  0.0  0.0   0:01.35 watchdog/4         
+   23 root      RT   0     0    0    0 S  0.0  0.0   0:12.11 migration/5        
+   24 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/5        
+   25 root      20   0     0    0    0 S  0.0  0.0   0:12.22 ksoftirqd/5        
+   26 root      RT   0     0    0    0 S  0.0  0.0   0:01.39 watchdog/5         
+   27 root      RT   0     0    0    0 S  0.0  0.0   0:27.20 migration/6        
+--
+top - 00:00:10 up 18 days,  7:09, 19 users,  load average: 0.04, 0.03, 0.00
+Tasks: 443 total,   1 running, 439 sleeping,   2 stopped,   1 zombie
+Cpu(s):  0.2%us,  0.3%sy,  0.0%ni, 99.5%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+Mem:    62.841G total,   15.167G used,   47.674G free,  643.434M buffers
+Swap:   63.998G total,    0.000k used,   63.998G free,   11.324G cached
+
+  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND            
+ 9609 root      20   0 35308 2692 1760 R  1.0  0.0   0:00.07 top                
+16089 zzhuang   20   0  935m  93m  22m S  1.0  0.1  75:14.38 plugin-containe    
+ 2635 avahi     20   0 44224 3436 2116 S  0.5  0.0   4:49.47 avahi-daemon       
+ 9618 root      20   0  4120  724  624 S  0.5  0.0   0:00.02 sadc               
+ 9624 root      20   0  4120  720  624 S  0.5  0.0   0:00.02 sadc               
+ 9626 root      20   0  4120  728  624 S  0.5  0.0   0:00.02 sadc               
+ 9628 root      20   0  4120  724  624 S  0.5  0.0   0:00.01 sadc               
+ 9640 root      20   0  4120  724  624 S  0.5  0.0   0:00.02 sadc               
+    1 root      20   0 37180 2552 1892 S  0.0  0.0   0:04.80 init               
+    2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kthreadd           
+    3 root      RT   0     0    0    0 S  0.0  0.0   0:57.99 migration/0        
+    4 root      20   0     0    0    0 S  0.0  0.0   0:15.85 ksoftirqd/0        
+    5 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/0        
+    6 root      RT   0     0    0    0 S  0.0  0.0   0:01.57 watchdog/0         
+    7 root      RT   0     0    0    0 S  0.0  0.0   2:19.02 migration/1        
+    8 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/1        
+    9 root      20   0     0    0    0 S  0.0  0.0   0:16.84 ksoftirqd/1        
+   10 root      RT   0     0    0    0 S  0.0  0.0   0:01.74 watchdog/1         
+   11 root      RT   0     0    0    0 S  0.0  0.0   0:18.85 migration/2        
+   12 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/2        
+   13 root      20   0     0    0    0 S  0.0  0.0   0:13.70 ksoftirqd/2        
+   14 root      RT   0     0    0    0 S  0.0  0.0   0:01.44 watchdog/2         
+   15 root      RT   0     0    0    0 S  0.0  0.0   0:07.56 migration/3        
+   16 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/3        
+   17 root      20   0     0    0    0 S  0.0  0.0   0:11.98 ksoftirqd/3        
+   18 root      RT   0     0    0    0 S  0.0  0.0   0:01.38 watchdog/3         
+   19 root      RT   0     0    0    0 S  0.0  0.0   0:09.28 migration/4        
+   20 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/4        
+   21 root      20   0     0    0    0 S  0.0  0.0   0:13.69 ksoftirqd/4        
+   22 root      RT   0     0    0    0 S  0.0  0.0   0:01.35 watchdog/4         
+   23 root      RT   0     0    0    0 S  0.0  0.0   0:12.11 migration/5        
+   24 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/5        
+   25 root      20   0     0    0    0 S  0.0  0.0   0:12.22 ksoftirqd/5        
+   26 root      RT   0     0    0    0 S  0.0  0.0   0:01.39 watchdog/5         
+--
+top - 00:00:12 up 18 days,  7:09, 19 users,  load average: 0.04, 0.03, 0.00
+Tasks: 443 total,   1 running, 439 sleeping,   2 stopped,   1 zombie
+Cpu(s):  0.2%us,  0.3%sy,  0.0%ni, 99.5%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+Mem:    62.841G total,   15.168G used,   47.674G free,  643.434M buffers
+Swap:   63.998G total,    0.000k used,   63.998G free,   11.324G cached
+
+  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND            
+ 1685 root      20   0     0    0    0 S  0.5  0.0   1:51.32 kondemand/11       
+ 9609 root      20   0 35308 2692 1760 R  0.5  0.0   0:00.08 top                
+ 9616 root      20   0  4120  724  624 S  0.5  0.0   0:00.02 sadc               
+ 9620 root      20   0  4120  720  624 S  0.5  0.0   0:00.02 sadc               
+ 9632 root      20   0  4120  724  624 S  0.5  0.0   0:00.02 sadc               
+ 9645 root      20   0  4120  724  624 S  0.5  0.0   0:00.02 sadc               
+ 9646 root      20   0  4120  728  624 S  0.5  0.0   0:00.02 sadc               
+13526 zzhuang   20   0 2671m 1.2g  52m S  0.5  1.9  91:35.02 firefox            
+16089 zzhuang   20   0  935m  93m  22m S  0.5  0.1  75:14.39 plugin-containe    
+    1 root      20   0 37180 2552 1892 S  0.0  0.0   0:04.80 init               
+    2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kthreadd           
+    3 root      RT   0     0    0    0 S  0.0  0.0   0:57.99 migration/0        
+    4 root      20   0     0    0    0 S  0.0  0.0   0:15.85 ksoftirqd/0        
+    5 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/0        
+    6 root      RT   0     0    0    0 S  0.0  0.0   0:01.57 watchdog/0         
+    7 root      RT   0     0    0    0 S  0.0  0.0   2:19.02 migration/1        
+    8 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/1        
+    9 root      20   0     0    0    0 S  0.0  0.0   0:16.84 ksoftirqd/1        
+   10 root      RT   0     0    0    0 S  0.0  0.0   0:01.74 watchdog/1         
+   11 root      RT   0     0    0    0 S  0.0  0.0   0:18.85 migration/2        
+   12 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/2        
+   13 root      20   0     0    0    0 S  0.0  0.0   0:13.70 ksoftirqd/2        
+   14 root      RT   0     0    0    0 S  0.0  0.0   0:01.44 watchdog/2         
+   15 root      RT   0     0    0    0 S  0.0  0.0   0:07.56 migration/3        
+   16 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/3        
+   17 root      20   0     0    0    0 S  0.0  0.0   0:11.98 ksoftirqd/3        
+   18 root      RT   0     0    0    0 S  0.0  0.0   0:01.38 watchdog/3         
+   19 root      RT   0     0    0    0 S  0.0  0.0   0:09.28 migration/4        
+   20 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/4        
+   21 root      20   0     0    0    0 S  0.0  0.0   0:13.69 ksoftirqd/4        
+   22 root      RT   0     0    0    0 S  0.0  0.0   0:01.35 watchdog/4         
+   23 root      RT   0     0    0    0 S  0.0  0.0   0:12.11 migration/5        
+   24 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/5        
+   25 root      20   0     0    0    0 S  0.0  0.0   0:12.22 ksoftirqd/5        
+--
+top - 00:00:14 up 18 days,  7:09, 19 users,  load average: 0.04, 0.03, 0.00
+Tasks: 442 total,   1 running, 438 sleeping,   2 stopped,   1 zombie
+Cpu(s):  0.2%us,  0.3%sy,  0.0%ni, 99.5%id,  0.1%wa,  0.0%hi,  0.0%si,  0.0%st
+Mem:    62.841G total,   15.166G used,   47.675G free,  643.434M buffers
+Swap:   63.998G total,    0.000k used,   63.998G free,   11.324G cached
+
+  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND            
+16089 zzhuang   20   0  935m  93m  22m S  1.5  0.1  75:14.42 plugin-containe    
+ 9609 root      20   0 35308 2692 1760 R  1.0  0.0   0:00.10 top                
+ 3985 root      20   0 80864 3324 2464 S  0.5  0.0   0:07.46 master             
+ 9622 root      20   0  4120  724  624 S  0.5  0.0   0:00.02 sadc               
+ 9624 root      20   0  4120  720  624 S  0.5  0.0   0:00.03 sadc               
+ 9626 root      20   0  4120  728  624 S  0.5  0.0   0:00.03 sadc               
+ 9630 root      20   0  4120  728  624 S  0.5  0.0   0:00.02 sadc               
+ 9651 root      20   0  4120  724  624 S  0.5  0.0   0:00.02 sadc               
+13526 zzhuang   20   0 2671m 1.2g  52m S  0.5  1.9  91:35.03 firefox            
+    1 root      20   0 37180 2552 1892 S  0.0  0.0   0:04.80 init               
+    2 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kthreadd           
+    3 root      RT   0     0    0    0 S  0.0  0.0   0:57.99 migration/0        
+    4 root      20   0     0    0    0 S  0.0  0.0   0:15.85 ksoftirqd/0        
+    5 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/0        
+    6 root      RT   0     0    0    0 S  0.0  0.0   0:01.57 watchdog/0         
+    7 root      RT   0     0    0    0 S  0.0  0.0   2:19.02 migration/1        
+    8 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/1        
+    9 root      20   0     0    0    0 S  0.0  0.0   0:16.84 ksoftirqd/1        
+   10 root      RT   0     0    0    0 S  0.0  0.0   0:01.74 watchdog/1         
+   11 root      RT   0     0    0    0 S  0.0  0.0   0:18.85 migration/2        
+   12 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/2        
+   13 root      20   0     0    0    0 S  0.0  0.0   0:13.70 ksoftirqd/2        
+   14 root      RT   0     0    0    0 S  0.0  0.0   0:01.44 watchdog/2         
+   15 root      RT   0     0    0    0 S  0.0  0.0   0:07.56 migration/3        
+   16 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/3        
+   17 root      20   0     0    0    0 S  0.0  0.0   0:11.98 ksoftirqd/3        
+   18 root      RT   0     0    0    0 S  0.0  0.0   0:01.38 watchdog/3         
+   19 root      RT   0     0    0    0 S  0.0  0.0   0:09.28 migration/4        
+   20 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/4        
+   21 root      20   0     0    0    0 S  0.0  0.0   0:13.69 ksoftirqd/4        
+   22 root      RT   0     0    0    0 S  0.0  0.0   0:01.35 watchdog/4         
+   23 root      RT   0     0    0    0 S  0.0  0.0   0:12.11 migration/5        
+   24 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/5        
+   25 root      20   0     0    0    0 S  0.0  0.0   0:12.22 ksoftirqd/5        
+--
+top - 00:00:16 up 18 days,  7:09, 19 users,  load average: 0.04, 0.03, 0.00
+Tasks: 442 total,   1 running, 438 sleeping,   2 stopped,   1 zombie
+Cpu(s):  0.2%us,  0.5%sy,  0.0%ni, 99.3%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
+Mem:    62.841G total,   15.166G used,   47.675G free,  643.434M buffers
+Swap:   63.998G total,    0.000k used,   63.998G free,   11.325G cached
