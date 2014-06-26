@@ -1,4 +1,6 @@
 # naarad anomaly detection#
-*run a simple demo: python start.py
-*Current included algorithms: Bitmap with lagging window, Exponential Moving Avgs, Derivative EMA.
+## quick demo for progress so far ##
+run a simple demo: python start.py
+## what is included? ##
+Bitmap with lagging window, Exponential Moving Avgs, Derivative EMA.
 
