@@ -1,0 +1,94 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+<script type=text/javascript src="{{url_for('static', filename='dygraph-combined.js') }}"></script>
+<script type=text/javascript>
+
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+  function load_metrics_select() {
+    $.getJSON($SCRIPT_ROOT + '/load_metrics_select', {}, function(data) {
+      var metrics = data.result
+      for (var m in metrics) {
+        $('#metrics-select').append('<option value ='+metrics[m]+'>'+metrics[m]+'</option>')
+      }
+    });
+  }
+
+  $(function() {
+
+     load_metrics_select();
+
+    $('#metrics-select').change(function(){
+        var metric = $('#metrics-select').val()
+        g = new Dygraph(
+          document.getElementById("chart-div1"),
+          "static/orig/"+metric,
+          {
+            legend: 'always',
+            title: 'So Many Metrics'
+          }
+        );
+    });
+
+    $('#show_anom').bind('click', function() {
+      
+      $.getJSON($SCRIPT_ROOT + '/_get_anomaly', {
+        metric: $('#metrics-select').val()
+      }, function(data) {
+            var csv_name = $('#metrics-select').val()
+
+            console.log(data)
+
+            g1 = new Dygraph(
+              document.getElementById("chart-div2"),
+              data.result.bitmap[0],
+              {
+                legend: 'always',
+                title:  'Bitmap Scores'
+              }
+            );
+
+            g2 = new Dygraph(
+              document.getElementById("chart-div4"),
+              data.result.deri[0],
+              {
+                legend: 'always',
+                title:  'Derivative Scores'
+              }
+            );
+
+            g4 = new Dygraph(
+              document.getElementById("chart-div3"),
+              data.result.ema[0],
+              {
+                legend: 'always',
+                title: 'EMA Scores',
+              }
+            );
+
+            $('#bitmap_perf').html(data.result.bitmap[1]);
+            $('#ema_perf').html(data.result.ema[1]);
+            $('#deri_perf').html(data.result.deri[1]);
+        }
+      )
+
+    });
+
+  });
+</script>
+
+<h1>Anomaly Detection Example</h1>
+
+<b>Bitmap Perf:</b><span id = "bitmap_perf" style="color:red;"></span></br>
+<b>EMA Perf:</b><span id = "ema_perf" style="color:red;"></span></br>
+<b>Deri Perf:</b><span id = "deri_perf" style="color:red;"></span></br>
+
+Metrics: <select id = "metrics-select">
+</select>
+<div>
+  <button id='show_anom'>Show Anormaly Scores</button>
+</div>
+<div id="chart-div1" style = "width:750px;height:400px;float:left;"></div>
+<div id="chart-div3" style = "width:750px;height:400px;float:left;"></div>
+<div id="chart-div2" style = "width:750px;height:400px;float:left;"></div>
+<div id="chart-div4" style = "width:750px;height:400px;float:left;"></div>
