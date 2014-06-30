@@ -13,9 +13,9 @@ def try_anom():
 	deridtc = anomly.DetrivativeDetector('static/orig/'+metric_name)
 	emadtc = anomly.expAvgDetector('static/orig/'+metric_name)
 	
-	bitmapdtc_rst = bitmapdtc.generate_anom_data('bitmap'+metric_name)
-	deridtc_rst = deridtc.generate_anom_data('deri'+metric_name)
-	emadtc_rst = emadtc.generate_anom_data('ema'+metric_name)
+	bitmapdtc_rst = bitmapdtc.set_anom_data('bitmap'+metric_name)
+	deridtc_rst = deridtc.set_anom_data('deri'+metric_name)
+	emadtc_rst = emadtc.set_anom_data('ema'+metric_name)
 
 	rsts = {
 			'bitmap': bitmapdtc_rst,

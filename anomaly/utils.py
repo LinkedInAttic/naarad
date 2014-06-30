@@ -14,7 +14,6 @@ def read_data(csv_name):
 			try:
 				row[1] = float(row[1])
 				data.append(row)
-
 			#ignore if value is NaN
 			except ValueError:
 				pass
@@ -41,14 +40,11 @@ def computer_ema(smoothing_factor, points):
 	compute exponential moving average of a list of points
 	'''
 	ema  = list()
-
 	#the initial point has a ema equal to itself
 	if(len(points) > 0):
 		ema.append(points[0])
-
 	for i in xrange(1, len(points)):
 		ema.append(smoothing_factor*points[i]+(1-smoothing_factor)*ema[i-1])
-
 	return ema
 
 def parse_timestamp_str(t_str):
@@ -59,5 +55,4 @@ def parse_timestamp_str(t_str):
 		t = datetime.strptime(t_str, "%Y-%m-%d %H:%M:%S.%f")
 	except:
 		t = datetime.strptime(t_str, "%Y-%m-%d %H:%M:%S")
-
 	return t
