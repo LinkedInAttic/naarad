@@ -213,12 +213,21 @@ class JmeterMetric(Metric):
     line_regex = re.compile(r' (lb|ts|t|by|s)="([^"]+)"')
     for input_file in self.infile_list:
       logger.info('Processing : %s', input_file)
+      timestamp_format = None
       with open(input_file) as infile:
         for line in infile:
           if '<httpSample' not in line and '<sample' not in line:
             continue
           line_data = dict(re.findall(line_regex, line))
-          aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(line_data['ts'], granularity)
+          if not timestamp_format or timestamp_format == 'unknown':
+            timestamp_format = naarad.utils.detect_timestamp_format(line_data['ts'])
+          if timestamp_format == 'unknown':
+            continue
+          ts = naarad.utils.get_standardized_timestamp(line_data['ts'], timestamp_format)
+          if ts == -1:
+            continue
+          ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
+          aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(ts, granularity)
           self.aggregate_count_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], aggregate_timestamp)
           self.aggregate_values_over_time(processed_data, line_data, [line_data['lb'], 'Overall_Summary'], ['t', 'by'], aggregate_timestamp)
         logger.info('Finished parsing : %s', input_file)
