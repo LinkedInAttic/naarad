@@ -584,6 +584,8 @@ def calculate_stats(data_list, stats_to_calculate = ['mean', 'std'], percentiles
       }
   calculated_stats = {}
   calculated_percentiles = {}
+  if len(data_list) == 0:
+    return calculated_stats, calculated_percentiles
   for stat in stats_to_calculate:
     if stat in stats_to_numpy_method_map.keys():
       calculated_stats[stat] = stats_to_numpy_method_map[stat](data_list)
