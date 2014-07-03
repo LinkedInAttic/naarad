@@ -15,6 +15,7 @@ import naarad.utils
 import naarad.httpdownload
 import naarad.naarad_constants as CONSTANTS
 import datetime
+import heapq
 
 logger = logging.getLogger('naarad.metrics.metric')
 
@@ -313,9 +314,13 @@ class Metric(object):
     percentiles_to_calculate = range(0, 100, 1)  # TODO: get input from user
     for column, groups_store in metric_store.items():
       for group, time_store in groups_store.items():
+        data = metric_store[column][group].values()
         if self.groupby:
           column = group + '.' + column
-        self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(metric_store[column][group].values(), stats_to_calculate, percentiles_to_calculate)
+        if column.startswith('qps'):
+          self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
+        else:
+          self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(list(heapq.merge(*data)), stats_to_calculate, percentiles_to_calculate)
 
   def calculate_stats(self):
     stats_to_calculate = ['mean', 'std', 'min', 'max']  # TODO: get input from user
