@@ -15,7 +15,6 @@ import naarad.utils
 import naarad.httpdownload
 import naarad.naarad_constants as CONSTANTS
 import datetime
-import operator
 
 logger = logging.getLogger('naarad.metrics.metric')
 
@@ -314,10 +313,9 @@ class Metric(object):
     percentiles_to_calculate = range(0, 100, 1)  # TODO: get input from user
     for column, groups_store in metric_store.items():
       for group, time_store in groups_store.items():
-        data = reduce(operator.add, metric_store[column][group].values())
         if self.groupby:
           column = group + '.' + column
-        self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
+        self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(metric_store[column][group].values(), stats_to_calculate, percentiles_to_calculate)
 
   def calculate_stats(self):
     stats_to_calculate = ['mean', 'std', 'min', 'max']  # TODO: get input from user
