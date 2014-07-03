@@ -321,6 +321,7 @@ class Metric(object):
           self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
         else:
           self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(list(heapq.merge(*data)), stats_to_calculate, percentiles_to_calculate)
+        self.update_summary_stats(column)
 
   def calculate_stats(self):
     stats_to_calculate = ['mean', 'std', 'min', 'max']  # TODO: get input from user
