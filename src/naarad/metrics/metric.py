@@ -14,6 +14,8 @@ from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
 import naarad.httpdownload
 import naarad.naarad_constants as CONSTANTS
+import datetime
+import operator
 
 logger = logging.getLogger('naarad.metrics.metric')
 
@@ -58,6 +60,7 @@ class Metric(object):
     self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
     self.groupby = None
     self.summary_charts = []
+    self.aggregation_granularity = 'second'
     # Leave the flag here for the future use to control summary page
     self.summary_html_content_enabled = True
     for (key, val) in rule_strings.iteritems():
@@ -165,13 +168,88 @@ class Metric(object):
       else:
         self.summary_stats[column][stat] = naarad.utils.normalize_float_for_display(self.calculated_stats[column][stat])
 
+  def get_aggregation_timestamp(self, timestamp, granularity='second'):
+    """
+    Return a timestamp from the raw epoch time based on the granularity preferences passed in.
+
+    :param string timestamp: timestamp from the log line
+    :param string granularity: aggregation granularity used for plots.
+    :return: string aggregate_timestamp: timestamp used for metrics aggregation in all functions
+    """
+    if granularity == 'hour':
+      return naarad.utils.reconcile_timezones(datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000), 'UTC', self.graph_timezone).strftime('%Y-%m-%d %H') + ':00:00', 3600
+    elif granularity == 'minute':
+      return naarad.utils.reconcile_timezones(datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000), 'UTC', self.graph_timezone).strftime('%Y-%m-%d %H:%M') + ':00', 60
+    else:
+      return naarad.utils.reconcile_timezones(datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000), 'UTC', self.graph_timezone).strftime('%Y-%m-%d %H:%M:%S'), 1
+
+  def aggregate_count_over_time(self, metric_store, groupby_name, aggregate_timestamp):
+    """
+    Organize and store the count of data from the log line into the metric store by columnm, group name, timestamp
+
+    :param dict metric_store: The metric store used to store all the parsed the log data
+    :param string groupby_name: the group name that the log line belongs to
+    :param string aggregate_timestamp: timestamp used for storing the raw data. This accounts for aggregation time period
+    :return: None
+    """
+    all_qps = metric_store['qps']
+    qps = all_qps[groupby_name]
+    if aggregate_timestamp in qps:
+      qps[aggregate_timestamp] += 1
+    else:
+      qps[aggregate_timestamp] = 1
+    return None
+
+  def aggregate_values_over_time(self, metric_store, data, groupby_name, column_name, aggregate_timestamp):
+    """
+    Organize and store the data from the log line into the metric store by metric type, transaction, timestamp
+
+    :param dict metric_store: The metric store used to store all the parsed log data
+    :param string data: column data in the log line
+    :param string groupby_name: the group that the data belongs to
+    :param string column_name: the column name of the data
+    :param string aggregate_timestamp: timestamp used for storing the raw data. This accounts for aggregation time period
+    :return: None
+    """
+    # To add overall_summary one
+    if self.groupby:
+      metric_data = reduce(defaultdict.__getitem__, [column_name, 'Overall_summary', aggregate_timestamp], metric_store)
+      metric_data.append(float(data))
+    metric_data = reduce(defaultdict.__getitem__, [column_name, groupby_name, aggregate_timestamp], metric_store)
+    metric_data.append(float(data))
+    return None
+
+  def average_values_for_plot(self, metric_store, data, averaging_factor):
+    """
+    Create the time series for the various metrics, averaged over the aggregation period being used for plots
+
+    :param dict metric_store: The metric store used to store all the parsed log data
+    :param dict data: Dict with all the metric data to be output to csv
+    :param float averaging_factor: averaging factor to be used for calculating the average per second metrics
+    :return: None
+    """
+    for column, groups_store in metric_store.items():
+      for group, time_store in groups_store.items():
+        for time_stamp, column_data in sorted(time_store.items()):
+          if column in ['qps']:
+            if self.groupby:
+              data[self.get_csv(column, group)].append(','.join([time_stamp, str(column_data/float(averaging_factor))]))
+            else:
+              data[self.get_csv(column)].append(','.join([time_stamp, str(column_data/float(averaging_factor))]))
+          else:
+            if self.groupby:
+              data[self.get_csv(column, group)].append(','.join([time_stamp, str(sum(map(float, column_data))/float(len(column_data)))]))
+            else:
+              data[self.get_csv(column)].append(','.join([time_stamp, str(sum(map(float, column_data))/float(len(column_data)))]))
+    return None
+
   def parse(self):
-    qps = defaultdict(int)
+    processed_data = defaultdict(lambda : defaultdict(lambda : defaultdict(list)))
+    data = defaultdict(list)
     groupby_idxes = None
+    averaging_factor = None
     if self.groupby:
       groupby_idxes = self.get_groupby_indexes(self.groupby)
-    data = defaultdict(list)
-    aggregate_data = defaultdict(list)
     for input_file in self.infile_list:
       logger.info("Working on " + input_file)
       timestamp_format = None
@@ -196,7 +274,6 @@ class Metric(object):
           ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
           if self.ts_out_of_range(ts):
             continue
-          qps[ts.split('.')[0]] += 1
           if self.groupby:
             groupby_names = None
             for index in groupby_idxes:
@@ -204,40 +281,43 @@ class Metric(object):
                 groupby_names = words[index].rstrip(':')
               else:
                 groupby_names += '.' + words[index].rstrip(':')
+            aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(ts, self.aggregation_granularity)
+            self.aggregate_count_over_time(processed_data, groupby_names, aggregate_timestamp)
             for i in range(len(self.columns)):
               if i+1 in groupby_idxes:
                 continue
               else:
-                out_csv = self.get_csv(self.columns[i], groupby_names)
-                data[out_csv].append(ts + ',' + words[i+1])
-                out_csv = self.get_csv(self.columns[i], 'Overall_Summary')
-                aggregate_data[out_csv].append((ts, words[i+1]))
+                self.aggregate_values_over_time(processed_data, words[i+1], groupby_names, self.columns[i], aggregate_timestamp)
           else:
+            groupby_names = 'DEFAULT'
+            aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(ts, self.aggregation_granularity)
+            self.aggregate_count_over_time(processed_data, groupby_names, aggregate_timestamp)
             for i in range(len(self.columns)):
-              out_csv = self.get_csv(self.columns[i])
-              if out_csv in data:
-                data[out_csv].append(ts + ',' + words[i+1])
-              else:
-                data[out_csv] = []
-                data[out_csv].append(ts + ',' + words[i+1])
+              self.aggregate_values_over_time(processed_data, words[i+1], groupby_names, self.columns[i], aggregate_timestamp)
     # Post processing, putting data in csv files
-    data[self.get_csv('qps')] = map(lambda x: x[0] + ',' + str(x[1]), sorted(qps.items()))
+    self.average_values_for_plot(processed_data, data, averaging_factor)
     for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:
         fh.write('\n'.join(sorted(data[csv])))
-    if self.groupby:
-      for csv in aggregate_data.keys():
-        new_data = defaultdict(float)
-        for timestamp, value in aggregate_data[csv]:
-          new_data[timestamp] += float(value)
-        aggregate_data[csv] = []
-        for ts, value in sorted(new_data.items()):
-          aggregate_data[csv].append(str(ts) + ',' + str(value))
-        self.csv_files.append(csv)
-        with open(csv, 'w') as fh:
-          fh.write('\n'.join(sorted(aggregate_data[csv])))
+    self.calc_key_stats(processed_data)
     return True
+
+  def calc_key_stats(self, metric_store):
+    """
+    Calculate stats such as percentile and mean
+
+    :param dict metric_store: The metric store used to store all the parsed log data
+    :return: None
+    """
+    stats_to_calculate = ['mean', 'std', 'min', 'max']  # TODO: get input from user
+    percentiles_to_calculate = range(0, 100, 1)  # TODO: get input from user
+    for column, groups_store in metric_store.items():
+      for group, time_store in groups_store.items():
+        data = reduce(operator.add, metric_store[column][group].values())
+        if self.groupby:
+          column = group + '.' + column
+        self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
 
   def calculate_stats(self):
     stats_to_calculate = ['mean', 'std', 'min', 'max']  # TODO: get input from user
@@ -248,50 +328,22 @@ class Metric(object):
     imp_metric_stats_present = False  
     metric_stats_present = False
     logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
-    with open(metric_stats_csv_file, 'w') as FH_W:
-      with open(imp_metric_stats_csv_file, 'w') as FH_W_IMP:
-        for csv_file in self.csv_files:
-          data = []
-          value_error = False
-          if not os.path.getsize(csv_file):
-            continue
-          column = self.csv_column_map[csv_file]
-          percentile_csv_file = self.get_percentiles_csv_from_data_csv(csv_file)
-          with open(csv_file, 'r') as FH:
-            for line in FH:
-              words = line.split(',')
-              try:
-                data.append(float(words[1]))
-              except ValueError:
-                if not value_error:
-                  logger.error("Cannot convert to float. Some data is ignored in file " + csv_file)
-                  value_error = True
-                continue
-          self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
-          
-          with open(percentile_csv_file, 'w') as FH_P:
-            for percentile in sorted(self.calculated_percentiles[column].iterkeys()):
-              FH_P.write("%d, %f\n" % (percentile, self.calculated_percentiles[column][percentile]))
-          self.percentiles_files.append(percentile_csv_file)
-          self.update_summary_stats(column)
-          to_write = [column, self.calculated_stats[column]['mean'], self.calculated_stats[column]['std'], self.calculated_percentiles[column][50], self.calculated_percentiles[column][75], self.calculated_percentiles[column][90], self.calculated_percentiles[column][95], self.calculated_percentiles[column][99], self.calculated_stats[column]['min'], self.calculated_stats[column]['max']]
-          to_write = map(lambda x: naarad.utils.normalize_float_for_display(x), to_write)
-          if not metric_stats_present:
-            metric_stats_present = True
-            FH_W.write(headers)
-          FH_W.write(','.join(to_write) + '\n') 
-          # Important sub-metrics and their stats go in imp_metric_stats_csv_file
-          sub_metric = column
-          if self.metric_type in self.device_types:
-            sub_metric = column.split('.')[1]
-          if self.check_important_sub_metrics(sub_metric):
-            if not imp_metric_stats_present:
-              FH_W_IMP.write(headers)
-              imp_metric_stats_present = True
-            FH_W_IMP.write(','.join(to_write) + '\n')
-        if imp_metric_stats_present:
-          self.important_stats_files.append(imp_metric_stats_csv_file)
+    with open(metric_stats_csv_file,'w') as FH:
+      FH.write(headers)
+      for sub_metric in self.calculated_stats:
+        percentile_data = self.calculated_percentiles[sub_metric]
+        stats_data = self.calculated_stats[sub_metric]
+        csv_data = ','.join([sub_metric,str(round(stats_data['mean'], 2)),str(round(stats_data['std'], 2)),str(round(percentile_data[50], 2)),str(round(percentile_data[75], 2)),str(round(percentile_data[90], 2)),str(round(percentile_data[95], 2)),str(round(percentile_data[99], 2)),str(round(stats_data['min'], 2)),str(round(stats_data['max'], 2))])
+        FH.write(csv_data + '\n')
       self.stats_files.append(metric_stats_csv_file)
+    for column in self.calculated_percentiles:
+      csv_file = self.column_csv_map[column]
+      percentiles_csv_file = self.get_percentiles_csv_from_data_csv(csv_file)
+      percentile_data = self.calculated_percentiles[column]
+      with open(percentiles_csv_file,'w') as FH:
+        for percentile in sorted(percentile_data):
+          FH.write(str(percentile) + ',' + str(round(percentile_data[percentile],2)) + '\n')
+        self.percentiles_files.append(percentiles_csv_file)
 
   def calc(self):
     if not self.calc_metrics:
