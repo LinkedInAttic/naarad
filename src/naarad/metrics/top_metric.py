@@ -42,7 +42,7 @@ class TopMetric(Metric):
     Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings, important_sub_metrics, )
     
-    #allow user to specify interested processes; in the format of 'PID=11 22' and 'COMMAND=firefox top'
+    #Allow user to specify interested processes; in the format of 'PID=11 22' and 'COMMAND=firefox top'
     #It will search for any processes that match the PIDs listed or the commands listed. It's not an intersection of the PIDs and commands.
     self.PID = []
     self.COMMAND = []
