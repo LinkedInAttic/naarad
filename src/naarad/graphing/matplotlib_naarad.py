@@ -100,7 +100,7 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
     current_axis.set_ylabel(plot.y_label, color=get_current_color(current_plot_count), fontsize=CONSTANTS.Y_LABEL_FONTSIZE)
     current_axis.set_ylim([minimum_yvalue, maximum_yvalue])
     if plot.graph_type == 'line':
-      current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count),linewidth=3)
+      current_axis.plot_date(x=timestamp, y=yval, linestyle='-', marker=None, color=get_current_color(current_plot_count))
     else:
       current_axis.plot_date(x=timestamp, y=yval, marker='.', color=get_current_color(current_plot_count))
     y_ticks = current_axis.get_yticklabels()
