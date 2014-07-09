@@ -12,7 +12,7 @@ def sanity_check(a, b):
   :param b: timeseries b
   """
   if len(a) < 2 or len(b) < 2:
-    raise Exception("Correlator: Too few data points!")
+    raise Exception("RCA.correlator: Too few data points!")
 
 def cross_correlate(a,b, max_shift_seconds=None):
   """
@@ -58,6 +58,7 @@ def cross_correlate(a,b, max_shift_seconds=None):
   return {
     'coefficients':correlations,
     'max': max_correlation
+
   }
 
 def correlate(a, b):

@@ -4,6 +4,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from correlator import *
+from algorithm.algorithms import *
 
 class TestCorrelator(unittest.TestCase):
 
@@ -23,6 +24,16 @@ class TestCorrelator(unittest.TestCase):
 
 	def test_sanity_check(self):
 		self.assertRaises(Exception, sanity_check, (list(), [1]))
+
+	def test_Ten_percent(self):
+		r = Ten_percent(self.s1)
+		self.assertEqual(True, len(r)==1)
+		self.assertEqual(4, r[0][0])
+		self.assertEqual(7, r[0][1])
+		self.assertEqual(5, r[0][3])
+
+	def test_Bitmap(self):
+		self.assertRaises(Exception, Bitmap, self.s1)
 
 if __name__ == '__main__':
 	unittest.main()
