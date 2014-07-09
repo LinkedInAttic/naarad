@@ -38,6 +38,29 @@ def to_epoch(t_str):
       return float(t_str)
   return t
 
+def nomalize_timeseries(ts):
+  """
+  normalize a timeseries
+  :param list ts: a timeseries
+  :return list: the normalized timeseries
+  """
+  v_max = max(get_values(ts))
+  r = list()
+  for [t, v] in ts:
+    r.append([t, float(v/v_max)])
+  return r
+
+def to_epoch_ts(ts):
+  """
+  covert a timeseries to epoch timeseries
+  :param list ts: a timeseries
+  :return list: an epoch timeseries
+  """
+  r = list()
+  for [t, v] in ts:
+    r.append([to_epoch(t), v])
+  return r
+
 def filter_data(data, start_t, end_t):
   """
   filter a timeseries using a start time and an end time

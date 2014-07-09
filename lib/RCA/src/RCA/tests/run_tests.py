@@ -12,18 +12,20 @@ class TestCorrelator(unittest.TestCase):
 		self.s1 = [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0.5], [5, 1], [6, 1], [7, 1], [8, 0]]
 		self.s2 = [[0, 0], [1, 0.5], [2, 1], [3, 1], [4, 1], [5, 0], [6, 0], [7, 0], [8, 0]]
 		self.s3 = self.s2[:6]
+		self.correlator1 = correlator(self.s1, self.s2)
+		self.correlator2 = correlator(self.s1, self.s3)
 
 	def test_cross_correlation(self):
-		self.assertEqual(cross_correlate(self.s1, self.s2), cross_correlate(self.s1, self.s3))
+		self.assertEqual(self.correlator1.correlate(), self.correlator2.correlate())
 
 	def test_correlation(self):
-		self.assertEqual(correlate(self.s1, self.s2), cross_correlate(self.s1, self.s2)['max'][1])
+		self.assertEqual(self.correlator1.correlate(), self.correlator2.cross_correlate()['coefficient'])
 
 	def test_if_correlate(self):
-		self.assertEqual(True, if_correlate(self.s1,self.s3))
+		self.assertEqual(True, self.correlator2.is_correlated() != None)
 
 	def test_sanity_check(self):
-		self.assertRaises(Exception, sanity_check, (list(), [1]))
+		self.assertRaises(Exception, self.correlator1.sanity_check, (list(), [1]))
 
 	def test_Ten_percent(self):
 		r = Ten_percent(self.s1)
@@ -36,4 +38,4 @@ class TestCorrelator(unittest.TestCase):
 		self.assertRaises(Exception, Bitmap, self.s1)
 
 if __name__ == '__main__':
-	unittest.main()
+  unittest.main()
