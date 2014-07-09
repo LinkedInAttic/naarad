@@ -9,14 +9,15 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-
+from collections import defaultdict
 import datetime
-import numpy
+import gc
 import os
 import re
 import logging
-import gc
-from collections import defaultdict
+
+import numpy
+
 from naarad.metrics.metric import Metric
 import naarad.utils
 
@@ -88,16 +89,17 @@ class TopMetric(Metric):
       'swap_cached' : 'total swap cache in GB',
      }
 
-  def put_value_into_data(self, col, value):
+  def put_values_into_data(self, values):
     """
-    Append the 'value' into 'col' in self.data[]
+    Take the (col, value) in 'values', append value into 'col' in self.data[]
     """
-    if col in self.column_csv_map:
-      out_csv = self.column_csv_map[col]
-    else:
-      out_csv = self.get_csv(col)   # column_csv_map[] is assigned in get_csv()
-      self.data[out_csv] = []
-    self.data[out_csv].append(self.ts + "," + value)
+    for col, value in values.items():
+      if col in self.column_csv_map:
+        out_csv = self.column_csv_map[col]
+      else:
+        out_csv = self.get_csv(col)   # column_csv_map[] is assigned in get_csv()
+        self.data[out_csv] = []
+      self.data[out_csv].append(self.ts + "," + value)
 
   def process_top_line(self, words):
     """
@@ -110,34 +112,40 @@ class TopMetric(Metric):
     up_minutes = int(up_hour_minute[0]) * 60 + int(up_hour_minute[1].split(',')[0])
     uptime_minute = up_days * 24 * 60   + up_minutes  # Converting days to minutes
 
-    self.put_value_into_data('uptime_minute', str(uptime_minute))
-    self.put_value_into_data('num_users', words[7])
-    self.put_value_into_data('load_aver_1_minute', words[11][:-1])
-    self.put_value_into_data('load_aver_5_minute', words[12][:-1])
-    self.put_value_into_data('load_aver_15_minute', words[13])
+    values = defaultdict()
+    values['uptime_minute'] = str(uptime_minute)
+    values['num_users'] = words[7]
+    values['load_aver_1_minute'] = words[11][:-1]
+    values['load_aver_5_minute'] = words[12][:-1]
+    values['load_aver_15_minute'] = words[13]
+    self.put_values_into_data(values)
 
   def process_tasks_line(self,words):
     """
     Process the line starting with "Tasks:"
     """
-    self.put_value_into_data('tasks_total', words[1])
-    self.put_value_into_data('tasks_running', words[3])
-    self.put_value_into_data('tasks_sleeping', words[5])
-    self.put_value_into_data('tasks_stopped', words[7])
-    self.put_value_into_data('tasks_zombie', words[9])
+    values = defaultdict()
+    values['tasks_total'] = words[1]
+    values['tasks_running'] = words[3]
+    values['tasks_sleeping'] = words[5]
+    values['tasks_stopped'] = words[7]
+    values['tasks_zombie'] = words[9]
+    self.put_values_into_data(values)
 
   def process_cpu_line(self, words):
     """
     Process the line starting with "Cpu(s):"
     """
-    self.put_value_into_data('cpu_us', words[1].split('%')[0])
-    self.put_value_into_data('cpu_sy', words[2].split('%')[0])
-    self.put_value_into_data('cpu_ni', words[3].split('%')[0])
-    self.put_value_into_data('cpu_id', words[4].split('%')[0])
-    self.put_value_into_data('cpu_wa', words[5].split('%')[0])
-    self.put_value_into_data('cpu_hi', words[6].split('%')[0])
-    self.put_value_into_data('cpu_si', words[7].split('%')[0])
-    self.put_value_into_data('cpu_st', words[8].split('%')[0])
+    values = defaultdict()
+    values['cpu_us'] = words[1].split('%')[0]
+    values['cpu_us'] = words[2].split('%')[0]
+    values['cpu_us'] = words[3].split('%')[0]
+    values['cpu_us'] = words[4].split('%')[0]
+    values['cpu_us'] = words[5].split('%')[0]
+    values['cpu_us'] = words[6].split('%')[0]
+    values['cpu_us'] = words[7].split('%')[0]
+    values['cpu_us'] = words[8].split('%')[0]
+    self.put_values_into_data(values)
 
   def convert_to_G(self, word):
     """
@@ -163,10 +171,13 @@ class TopMetric(Metric):
     mem_used = self.convert_to_G(words[3])
     mem_free = self.convert_to_G(words[5])
     mem_buffers = self.convert_to_G(words[7])
-    self.put_value_into_data('mem_total', mem_total)
-    self.put_value_into_data('mem_used', mem_used)
-    self.put_value_into_data('mem_free', mem_free)
-    self.put_value_into_data('mem_buffers', mem_buffers)
+
+    values = defaultdict()
+    values['mem_total'] = mem_total
+    values['mem_used'] = mem_used
+    values['mem_free'] = mem_free
+    values['mem_buffers'] = mem_buffers
+    self.put_values_into_data(values)
 
   def process_swap_line(self, words):
     """
@@ -177,10 +188,13 @@ class TopMetric(Metric):
     swap_used = self.convert_to_G(words[3])
     swap_free = self.convert_to_G(words[5])
     swap_cached = self.convert_to_G(words[7])
-    self.put_value_into_data('swap_total', swap_total)
-    self.put_value_into_data('swap_used', swap_used)
-    self.put_value_into_data('swap_free', swap_free)
-    self.put_value_into_data('swap_cached', swap_cached)
+
+    values = defaultdict()
+    values['swap_total'] = swap_total
+    values['swap_used'] = swap_used
+    values['swap_free'] = swap_free
+    values['swap_cached'] = swap_cached
+    self.put_values_into_data(values)
 
   def process_individual_command(self, words):
     """
@@ -195,17 +209,20 @@ class TopMetric(Metric):
     process = words[11]
     if pid in self.PID or process in self.COMMAND:
       process_name = process.split('/')[0]
-      self.put_value_into_data(process_name + '_' + pid + '_' + 'PR', words[2])
-      self.put_value_into_data(process_name + '_' + pid + '_' + 'NI', words[3])
-      self.put_value_into_data(process_name + '_' + pid + '_' + 'VIRT', self.convert_to_G(words[4]))
-      self.put_value_into_data(process_name + '_' + pid + '_' + 'RES', self.convert_to_G(words[5]))
-      self.put_value_into_data(process_name + '_' + pid + '_' + 'SHR', self.convert_to_G(words[6]))
-      self.put_value_into_data(process_name + '_' + pid + '_' + 'CPU', words[8])
-      self.put_value_into_data(process_name + '_' + pid + '_' + 'MEM', words[9])
+
+      values = defaultdict()
+      values[process_name + '_' + pid + '_' + 'PR'] = words[2]
+      values[process_name + '_' + pid + '_' + 'NI'] = words[3]
+      values[process_name + '_' + pid + '_' + 'VIRT'] = self.convert_to_G(words[4])
+      values[process_name + '_' + pid + '_' + 'RES'] = self.convert_to_G(words[5])
+      values[process_name + '_' + pid + '_' + 'SHR'] = self.convert_to_G(words[6])
+      values[process_name + '_' + pid + '_' + 'CPU'] = words[8]
+      values[process_name + '_' + pid + '_' + 'MEM'] = words[9]
 
       uptime = words[10].split(':')
       uptime_sec = float(uptime[0]) * 60  + float(uptime[1])
-      self.put_value_into_data(process_name + '_' + pid + '_' + 'TIME', str(uptime_sec) )
+      values[process_name + '_' + pid + '_' + 'TIME'] = str(uptime_sec)
+      self.put_values_into_data(values)
 
   def parse(self):
     """
