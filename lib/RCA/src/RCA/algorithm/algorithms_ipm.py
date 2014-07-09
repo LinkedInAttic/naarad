@@ -1,13 +1,12 @@
 import math
-import scipy
-import numpy
-import sys
 import os
+import sys
 import time
+import numpy
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import utils
-import setting
+import settings
 
 class expAvgDetector(object):
   """
@@ -24,7 +23,7 @@ class expAvgDetector(object):
     """
     self.data = data
     self.data_length = len(data)
-    self.smoothing_factor = smoothing_factor if smoothing_factor > 0 else setting.DEFAULT_EMA_SMOTHING_FACTOR
+    self.smoothing_factor = smoothing_factor if smoothing_factor > 0 else settings.DEFAULT_EMA_SMOTHING_FACTOR
     self.lag_window_size = lag_window_size if lag_window_size else int(self.data_length*0.2)
 
   def _compute_anom_score(self, lag_window_points, point):
@@ -89,9 +88,9 @@ class BitmapDetector(object):
     self.data = data
     self.data_length = len(data)
     self.precision = precision if precision and precision > 0 else 4
-    self.lag_window_size = lag_window_size if lag_window_size else int(self.data_length*setting.DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT)
-    self.chunk_size = chunk_size if chunk_size and chunk_size > 0 else setting.DEFAULT_BITMAP_CHUNK_SIZE
-    self.future_window_size = future_window_size if future_window_size else self.data_length*setting.DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT
+    self.lag_window_size = lag_window_size if lag_window_size else int(self.data_length*settings.DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT)
+    self.chunk_size = chunk_size if chunk_size and chunk_size > 0 else settings.DEFAULT_BITMAP_CHUNK_SIZE
+    self.future_window_size = future_window_size if future_window_size else self.data_length*settings.DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT
     self.sanity_check()
 
   def sanity_check(self):
@@ -126,15 +125,15 @@ class BitmapDetector(object):
     value_max = sys.float_info.min
     sections = dict()
     sax = str()
-    #set global min and global max
+    # set global min and global max
     points = utils.get_values(self.data)
     self.data_min = min(points)
     self.data_max = max(points)
-    #break data value range into different sections
+    # break data value range into different sections
     section_height = (self.data_max - self.data_min)/self.precision
     for s in range(0,self.precision):
       sections[s] = value_min+s*section_height
-    #generate SAX for each data point
+    # generate SAX for each data point
     for entry in self.data:
       sax += str(self._generate_SAX_single(sections, section_height, entry[1]))
     self.sax = sax
@@ -222,7 +221,7 @@ class DetrivativeDetector(object):
     for (i, [timestamp, value]) in enumerate(self.data):
       if i > 0:
         pre_point = self.data[i-1]
-        #compute derivative
+        # compute derivative
         t1 = utils.to_epoch(timestamp)
         t2 = utils.to_epoch(pre_point[0])
         v1 = value
@@ -232,7 +231,7 @@ class DetrivativeDetector(object):
         df = (v2-v1)/td_seconds if td_seconds != 0 else v2-v1
         deriv.append(df)
       else:
-        #the last point is assigned the same derivative as the second-last point
+        # the last point is assigned the same derivative as the second-last point
         deriv.append(deriv[-1])
     self.deriv = deriv
 

@@ -2,8 +2,8 @@
 Utilities for luminol
 """
 import csv
-import sys
 from datetime import datetime
+import sys
 import time
 
 def read_csv(csv_name):
@@ -150,7 +150,7 @@ def computer_ema(smoothing_factor, points):
   :return list: all ema in an array
   '''
   ema  = list()
-  #the initial point has a ema equal to itself
+  # the initial point has a ema equal to itself
   if(len(points) > 0):
     ema.append(points[0])
   for i in range(1, len(points)):

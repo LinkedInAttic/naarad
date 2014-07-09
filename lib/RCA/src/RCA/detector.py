@@ -1,7 +1,7 @@
 """
 API for Anomaly Detection Module
 """
-import setting
+import settings
 from algorithm import *
 import utils
 
@@ -48,17 +48,17 @@ class detector(object):
     """
     if use_baseline:
       if self.baseline:
-        #To-Do(Yarong):algorithms to use baseline/could be applied as a filter on top of the original one
+        # To-Do(Yarong):algorithms to use baseline/could be applied as a filter on top of the original one
         pass
       else:
         raise Exception("RCA.detector: baseline timeseries not loaded!")
     else:
-      alg = getattr(algorithm, setting.ANOMALY_SCORE_ALGORITHM)
+      alg = getattr(algorithm, settings.ANOMALY_SCORE_ALGORITHM)
       try:
         self.anom_scores = alg(self.data)
       except:
         self.anom_scores = Ema(self.data)
-      alg = getattr(algorithm, setting.ANOMALY_IDENTIFY_ALGORITHM)
+      alg = getattr(algorithm, settings.ANOMALY_IDENTIFY_ALGORITHM)
       self.anomalies = alg(self.anom_scores)
     return True if self.anomalies else False
 

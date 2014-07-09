@@ -2,9 +2,8 @@
 API for Correlation Module
 """
 import numpy
-from setting import *
+from settings import *
 import utils
-
 
 class correlator(object):
   def __init__(self, a, b):
@@ -48,7 +47,7 @@ class correlator(object):
     denom = a_stdev*b_stdev*n
     if not max_shift_seconds:
       max_shift_seconds = DEFAULT_ALLOWED_SHIFT_SECONDS
-    #estimate shift_room
+    # estimate shift_room
     shift_room = int(numpy.ceil(max_shift_seconds/(a[1][0]-a[0][0])))
     for delay in range(-shift_room, shift_room):
       s = 0
