@@ -24,7 +24,7 @@ mkdir -p $RESULT
 # EVERY 2 SECONDS
 #####################
 echo $t >> $RESULT/top.out &
-top -b -M -n $COUNT -d $INTERVAL | grep -A 40 '^top' >> $RESULT/top.out &
+top -b -n $COUNT -d $INTERVAL | grep -A 40 '^top' >> $RESULT/top.out &
 sar -B $INTERVAL $COUNT >> $RESULT/sar.paging.out &
 sar -d -p $INTERVAL $COUNT >> $RESULT/sar.device.out &
 sar -R $INTERVAL $COUNT >> $RESULT/sar.memory.out &
