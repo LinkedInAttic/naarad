@@ -31,7 +31,7 @@ def Ema(data):
   """
   a = algorithms_ipm.expAvgDetector(data)
   a.compute_anom_data_decay_all()
-  return a.get_anomaly_data
+  return a.get_anomaly_data()
 
 """
 Algorithms that identifies anomaly using anomaly scores
