@@ -333,13 +333,22 @@ class Metric(object):
     metric_stats_present = False
     logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
     with open(metric_stats_csv_file,'w') as FH:
-      FH.write(headers)
-      for sub_metric in self.calculated_stats:
-        percentile_data = self.calculated_percentiles[sub_metric]
-        stats_data = self.calculated_stats[sub_metric]
-        csv_data = ','.join([sub_metric,str(round(stats_data['mean'], 2)), str(round(stats_data['std'], 2)), str(round(percentile_data[50], 2)), str(round(percentile_data[75], 2)), str(round(percentile_data[90], 2)), str(round(percentile_data[95], 2)), str(round(percentile_data[99], 2)), str(round(stats_data['min'], 2)), str(round(stats_data['max'], 2))])
-        FH.write(csv_data + '\n')
-      self.stats_files.append(metric_stats_csv_file)
+      with open(imp_metric_stats_csv_file, 'w') as FH_IMP:
+        FH.write(headers)
+        FH_IMP.write(headers)
+        for sub_metric in self.calculated_stats:
+          percentile_data = self.calculated_percentiles[sub_metric]
+          stats_data = self.calculated_stats[sub_metric]
+          csv_data = ','.join([sub_metric,str(round(stats_data['mean'], 2)), \
+                               str(round(stats_data['std'], 2)), str(round(percentile_data[50], 2)), \
+                               str(round(percentile_data[75], 2)), str(round(percentile_data[90], 2)), \
+                               str(round(percentile_data[95], 2)), str(round(percentile_data[99], 2)), \
+                               str(round(stats_data['min'], 2)), str(round(stats_data['max'], 2))])
+          FH.write(csv_data + '\n')
+          if sub_metric in self.important_sub_metrics:
+            FH_IMP.write(csv_data + '\n')
+        self.stats_files.append(metric_stats_csv_file)
+        self.important_stats_files.append(imp_metric_stats_csv_file)
     for column in self.calculated_percentiles:
       csv_file = self.column_csv_map[column]
       percentiles_csv_file = self.get_percentiles_csv_from_data_csv(csv_file)
@@ -348,16 +357,6 @@ class Metric(object):
         for percentile in sorted(percentile_data):
           FH.write(str(percentile) + ',' + str(round(percentile_data[percentile],2)) + '\n')
         self.percentiles_files.append(percentiles_csv_file)
-    with open(imp_metric_stats_csv_file, 'w') as FH_IMP:
-      FH_IMP.write(headers)
-      for sub_metric in self.important_sub_metrics:
-        if sub_metric in self.calculated_stats.keys():
-          percentile_data = self.calculated_percentiles[sub_metric]
-          stats_data = self.calculated_stats[sub_metric]
-          csv_data = ','.join([sub_metric,str(round(stats_data['mean'], 2)), str(round(stats_data['std'], 2)), str(round(percentile_data[50], 2)), str(round(percentile_data[75], 2)), str(round(percentile_data[90], 2)), str(round(percentile_data[95], 2)), str(round(percentile_data[99], 2)), str(round(stats_data['min'], 2)), str(round(stats_data['max'], 2))])
-          FH_IMP.write(csv_data + '\n')
-      self.important_stats_files.append(imp_metric_stats_csv_file)
-
 
   def calc(self):
     if not self.calc_metrics:
