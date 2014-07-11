@@ -88,16 +88,17 @@ class BitmapDetector(object):
     self.data = data
     self.data_length = len(data)
     self.precision = precision if precision and precision > 0 else 4
-    self.lag_window_size = lag_window_size if lag_window_size else int(self.data_length*settings.DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT)
+    self.lag_window_size = lag_window_size if lag_window_size else int(self.data_length*settings.DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT)
     self.chunk_size = chunk_size if chunk_size and chunk_size > 0 else settings.DEFAULT_BITMAP_CHUNK_SIZE
-    self.future_window_size = future_window_size if future_window_size else self.data_length*settings.DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT
+    self.future_window_size = future_window_size if future_window_size else int(self.data_length*settings.DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT)
     self.sanity_check()
 
   def sanity_check(self):
     """
     check if there is enough data points
     """
-    if not self.lag_window_size or not self.future_window_size or self.data_length < self.lag_window_size + self.future_window_size:
+    windows = self.lag_window_size +  self.future_window_size
+    if not self.lag_window_size or not self.future_window_size or self.data_length < windows or windows < settings.BITMAP_MINIMAL_POINTS_IN_WINDOWS:
       raise Exception("RCA.detector:Not Enough Data Points!")
 
   def _generate_SAX_single(self, sections, section_height, value):
@@ -132,7 +133,7 @@ class BitmapDetector(object):
     # break data value range into different sections
     section_height = (self.data_max - self.data_min)/self.precision
     for s in range(0,self.precision):
-      sections[s] = value_min+s*section_height
+      sections[s] = self.data_min+s*section_height
     # generate SAX for each data point
     for entry in self.data:
       sax += str(self._generate_SAX_single(sections, section_height, entry[1]))

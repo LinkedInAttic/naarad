@@ -73,8 +73,6 @@ def filter_data(data, start_t, end_t):
   for [t, v] in data:
     if t >= start_t and t <= end_t:
       filtered.append([t, v])
-    elif t > end_t:
-      break
   return filtered
 
 def align_two_timeseries((s1, s2)):

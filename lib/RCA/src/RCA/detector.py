@@ -2,12 +2,12 @@
 API for Anomaly Detection Module
 """
 import settings
-from algorithm import *
+from algorithm import algorithms
 import utils
 
 class detector(object):
 
-  def __init__():
+  def __init__(self):
     """
     initializer
     """
@@ -16,13 +16,13 @@ class detector(object):
     self.baseline = None
     self.data = None
 
-  def load(data_or_data_path):
+  def load(self, data_or_data_path):
     """
     load data of interest into detector
     :param data_or_data_path: a python timeseries list(list) or a path to a csv file(str).
     :return: updated instance of Detector.
     """
-     if isinstance(data_or_data_path, list):
+    if isinstance(data_or_data_path, list):
       self.data = data
     else:
       self.data = utils.read_csv(data_or_data_path)
@@ -41,7 +41,7 @@ class detector(object):
       self.baseline = utils.read_csv(data_or_data_path)
     return self
 
-  def detect(max_anomalies=3,use_baseline=False):
+  def detect(self, use_baseline=False):
     """
     detect anomaly.
     :return: true if anomaly is found false otherwise
@@ -53,16 +53,16 @@ class detector(object):
       else:
         raise Exception("RCA.detector: baseline timeseries not loaded!")
     else:
-      alg = getattr(algorithm, settings.ANOMALY_SCORE_ALGORITHM)
+      alg = getattr(algorithms, settings.ANOMALY_SCORE_ALGORITHM)
       try:
         self.anom_scores = alg(self.data)
       except:
-        self.anom_scores = Ema(self.data)
-      alg = getattr(algorithm, settings.ANOMALY_IDENTIFY_ALGORITHM)
+        self.anom_scores = algorithms.Ema(self.data)
+      alg = getattr(algorithms, settings.ANOMALY_IDENTIFY_ALGORITHM)
       self.anomalies = alg(self.anom_scores)
     return True if self.anomalies else False
 
-  def get_anomaly():
+  def get_anomaly(self):
     """
     get the detected anomaly data.
     :return: a list of dic with the following info:

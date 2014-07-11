@@ -7,9 +7,15 @@ import utils
 
 class correlator(object):
   def __init__(self, a, b):
+    if isinstance(a, list):
+      self.a = a
+    else:
+      self.a = utils.read_csv(a)
+    if isinstance(b, list):
+      self.b = b
+    else:
+      self.b = utils.read_csv(b)
     self.sanity_check(a,b)
-    self.a = a
-    self.b = b
     self.coefficient = None
     self.correlations = None
 
@@ -28,7 +34,7 @@ class correlator(object):
     :param int max_shift_seconds: maximal allowed shift seconds when computing correlations
     :return dict: {
       'correlations':a list of correlation coefficient each corresponding to a certain shift
-      'coefficient': the max correlation can be reached [coefficient, delay]
+      'coefficient': the max correlation can be reached [delay, correlation coefficient]
     }
     """
     correlations = list()
@@ -79,7 +85,7 @@ class correlator(object):
 
   def is_correlated(self,threshold=None):
     """
-    get a Y/N answer weather two timeseries correlate
+    compare with a threshould to answer weather two timeseries correlate
     :param list a: timeseries a
     :param list b: timeseries b
     :return: [delay, correlations coefficient] if two series correlate otherwise false

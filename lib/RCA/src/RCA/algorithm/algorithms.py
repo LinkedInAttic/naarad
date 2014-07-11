@@ -61,6 +61,8 @@ def Ten_percent(data):
       itv.append([start_t, end_t])
       start_t = None
       end_t = None
+  if start_t:
+    itv.append([start_t, end_t])
   for p in itv:
     d = utils.filter_data(data, p[0], p[1])
     e = algorithms_ipm.expAvgDetector(d)

@@ -18,7 +18,10 @@ ANOMALY_IDENTIFY_ALGORITHM = 'Ten_percent'
 # window sizes as percents of the whole data length
 # advice to have a small leading window size
 DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT = 0.2/16
-DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT = 0.2
+
+DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT = 0.2/16
+
+BITMAP_MINIMAL_POINTS_IN_WINDOWS = 50
 
 # how large is the chunk
 # data points form chunks and frequencies of similar chunks are
