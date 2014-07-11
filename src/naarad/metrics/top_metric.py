@@ -15,13 +15,14 @@ import gc
 import os
 import re
 import logging
-
 import numpy
-
 from naarad.metrics.metric import Metric
 import naarad.utils
 
 logger = logging.getLogger('naarad.metrics.top_metric')
+
+# Minimum length of a valid process line in top output, 12 columns
+VALID_PROCESS_LINE = 12
 
 class TopMetric(Metric):
   """
@@ -43,8 +44,8 @@ class TopMetric(Metric):
     Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings, important_sub_metrics, )
 
-    #Allow user to specify interested processes; in the format of 'PID=11 22' and 'COMMAND=firefox top'
-    #It will search for any processes that match the PIDs listed or the commands listed. It's not an intersection of the PIDs and commands.
+    # Allow user to specify interested processes; in the format of 'PID=11 22' and 'COMMAND=firefox top'
+    # It will search for any processes that match the PIDs listed or the commands listed. It's not an intersection of the PIDs and commands.
     self.PID = []
     self.COMMAND = []
     for (key, val) in other_options.iteritems():
@@ -73,7 +74,7 @@ class TopMetric(Metric):
       'tasks_stopped' : 'processes stopped',
       'tasks_zombie' : 'zombies',
       'cpu_us' : 'cpu percentage of running user processes',
-      'cpu_sys' : 'cpu percentage of running system processes',
+      'cpu_sy' : 'cpu percentage of running system processes',
       'cpu_ni' : 'cpu percentage of running niced processes',
       'cpu_wa' : 'cpu percentage of waiting for IO',
       'cpu_hi' : 'cpu percentage of serving hardware IRQ',
@@ -104,6 +105,7 @@ class TopMetric(Metric):
   def process_top_line(self, words):
     """
     Process the line starting with "top"
+    Example log:   top - 00:00:02 up 32 days,  7:08, 19 users,  load average: 0.00, 0.00, 0.00
     """
     self.ts_time = words[2]
     self.ts = self.ts_date + ' ' + self.ts_time
@@ -123,6 +125,7 @@ class TopMetric(Metric):
   def process_tasks_line(self,words):
     """
     Process the line starting with "Tasks:"
+    Example log:   Tasks: 446 total,   1 running, 442 sleeping,   2 stopped,   1 zombie
     """
     values = defaultdict()
     values['tasks_total'] = words[1]
@@ -135,16 +138,17 @@ class TopMetric(Metric):
   def process_cpu_line(self, words):
     """
     Process the line starting with "Cpu(s):"
+    Example log: Cpu(s):  1.3%us,  0.5%sy,  0.0%ni, 98.2%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
     """
     values = defaultdict()
     values['cpu_us'] = words[1].split('%')[0]
-    values['cpu_us'] = words[2].split('%')[0]
-    values['cpu_us'] = words[3].split('%')[0]
-    values['cpu_us'] = words[4].split('%')[0]
-    values['cpu_us'] = words[5].split('%')[0]
-    values['cpu_us'] = words[6].split('%')[0]
-    values['cpu_us'] = words[7].split('%')[0]
-    values['cpu_us'] = words[8].split('%')[0]
+    values['cpu_sy'] = words[2].split('%')[0]
+    values['cpu_ni'] = words[3].split('%')[0]
+    values['cpu_id'] = words[4].split('%')[0]
+    values['cpu_wa'] = words[5].split('%')[0]
+    values['cpu_hi'] = words[6].split('%')[0]
+    values['cpu_si'] = words[7].split('%')[0]
+    values['cpu_st'] = words[8].split('%')[0]
     self.put_values_into_data(values)
 
   def convert_to_G(self, word):
@@ -165,6 +169,7 @@ class TopMetric(Metric):
   def process_mem_line(self, words):
     """
     Process the line starting with "Mem:"
+    Example log: Mem:    62.841G total,   16.038G used,   46.803G free,  650.312M buffers
     For each value, needs to convert to 'G' (needs to handle cases of K, M)
     """
     mem_total = self.convert_to_G(words[1])
@@ -262,10 +267,10 @@ class TopMetric(Metric):
           elif prefix_word == 'PID':
             self.saw_pid = True
           else:
-            if self.saw_pid and len(words) > 10: # Only valid process lines
+            if self.saw_pid and len(words) >= VALID_PROCESS_LINE: # Only valid process lines
               self.process_individual_command(words)
 
-    #putting data in csv files;
+    # Putting data in csv files;
     for out_csv in self.data.keys():    # All sub_metrics
       self.csv_files.append(out_csv)
       with open(out_csv, 'w') as fh:
