@@ -1,81 +1,62 @@
 """
-API for Anomaly Detection Module
+API for Detector Module
 """
 import settings
-from algorithm import algorithms
+from algorithm import detector_algorithms
 import utils
 
 class detector(object):
 
-  def __init__(self):
+  def __init__(self, data_or_data_path, base_data_or_data_path = None):
     """
     initializer
     """
+    self.data = self._load(data_or_data_path)
+    self.baseline = self._load(base_data_or_data_path)
     self.anomalies = None
-    self.anom_scores = None
-    self.baseline = None
-    self.data = None
+    self._detect()
 
-  def load(self, data_or_data_path):
+  def _load(self, data_or_data_path):
     """
     load data of interest into detector
     :param data_or_data_path: a python timeseries list(list) or a path to a csv file(str).
     :return: updated instance of Detector.
     """
+    if not data_or_data_path:
+      return None
     if isinstance(data_or_data_path, list):
-      self.data = data
+      return data_or_data_path
     else:
-      self.data = utils.read_csv(data_or_data_path)
-    return self
+      return utils.read_csv(data_or_data_path)
 
-  def load_baseline(data_or_data_path):
-    """
-    load a baseline time series into detector.
-    which will be used when conducting anomaly detection.
-    :param data_or_data_path: a python timeseries list(list) or a path to a csv file(str).
-    :return: updated instance of Detector.
-    """
-    if isinstance(data_or_data_path, list):
-      self.baseline = data
-    else:
-      self.baseline = utils.read_csv(data_or_data_path)
-    return self
-
-  def detect(self, use_baseline=False):
+  def _detect(self):
     """
     detect anomaly.
     :return: true if anomaly is found false otherwise
     """
-    if use_baseline:
-      if self.baseline:
-        # To-Do(Yarong):algorithms to use baseline/could be applied as a filter on top of the original one
-        pass
-      else:
-        raise Exception("RCA.detector: baseline timeseries not loaded!")
+    if self.baseline:
+      #To-Do(Yarong): algorithms to use baseline
+      pass
     else:
-      alg = getattr(algorithms, settings.ANOMALY_SCORE_ALGORITHM)
+      alg = getattr(detector_algorithms, settings.DETECTOR_ALGORITHM)
       try:
-        self.anom_scores = alg(self.data)
+        a = alg(self.data)
+        self.anomalies = a.run()
+        self.anom_scores = a.get_anom_scores()
       except:
-        self.anom_scores = algorithms.Ema(self.data)
-      alg = getattr(algorithms, settings.ANOMALY_IDENTIFY_ALGORITHM)
-      self.anomalies = alg(self.anom_scores)
+        a = detector_algorithms.expAvgDetector(self.data)
+        self.anomalies = a.run()
+        self.anom_scores = a.get_anom_scores()
     return True if self.anomalies else False
 
-  def get_anomaly(self):
+  def get_anomalies(self):
     """
     get the detected anomaly data.
-    :return: a list of dic with the following info:
-    {
-      str start_time: when this anomaly starts
-      str end_time:   when this anomaly ends
-      int score:      anomaly score(0-100)
-      str time_point: a timestamp indicating when the anomaly likely happened.
-    }
+    :return: a list of anomaly objects
     """
     return self.anomalies
 
-  def get_all_scores(csv=None):
+  def get_all_scores(self, csv=None):
     """
     get all the anomaly scores as a timeseries
     :param str csv: a path to a csv file will the scores should be written to.

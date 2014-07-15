@@ -8,10 +8,7 @@ Detector Settings
 # indicate which algorithms to use to calculate anomality scores
 # all the algorithm codes are in algorithm.algorithms
 # this settings are kept so later if there are better algorithms, they can be easily subsitituted.
-ANOMALY_SCORE_ALGORITHM = 'Bitmap'
-
-# indicates which algorithms to use to identify anomalities using anomality scores
-ANOMALY_IDENTIFY_ALGORITHM = 'Ten_percent'
+DETECTOR_ALGORITHM = 'BitmapDetector'
 
 # some defaults parameters for the currently algorithms
 
@@ -21,7 +18,7 @@ DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT = 0.2/16
 
 DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT = 0.2/16
 
-BITMAP_MINIMAL_POINTS_IN_WINDOWS = 50
+DEFAULT_BITMAP_MINIMAL_POINTS_IN_WINDOWS = 50
 
 # how large is the chunk
 # data points form chunks and frequencies of similar chunks are
@@ -31,6 +28,8 @@ DEFAULT_BITMAP_CHUNK_SIZE = 2
 # how slow the data points delay
 # a smaller factor gives a faster decay rate
 DEFAULT_EMA_SMOTHING_FACTOR = 0.2
+
+DEFAULT_EMA_WINDOW_SIZE_PCT = 0.2
 
 """
 Correlator Settings
@@ -44,3 +43,5 @@ DEFAULT_ALLOWED_SHIFT_SECONDS = 180
 
 # The threshold such that >= which is considered "correlated"
 DEFAULT_CORRELATE_THRESHOLD = 0.7
+
+CORRELATOR_ALGORITHM = 'crossCorrelation'
