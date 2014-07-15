@@ -56,10 +56,9 @@ class detector(object):
     """
     return self.anomalies
 
-  def get_all_scores(self, csv=None):
+  def get_all_scores(self):
     """
     get all the anomaly scores as a timeseries
-    :param str csv: a path to a csv file will the scores should be written to.
     :return: a python timeseries list
     """
     return self.anom_scores
