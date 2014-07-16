@@ -36,7 +36,7 @@ def to_epoch(t_str):
       return float(t_str)
   return t
 
-def nomalize_timeseries(ts):
+def normalize_timeseries(ts):
   """
   normalize a timeseries
   :param list ts: a timeseries

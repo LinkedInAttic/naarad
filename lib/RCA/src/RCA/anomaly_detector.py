@@ -1,12 +1,14 @@
 """
 API for Detector Module
+this module detects anomalies in a single time series
 """
-import settings
-from algorithm import detector_algorithms
-import utils
+
+from RCA.algorithm import anomaly_detector_algorithms
+import RCA.settings as settings
+import RCA.utils as utils
 
 
-class Detector(object):
+class AnomalyDetector(object):
 
   def __init__(self, current_time_series, base_time_series=None):
     """
@@ -41,16 +43,16 @@ class Detector(object):
       # To-Do(Yarong): algorithms to use baseline
       pass
     else:
-      alg = getattr(detector_algorithms, settings.DETECTOR_ALGORITHM)
+      alg = getattr(anomaly_detector_algorithms, settings.DETECTOR_ALGORITHM)
       try:
         a = alg(self.time_series)
         self.anomalies = a.run()
-        self.anom_scores = a.get_anom_scores()
+        self.anom_scores = a.get_scores()
       except:
-        a = detector_algorithms.ExpAvgDetector(self.time_series)
+        a = anomaly_detector_algorithms.ExpAvgDetector(self.time_series)
         self.anomalies = a.run()
-        self.anom_scores = a.get_anom_scores()
-    return True if self.anomalies else False
+        self.anom_scores = a.get_scores()
+    return bool(self.anomalies)
 
   def get_anomalies(self):
     """

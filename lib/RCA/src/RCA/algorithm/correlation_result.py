@@ -2,7 +2,7 @@
 Correlation object
 """
 
-class Correlation(object):
+class CorrelationResult(object):
   def __init__(self, shift, coefficient):
     """
     construct a correlation object
@@ -11,10 +11,3 @@ class Correlation(object):
     """
     self.shift = shift
     self.coefficient = coefficient
-
-  def serialize(self):
-    """
-    serializer
-    :return list: a list representation
-    """
-    return [self.shit, self.coefficient]

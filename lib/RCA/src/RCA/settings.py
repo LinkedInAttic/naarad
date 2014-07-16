@@ -10,6 +10,9 @@ Detector Settings
 # this settings are kept so later if there are better algorithms, they can be easily subsitituted.
 DETECTOR_ALGORITHM = 'BitmapDetector'
 
+# Default percentile threshold value on anomaly score above which is considered an anomaly.
+DEFAULT_SCORE_PERCENTILE_THRESHOLD = 0.1
+
 # some defaults parameters for the currently algorithms
 
 # window sizes as percents of the whole data length

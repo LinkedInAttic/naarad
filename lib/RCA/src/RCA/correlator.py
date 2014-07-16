@@ -1,9 +1,11 @@
 """
 API for Correlator Module
+this module finds correlation between two time series
 """
-import settings
-from algorithm import correlator_algorithms
-import utils
+
+from RCA.algorithm import correlator_algorithms
+import RCA.settings as settings
+import RCA.utils as utils
 
 
 class Correlator(object):
@@ -40,14 +42,14 @@ class Correlator(object):
     """
     alg = getattr(correlator_algorithms, settings.CORRELATOR_ALGORITHM)
     a = alg(self.time_series_a, self.time_series_b)
-    self.correlation = a.run()
+    self.correlation_result = a.run()
 
-  def get_correlation(self):
-    return self.correlation
+  def get_correlation_result(self):
+    return self.correlation_result
 
   def is_correlated(self, threshold=None):
     """
     compare with a threshould to answer weather two timeseries correlate
     :return: correlation object if two series correlate otherwise false
     """
-    return self.correlation if self.correlation.coefficient >= threshold else False
+    return self.correlation_result if self.correlation_result.coefficient >= threshold else False

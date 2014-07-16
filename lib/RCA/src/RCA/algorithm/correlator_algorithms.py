@@ -1,41 +1,38 @@
-import os
-import sys
 import numpy
-from correlation import Correlation
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import utils
-import settings
+from RCA.algorithm.correlation_result import CorrelationResult
+import RCA.utils as utils
+import RCA.settings as settings
 
 
-class CorrelatorAlgo(object):
+class CorrelatorAlgorithm(object):
   def __init__(self, name, a, b):
     """
     initializer
-    :param list a: timeseries a
-    :param list b: timeseries b
+    :param list a: timeseries a, a list of 2 element lists
+    :param list b: timeseries b, a list of 2 element lists
     """
     self.name = name
     self.a = a
     self.b = b
 
   # need to be extented
-  def set_correlation(self):
-    self.correlation = None
+  def set_correlation_result(self):
+    self.correlation_result = None
 
-  def get_correlation(self):
-    return self.correlation
+  def get_correlation_result(self):
+    return self.correlation_result
 
   def run(self):
-    self.set_correlation()
-    return self.get_correlation()
+    self.set_correlation_result()
+    return self.correlation_result
 
 
-class CrossCorrelation(CorrelatorAlgo):
+class CrossCorrelation(CorrelatorAlgorithm):
   def __init__(self, a, b):
     super(CrossCorrelation, self).__init__(self.__class__.__name__, a, b)
 
-  def set_correlation(self, max_shift_seconds=None):
+  def set_correlation_result(self, max_shift_seconds=None):
     """
     get cross correlation coefficients for all possible shifts
     :param int max_shift_seconds: maximal allowed shift seconds when computing correlations
@@ -44,8 +41,8 @@ class CrossCorrelation(CorrelatorAlgo):
     a = utils.to_epoch_ts(self.a)
     b = utils.to_epoch_ts(self.b)
     a, b = utils.align_two_timeseries((a, b))
-    a = utils.nomalize_timeseries(a)
-    b = utils.nomalize_timeseries(b)
+    a = utils.normalize_timeseries(a)
+    b = utils.normalize_timeseries(b)
     a_values = utils.get_values(a)
     b_values = utils.get_values(b)
     a_avg = numpy.mean(a_values)
@@ -63,7 +60,7 @@ class CrossCorrelation(CorrelatorAlgo):
       shift_room = 1
     for delay in range(-shift_room, shift_room):
       s = 0
-      for i in range(0, n):
+      for i in range(n):
         j = i + delay
         if j < 0 or j >= n:
           continue
@@ -72,4 +69,4 @@ class CrossCorrelation(CorrelatorAlgo):
       r = s / denom
       correlations.append([delay, r])
     max_correlation = max(correlations, key=lambda k: k[1])
-    self.correlation = Correlation(max_correlation[0], max_correlation[1])
+    self.correlation_result = CorrelationResult(max_correlation[0], max_correlation[1])

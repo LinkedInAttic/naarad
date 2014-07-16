@@ -1,92 +1,97 @@
 import math
 import os
 import sys
-from anomaly import Anomaly
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import utils
-import settings
+from RCA.algorithm.anomaly import Anomaly
+import RCA.utils as utils
+import RCA.settings as settings
 
 
-class DetectorAlgo(object):
+class AnomalyDetectorAlgorithm(object):
   """
-  Base Class for detector algorithms
+  Base Class for anomly detector algorithms
   """
-  def __init__(self, name, data, baseline_data=None):
+  def __init__(self, class_name, time_series, baseline_time_series=None):
     """
     initializer
+    :param str name: exteded class name
+    :param list data: time series
+    :param list baseline_data: baseline time series
     """
-    self.name = name
-    self.data = data
-    self.data_length = len(data)
+    self.class_name = class_name
+    self.data = time_series
+    self.data_length = len(time_series)
     self.anom_scores = list()
-    self.baseline_data = baseline_data
-    self.anomlies = list()
+    self.baseline_time_series = baseline_time_series
+    self.anomalies = list()
 
   def run(self):
     """
-    run the algorithm to get anomlies
+    run the algorithm to get anomalies
     return list: a list of anomaly project
     """
-    self.set_anom_scores()
-    self.set_anomlies()
-    return self.get_anomlies()
+    self.set_scores()
+    self.set_anomalies()
+    return self.anomalies
 
-  def set_anom_scores(self):
+  def set_scores(self):
     """
     function to compute anomaly score timeseries
     need to be extended
     """
     self.anom_scores = list()
 
-  def get_anom_scores(self):
+  def get_scores(self):
     """
     get handler for anom_scores
     :return list: a timeseries of anomaly scores
     """
     return self.anom_scores
 
-  def set_anomlies(self):
+  def set_anomalies(self):
     """
-    function to compute anomlies from anomaly score timeseries
+    function to compute anomalies from anomaly score timeseries
     current algorithm draws a threshold on the ten percent value
     """
-    data = self.anom_scores
-    itv = list()
+    anom_scores = self.anom_scores
+    anomaly_intervals = list()
     anomalies = list()
     start_t = None
     end_t = None
-    v_max = max(utils.get_values(data))
-    ten = v_max * 0.1
-    for [t, v] in data:
-      if v > ten:
+    maximal_anom_score = max(utils.get_values(anom_scores))
+    threshold = maximal_anom_score * settings.DEFAULT_SCORE_PERCENTILE_THRESHOLD
+    for [t, v] in anom_scores:
+      if v > threshold:
         end_t = t
         if not start_t:
           start_t = t
       elif start_t and end_t:
-        itv.append([start_t, end_t])
+        anomaly_intervals.append([start_t, end_t])
         start_t = None
         end_t = None
     if start_t:
-      itv.append([start_t, end_t])
-    for p in itv:
-      d = utils.filter_data(data, p[0], p[1])
+      anomaly_intervals.append([start_t, end_t])
+    for anomaly_interval in anomaly_intervals:
+      anomaly_interval_start_timestamp = anomaly_interval[0]
+      anomaly_interval_end_timestamp = anomaly_interval[1]
+      d = utils.filter_data(anom_scores, anomaly_interval_start_timestamp, anomaly_interval_end_timestamp)
       e = ExpAvgDetector(d)
-      e.set_anom_scores()
-      scores = e.get_anom_scores()
-      s_max = max(scores, key=lambda k: k[1])
-      anomalies.append(Anomaly(p[0], p[1], s_max[1], s_max[0]))
+      e.set_scores()
+      scores = e.get_scores()
+      maximal_expAvg_score = max(scores, key=lambda k: k[1])
+      anomalies.append(Anomaly(anomaly_interval_start_timestamp, anomaly_interval_end_timestamp, \
+        maximal_expAvg_score[1], maximal_expAvg_score[0]))
     self.anomalies = anomalies
 
-  def get_anomlies(self):
+  def get_anomalies(self):
     """
-    get handler for anomlies
+    get handler for anomalies
     :return list: a list of anomly project
     """
     return self.anomalies
 
 
-class ExpAvgDetector(DetectorAlgo):
+class ExpAvgDetector(AnomalyDetectorAlgorithm):
   """
   METHOD 1: Exponential Moving Avgs
   this method uses a data point's deviation from the expoential moving avg of a lagging lag window
@@ -99,8 +104,10 @@ class ExpAvgDetector(DetectorAlgo):
     :param int lag_window_size: lag window size
     """
     super(ExpAvgDetector, self).__init__(self.__class__.__name__, data, baseline_data)
-    self.smoothing_factor = smoothing_factor if smoothing_factor > 0 else settings.DEFAULT_EMA_SMOTHING_FACTOR
-    self.lag_window_size = lag_window_size if lag_window_size else int(self.data_length * settings.DEFAULT_EMA_WINDOW_SIZE_PCT)
+    self.smoothing_factor = smoothing_factor if smoothing_factor > 0 \
+    else settings.DEFAULT_EMA_SMOTHING_FACTOR
+    self.lag_window_size = lag_window_size if lag_window_size \
+    else int(self.data_length * settings.DEFAULT_EMA_WINDOW_SIZE_PCT)
 
   def _compute_anom_score(self, lag_window_points, point):
     """
@@ -143,11 +150,11 @@ class ExpAvgDetector(DetectorAlgo):
       anom_scores.append(entry)
     self.anom_scores = anom_scores
 
-  def set_anom_scores(self):
+  def set_scores(self):
     self._compute_anom_data_decay_all()
 
 
-class BitmapDetector(DetectorAlgo):
+class BitmapDetector(AnomalyDetectorAlgorithm):
   """
   METHOD 2: Bitmap Detector
   this method breaks time series into chunks and use frequency of similar chuncks
@@ -163,9 +170,12 @@ class BitmapDetector(DetectorAlgo):
     """
     super(BitmapDetector, self).__init__(self.__class__.__name__, data, baseline_data)
     self.precision = precision if precision and precision > 0 else 4
-    self.lag_window_size = lag_window_size if lag_window_size else int(self.data_length * settings.DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT)
-    self.chunk_size = chunk_size if chunk_size and chunk_size > 0 else settings.DEFAULT_BITMAP_CHUNK_SIZE
-    self.future_window_size = future_window_size if future_window_size else int(self.data_length * settings.DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT)
+    self.lag_window_size = lag_window_size if lag_window_size \
+    else int(self.data_length * settings.DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT)
+    self.chunk_size = chunk_size if chunk_size and chunk_size > 0 \
+    else settings.DEFAULT_BITMAP_CHUNK_SIZE
+    self.future_window_size = future_window_size if future_window_size \
+    else int(self.data_length * settings.DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT)
     self._sanity_check()
 
   def _sanity_check(self):
@@ -173,8 +183,9 @@ class BitmapDetector(DetectorAlgo):
     check if there is enough data points
     """
     windows = self.lag_window_size + self.future_window_size
-    if not self.lag_window_size or not self.future_window_size or self.data_length < windows or windows < settings.DEFAULT_BITMAP_MINIMAL_POINTS_IN_WINDOWS:
-      raise Exception("RCA.detector:Not Enough Data Points!")
+    if (not self.lag_window_size or not self.future_window_size
+      or self.data_length < windows or windows < settings.DEFAULT_BITMAP_MINIMAL_POINTS_IN_WINDOWS):
+        raise Exception("RCA.detector:Not Enough Data Points!")
 
   def _generate_SAX_single(self, sections, section_height, value):
     """
@@ -194,7 +205,7 @@ class BitmapDetector(DetectorAlgo):
 
   def _generate_SAX(self):
     """
-    generating SAX representation for the timeseries
+    generating SAX representation (Symbolic Aggregate approXimation) for the timeseries
     :return: SAX representation
     """
     sections = dict()
@@ -205,7 +216,7 @@ class BitmapDetector(DetectorAlgo):
     self.data_max = max(points)
     # break data value range into different sections
     section_height = (self.data_max - self.data_min) / self.precision
-    for s in range(0, self.precision):
+    for s in range(self.precision):
       sections[s] = self.data_min + s * section_height
     # generate SAX for each data point
     for entry in self.data:
@@ -221,7 +232,7 @@ class BitmapDetector(DetectorAlgo):
     freq = dict()
     chunk_size = self.chunk_size
     s_len = len(sax)
-    for i in range(0, s_len):
+    for i in range(s_len):
       if i + chunk_size < s_len:
         chunk = sax[i:i + chunk_size]
         freq = utils.auto_increment(freq, chunk)
@@ -247,7 +258,7 @@ class BitmapDetector(DetectorAlgo):
         score += math.pow(fut_freq[i], 2)
     return score
 
-  def set_anom_scores(self):
+  def set_scores(self):
     """
     compute anom score using two sliding windows
     :return: anomaly score timeseries
@@ -266,7 +277,7 @@ class BitmapDetector(DetectorAlgo):
     self.anom_scores = anom_scores
 
 
-class DetrivativeDetector(DetectorAlgo):
+class DerivativeDetector(AnomalyDetectorAlgorithm):
   '''
   METHOD 3: Detrivative
   this method is the derivative version of METHOD 1
@@ -277,7 +288,7 @@ class DetrivativeDetector(DetectorAlgo):
     :param float smoothing_factor: smoothing factor
     :param int lag_window_size: lag window size
     """
-    super(DetrivativeDetector, self).__init__(self.__class__.__name__, data, baseline_data)
+    super(DerivativeDetector, self).__init__(self.__class__.__name__, data, baseline_data)
     self.smoothing_factor = smoothing_factor if smoothing_factor is not None else 0.2
     self.lag_window_size = lag_window_size if lag_window_size is not None else int(self.data_length * 0.2)
 
@@ -316,7 +327,7 @@ class DetrivativeDetector(DetectorAlgo):
     ema = utils.computer_ema(self.smoothing_factor, abs_dfs)[-1]
     return abs(abs(df) - ema)
 
-  def set_anom_scores(self):
+  def set_scores(self):
     """
     compute anom scores for the timeseries
     """

@@ -2,9 +2,9 @@ import os
 import sys
 import unittest
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from correlator import Correlator
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+from RCA.correlator import Correlator
 
 class TestCorrelator(unittest.TestCase):
 
@@ -16,7 +16,7 @@ class TestCorrelator(unittest.TestCase):
     self.correlator2 = Correlator(self.s1, self.s3)
 
   def test_cross_correlation(self):
-    self.assertEqual(self.correlator1.get_correlation().coefficient, self.correlator2.get_correlation().coefficient)
+    self.assertEqual(self.correlator1.get_correlation_result().coefficient, self.correlator2.get_correlation_result().coefficient)
 
   def test_if_correlate(self):
     self.assertEqual(True, self.correlator2.is_correlated() is not None)
