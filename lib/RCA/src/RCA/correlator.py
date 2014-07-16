@@ -5,7 +5,8 @@ import settings
 from algorithm import correlator_algorithms
 import utils
 
-class correlator(object):
+
+class Correlator(object):
   def __init__(self, a, b):
     if isinstance(a, list):
       self.a = a
@@ -15,7 +16,7 @@ class correlator(object):
       self.b = b
     else:
       self.b = utils.read_csv(b)
-    self._sanity_check(a,b)
+    self._sanity_check(a, b)
     self._correlate()
 
   def _sanity_check(self, a, b):
@@ -30,7 +31,7 @@ class correlator(object):
   def _correlate(self):
     """
     get correlation
-    :return: correlation object
+    :return: correlation object"
     """
     alg = getattr(correlator_algorithms, settings.CORRELATOR_ALGORITHM)
     a = alg(self.a, self.b)
@@ -39,7 +40,7 @@ class correlator(object):
   def get_correlation(self):
     return self.correlation
 
-  def is_correlated(self,threshold=None):
+  def is_correlated(self, threshold=None):
     """
     compare with a threshould to answer weather two timeseries correlate
     :return: correlation object if two series correlate otherwise false

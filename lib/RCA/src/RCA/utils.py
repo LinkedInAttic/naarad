@@ -2,8 +2,6 @@
 Utilities for luminol
 """
 import csv
-from datetime import datetime
-import sys
 import time
 
 def read_csv(csv_name):
@@ -47,7 +45,7 @@ def nomalize_timeseries(ts):
   v_max = max(get_values(ts))
   r = list()
   for [t, v] in ts:
-    r.append([t, float(v/v_max)])
+    r.append([t, float(v / v_max)])
   return r
 
 def to_epoch_ts(ts):
@@ -90,24 +88,24 @@ def align_two_timeseries((s1, s2)):
     if s1[i][0] == s2[j][0]:
       s1_rv.append(s1[i])
       s2_rv.append(s2[j])
-      i+=1
-      j+=1
+      i += 1
+      j += 1
     elif s1[i][0] < s2[j][0]:
       s1_rv.append(s1[i])
       s2_rv.append([s1[i][0], s2[j][1]])
-      i+=1
+      i += 1
     else:
       s2_rv.append(s2[j])
-      s1_rv.append([s2[j][0],s1[i][1]])
-      j+=1
+      s1_rv.append([s2[j][0], s1[i][1]])
+      j += 1
   while i < len(s1):
     s1_rv.append(s1[i])
     s2_rv.append([s1[i][0], s2[-1][1]])
-    i+=1
+    i += 1
   while j < len(s2):
     s2_rv.append(s2[j])
-    s1_rv.append([s2[j][0],s1[-1][1]])
-    j+=1
+    s1_rv.append([s2[j][0], s1[-1][1]])
+    j += 1
   return s1_rv, s2_rv
 
 def get_values(ts):
@@ -137,7 +135,7 @@ def auto_increment(lst, key):
   :param key: a key to be incremented
   :return dict: the updated dictionary
   '''
-  lst[key] = lst[key]+1 if key in lst else 1
+  lst[key] = lst[key] + 1 if key in lst else 1
   return lst
 
 def computer_ema(smoothing_factor, points):
@@ -147,10 +145,10 @@ def computer_ema(smoothing_factor, points):
   :param list points: the data points
   :return list: all ema in an array
   '''
-  ema  = list()
+  ema = list()
   # the initial point has a ema equal to itself
   if(len(points) > 0):
     ema.append(points[0])
   for i in range(1, len(points)):
-    ema.append(smoothing_factor*points[i]+(1-smoothing_factor)*ema[i-1])
+    ema.append(smoothing_factor * points[i] + (1 - smoothing_factor) * ema[i - 1])
   return ema

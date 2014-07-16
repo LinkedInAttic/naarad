@@ -5,9 +5,10 @@ import settings
 from algorithm import detector_algorithms
 import utils
 
-class detector(object):
 
-  def __init__(self, data_or_data_path, base_data_or_data_path = None):
+class Detector(object):
+
+  def __init__(self, data_or_data_path, base_data_or_data_path=None):
     """
     initializer
     """
@@ -35,7 +36,7 @@ class detector(object):
     :return: true if anomaly is found false otherwise
     """
     if self.baseline:
-      #To-Do(Yarong): algorithms to use baseline
+      # To-Do(Yarong): algorithms to use baseline
       pass
     else:
       alg = getattr(detector_algorithms, settings.DETECTOR_ALGORITHM)
@@ -44,7 +45,7 @@ class detector(object):
         self.anomalies = a.run()
         self.anom_scores = a.get_anom_scores()
       except:
-        a = detector_algorithms.expAvgDetector(self.data)
+        a = detector_algorithms.ExpAvgDetector(self.data)
         self.anomalies = a.run()
         self.anom_scores = a.get_anom_scores()
     return True if self.anomalies else False

@@ -2,8 +2,6 @@
 API for Root Cause Analyzer Module
 """
 
-import correlator
-import detector
 
 class RCA(object):
   def __init__():

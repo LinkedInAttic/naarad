@@ -14,9 +14,9 @@ DETECTOR_ALGORITHM = 'BitmapDetector'
 
 # window sizes as percents of the whole data length
 # advice to have a small leading window size
-DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT = 0.2/16
+DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT = 0.2 / 16
 
-DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT = 0.2/16
+DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT = 0.2 / 16
 
 DEFAULT_BITMAP_MINIMAL_POINTS_IN_WINDOWS = 50
 
@@ -44,4 +44,4 @@ DEFAULT_ALLOWED_SHIFT_SECONDS = 180
 # The threshold such that >= which is considered "correlated"
 DEFAULT_CORRELATE_THRESHOLD = 0.7
 
-CORRELATOR_ALGORITHM = 'crossCorrelation'
+CORRELATOR_ALGORITHM = 'CrossCorrelation'

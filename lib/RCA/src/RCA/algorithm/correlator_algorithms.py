@@ -7,7 +7,7 @@ import utils
 import settings
 
 
-class correlation(object):
+class Correlation(object):
   def __init__(self, shift, coefficient):
     """
     construct a correlation object
@@ -18,7 +18,7 @@ class correlation(object):
     self.coefficient = coefficient
 
 
-class correlator_algo(object):
+class CorrelatorAlgo(object):
   def __init__(self, name, a, b):
     """
     initializer
@@ -29,7 +29,7 @@ class correlator_algo(object):
     self.a = a
     self.b = b
 
-  #need to be extented
+  # need to be extented
   def set_correlation(self):
     self.correlation = None
 
@@ -41,9 +41,9 @@ class correlator_algo(object):
     return self.get_correlation()
 
 
-class crossCorrelation(correlator_algo):
+class CrossCorrelation(CorrelatorAlgo):
   def __init__(self, a, b):
-    super(crossCorrelation, self).__init__(self.__class__.__name__, a, b)
+    super(CrossCorrelation, self).__init__(self.__class__.__name__, a, b)
 
   def set_correlation(self, max_shift_seconds=None):
     """
@@ -53,7 +53,7 @@ class crossCorrelation(correlator_algo):
     correlations = list()
     a = utils.to_epoch_ts(self.a)
     b = utils.to_epoch_ts(self.b)
-    a, b = utils.align_two_timeseries((a,b))
+    a, b = utils.align_two_timeseries((a, b))
     a = utils.nomalize_timeseries(a)
     b = utils.nomalize_timeseries(b)
     a_values = utils.get_values(a)
@@ -63,23 +63,23 @@ class crossCorrelation(correlator_algo):
     a_stdev = numpy.std(a_values)
     b_stdev = numpy.std(b_values)
     n = len(a)
-    denom = a_stdev*b_stdev*n
+    denom = a_stdev * b_stdev * n
     if not max_shift_seconds:
       max_shift_seconds = settings.DEFAULT_ALLOWED_SHIFT_SECONDS
     # estimate shift_room
     try:
-      shift_room = int(numpy.ceil(max_shift_seconds/(a[1][0]-a[0][0])))
+      shift_room = int(numpy.ceil(max_shift_seconds / (a[1][0] - a[0][0])))
     except ZeroDivisionError:
       shift_room = 1
     for delay in range(-shift_room, shift_room):
       s = 0
       for i in range(0, n):
-        j = i+delay
-        if j<0 or j>=n:
+        j = i + delay
+        if j < 0 or j >= n:
           continue
         else:
-          s += ((a_values[i]-a_avg)*(b_values[j]-b_avg))
-      r = s/denom
+          s += ((a_values[i] - a_avg) * (b_values[j] - b_avg))
+      r = s / denom
       correlations.append([delay, r])
-    max_correlation = max(correlations, key = lambda k: k[1])
-    self.correlation = correlation(max_correlation[0], max_correlation[1])
+    max_correlation = max(correlations, key=lambda k: k[1])
+    self.correlation = Correlation(max_correlation[0], max_correlation[1])
