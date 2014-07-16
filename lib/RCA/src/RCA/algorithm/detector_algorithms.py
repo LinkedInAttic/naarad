@@ -1,38 +1,11 @@
 import math
 import os
 import sys
+from anomaly import Anomaly
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import utils
 import settings
-
-
-class Anomaly(object):
-  def __init__(self, start_time, end_time, score, exact_time):
-    """
-    construct an anomaly object
-    :param:start_time: start time of the anomaly period
-    :param:end_time: end time of the anomaly period
-    :param:score: the score of the anomaly
-    :param:exact_time: the time point in the period where the anomaly likely happened
-    """
-    self.start_time = start_time
-    self.end_time = end_time
-    self.score = score
-    self.exact_time = exact_time
-
-  def get_time_window(self):
-    """
-    get handler for the time window
-    :return list: a time window
-    """
-    return [self.start_time, self.end_time]
-
-  def serialize(self):
-    """
-    serializer
-    """
-    return [self.start_time, self.end_time, self.score, self.exact_time]
 
 
 class DetectorAlgo(object):

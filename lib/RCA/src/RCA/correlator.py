@@ -7,25 +7,30 @@ import utils
 
 
 class Correlator(object):
-  def __init__(self, a, b):
-    if isinstance(a, list):
-      self.a = a
+  def __init__(self, time_series_a, time_series_b):
+    """
+    initializer
+    :param time_series_a: a python timeseries list(list) or a path to a csv file(str).
+    :param time_series_b: a python timeseries list(list) or a path to a csv file(str).
+    """
+    if isinstance(time_series_a, list):
+      self.time_series_a = time_series_a
     else:
-      self.a = utils.read_csv(a)
-    if isinstance(b, list):
-      self.b = b
+      self.time_series_a = utils.read_csv(time_series_a)
+    if isinstance(time_series_b, list):
+      self.time_series_b = time_series_b
     else:
-      self.b = utils.read_csv(b)
-    self._sanity_check(a, b)
+      self.time_series_b = utils.read_csv(time_series_b)
+    self._sanity_check(self.time_series_a, self.time_series_a)
     self._correlate()
 
-  def _sanity_check(self, a, b):
+  def _sanity_check(self, time_series_a, time_series_b):
     """
     check if the timeseries have more than two data points
-    :param a: timeseries a
-    :param b: timeseries b
+    :param time_series_a: timeseries a
+    :param time_series_b: timeseries b
     """
-    if len(a) < 2 or len(b) < 2:
+    if len(time_series_a) < 2 or len(time_series_b) < 2:
       raise Exception("RCA.correlator: Too few data points!")
 
   def _correlate(self):
@@ -34,7 +39,7 @@ class Correlator(object):
     :return: correlation object"
     """
     alg = getattr(correlator_algorithms, settings.CORRELATOR_ALGORITHM)
-    a = alg(self.a, self.b)
+    a = alg(self.time_series_a, self.time_series_b)
     self.correlation = a.run()
 
   def get_correlation(self):

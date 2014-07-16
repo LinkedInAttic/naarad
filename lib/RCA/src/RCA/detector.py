@@ -8,27 +8,29 @@ import utils
 
 class Detector(object):
 
-  def __init__(self, data_or_data_path, base_data_or_data_path=None):
+  def __init__(self, current_time_series, base_time_series=None):
     """
     initializer
+    :param current_time_series: a python timeseries list(list) or a path to a csv file(str).
+    :param base_time_series: a python timeseries list(list) or a path to a csv file(str).
     """
-    self.data = self._load(data_or_data_path)
-    self.baseline = self._load(base_data_or_data_path)
+    self.time_series = self._load(current_time_series)
+    self.baseline = self._load(base_time_series)
     self.anomalies = None
     self._detect()
 
-  def _load(self, data_or_data_path):
+  def _load(self, time_series):
     """
-    load data of interest into detector
-    :param data_or_data_path: a python timeseries list(list) or a path to a csv file(str).
+    load time series of interest into detector
+    :param time_series: a python timeseries list(list) or a path to a csv file(str).
     :return: updated instance of Detector.
     """
-    if not data_or_data_path:
+    if not time_series:
       return None
-    if isinstance(data_or_data_path, list):
-      return data_or_data_path
+    if isinstance(time_series, list):
+      return time_series
     else:
-      return utils.read_csv(data_or_data_path)
+      return utils.read_csv(time_series)
 
   def _detect(self):
     """
@@ -41,11 +43,11 @@ class Detector(object):
     else:
       alg = getattr(detector_algorithms, settings.DETECTOR_ALGORITHM)
       try:
-        a = alg(self.data)
+        a = alg(self.time_series)
         self.anomalies = a.run()
         self.anom_scores = a.get_anom_scores()
       except:
-        a = detector_algorithms.ExpAvgDetector(self.data)
+        a = detector_algorithms.ExpAvgDetector(self.time_series)
         self.anomalies = a.run()
         self.anom_scores = a.get_anom_scores()
     return True if self.anomalies else False

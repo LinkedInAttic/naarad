@@ -1,21 +1,11 @@
 import os
 import sys
 import numpy
+from correlation import Correlation
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import utils
 import settings
-
-
-class Correlation(object):
-  def __init__(self, shift, coefficient):
-    """
-    construct a correlation object
-    :param float coefficient: the correlation coefficient
-    :param int shift: the amount of shift where the coefficient is given
-    """
-    self.shift = shift
-    self.coefficient = coefficient
 
 
 class CorrelatorAlgo(object):
