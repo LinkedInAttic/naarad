@@ -19,9 +19,6 @@ import naarad.utils
 
 logger = logging.getLogger('naarad.metrics.top_metric')
 
-# Minimum length of a valid process line in top output, 12 columns
-VALID_PROCESS_LINE = 12
-
 class TopMetric(Metric):
   def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, important_sub_metrics, **other_options):
@@ -32,10 +29,12 @@ class TopMetric(Metric):
     # It will search for any processes that match the PIDs listed or the commands listed. It's not an intersection of the PIDs and commands.
     self.PID = []
     self.COMMAND = []
+
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
 
     self.sub_metrics = None
+    self.process_headers = []
     self.ts = ''
     self.ts_date = ''
     self.ts_time = ''
@@ -59,6 +58,7 @@ class TopMetric(Metric):
       'tasks_zombie' : 'zombies',
       'cpu_us' : 'cpu percentage of running user processes',
       'cpu_sy' : 'cpu percentage of running system processes',
+      'cpu_id' : 'cpu percentage of idel time',
       'cpu_ni' : 'cpu percentage of running niced processes',
       'cpu_wa' : 'cpu percentage of waiting for IO',
       'cpu_hi' : 'cpu percentage of serving hardware IRQ',
@@ -111,12 +111,13 @@ class TopMetric(Metric):
     Process the line starting with "Tasks:"
     Example log:   Tasks: 446 total,   1 running, 442 sleeping,   2 stopped,   1 zombie
     """
+    words = words[1:]
+    length = len(words) / 2 # The number of pairs
     values = {}
-    values['tasks_total'] = words[1]
-    values['tasks_running'] = words[3]
-    values['tasks_sleeping'] = words[5]
-    values['tasks_stopped'] = words[7]
-    values['tasks_zombie'] = words[9]
+    for offset in range(length):
+      k = words[2 * offset + 1].strip(',')
+      v = words[2 * offset]
+      values['tasks_' + k] = v
     self.put_values_into_data(values)
 
   def process_cpu_line(self, words):
@@ -124,15 +125,11 @@ class TopMetric(Metric):
     Process the line starting with "Cpu(s):"
     Example log: Cpu(s):  1.3%us,  0.5%sy,  0.0%ni, 98.2%id,  0.0%wa,  0.0%hi,  0.0%si,  0.0%st
     """
+
     values = {}
-    values['cpu_us'] = words[1].split('%')[0]
-    values['cpu_sy'] = words[2].split('%')[0]
-    values['cpu_ni'] = words[3].split('%')[0]
-    values['cpu_id'] = words[4].split('%')[0]
-    values['cpu_wa'] = words[5].split('%')[0]
-    values['cpu_hi'] = words[6].split('%')[0]
-    values['cpu_si'] = words[7].split('%')[0]
-    values['cpu_st'] = words[8].split('%')[0]
+    for word in words[1:]:
+      val, key = word.split('%')
+      values['cpu_' + key.strip(',')] = val
     self.put_values_into_data(values)
 
   def convert_to_G(self, word):
@@ -156,16 +153,13 @@ class TopMetric(Metric):
     Example log: Mem:    62.841G total,   16.038G used,   46.803G free,  650.312M buffers
     For each value, needs to convert to 'G' (needs to handle cases of K, M)
     """
-    mem_total = self.convert_to_G(words[1])
-    mem_used = self.convert_to_G(words[3])
-    mem_free = self.convert_to_G(words[5])
-    mem_buffers = self.convert_to_G(words[7])
-
+    words = words[1:]
+    length = len(words) / 2 # The number of pairs
     values = {}
-    values['mem_total'] = mem_total
-    values['mem_used'] = mem_used
-    values['mem_free'] = mem_free
-    values['mem_buffers'] = mem_buffers
+    for offset in range(length):
+      k = words[2 * offset + 1].strip(',')
+      v = self.convert_to_G(words[2 * offset])
+      values['mem_' + k] = v
     self.put_values_into_data(values)
 
   def process_swap_line(self, words):
@@ -174,16 +168,13 @@ class TopMetric(Metric):
     Example log: Swap:   63.998G total,    0.000k used,   63.998G free,   11.324G cached
     For each value, needs to convert to 'G' (needs to handle cases of K, M)
     """
-    swap_total = self.convert_to_G(words[1])
-    swap_used = self.convert_to_G(words[3])
-    swap_free = self.convert_to_G(words[5])
-    swap_cached = self.convert_to_G(words[7])
-
+    words = words[1:]
+    length = len(words) / 2 # The number of pairs
     values = {}
-    values['swap_total'] = swap_total
-    values['swap_used'] = swap_used
-    values['swap_free'] = swap_free
-    values['swap_cached'] = swap_cached
+    for offset in range(length):
+      k = words[2 * offset + 1].strip(',')
+      v = self.convert_to_G(words[2 * offset])
+      values['swap_' + k] = v
     self.put_values_into_data(values)
 
   def process_individual_command(self, words):
@@ -195,23 +186,26 @@ class TopMetric(Metric):
     3702 root      20   0 34884 4192 1692 S  1.9  0.0  31:40.47 cf-serverd
     It does not record all processes due to memory concern; rather only records interested processes (based on user input of PID and COMMAND)
     """
-    pid = words[0]
-    process = words[11]
+    pid_index = self.process_headers.index('PID')
+    proces_index = self.process_headers.index('COMMAND')
+
+    pid = words[pid_index]
+    process = words[proces_index]
     if pid in self.PID or process in self.COMMAND:
       process_name = process.split('/')[0]
 
       values = {}
-      values[process_name + '_' + pid + '_' + 'PR'] = words[2]
-      values[process_name + '_' + pid + '_' + 'NI'] = words[3]
-      values[process_name + '_' + pid + '_' + 'VIRT'] = self.convert_to_G(words[4])
-      values[process_name + '_' + pid + '_' + 'RES'] = self.convert_to_G(words[5])
-      values[process_name + '_' + pid + '_' + 'SHR'] = self.convert_to_G(words[6])
-      values[process_name + '_' + pid + '_' + 'CPU'] = words[8]
-      values[process_name + '_' + pid + '_' + 'MEM'] = words[9]
+      for word_col in self.process_headers:
+        word_index = self.process_headers.index(word_col)
+        if word_col in ['VIRT', 'RES', 'SHR']: # These values need to convert to 'G'
+          values[process_name + '_' + pid + '_' + word_col] = self.convert_to_G(words[word_index])
+        elif word_col in ['PR', 'NI', '%CPU', '%MEM']: # These values will be assigned later or ignored
+          values[process_name + '_' + pid + '_' + word_col.strip('%')] = words[word_index]
 
-      uptime = words[10].split(':')
-      uptime_sec = float(uptime[0]) * 60  + float(uptime[1])
-      values[process_name + '_' + pid + '_' + 'TIME'] = str(uptime_sec)
+        uptime_index = self.process_headers.index('TIME+')
+        uptime = words[uptime_index].split(':')
+        uptime_sec = float(uptime[0]) * 60  + float(uptime[1])
+        values[process_name + '_' + pid + '_' + 'TIME'] = str(uptime_sec)
       self.put_values_into_data(values)
 
   def parse(self):
@@ -253,7 +247,7 @@ class TopMetric(Metric):
           prefix_word = words[0].strip()
           if prefix_word == 'top':
             self.process_top_line(words)
-            self.saw_pid = False
+            self.saw_pid = False  # Turn off the processing of individual process line
           elif prefix_word == 'Tasks:':
             self.process_tasks_line(words)
           elif prefix_word == 'Cpu(s):':
@@ -263,9 +257,10 @@ class TopMetric(Metric):
           elif prefix_word == 'Swap:':
             self.process_swap_line(words)
           elif prefix_word == 'PID':
-            self.saw_pid = True
-          else:
-            if self.saw_pid and len(words) >= VALID_PROCESS_LINE: # Only valid process lines
+            self.saw_pid = True  # Turn on the processing of individual process line
+            self.process_headers = words
+          else: # Each individual process line
+            if self.saw_pid and len(words) >= len(self.process_headers): # Only valid process lines
               self.process_individual_command(words)
 
     # Putting data in csv files;
