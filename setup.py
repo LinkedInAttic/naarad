@@ -2,7 +2,8 @@
 
 from setuptools import setup, find_packages
 
-naarad_version = '1.0.8'
+with open('VERSION') as f:
+      naarad_version = f.read()
 
 with open('requirements.txt') as f:
       required = f.read().splitlines()
