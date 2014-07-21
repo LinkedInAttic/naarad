@@ -236,7 +236,7 @@ class BitmapDetector(AnomalyDetectorAlgorithm):
     for section_number in range(self.precision):
       sections[section_number] = self.value_min + section_number * section_height
     # Generate SAX representation.
-    self.sax = ''.join(self._generate_SAX_single(value) for value in self.time_series.values)
+    self.sax = ''.join(self._generate_SAX_single(sections, value) for value in self.time_series.values)
 
   def _construct_SAX_chunk_dict(self, sax):
     """
@@ -268,10 +268,10 @@ class BitmapDetector(AnomalyDetectorAlgorithm):
       if chunk in future_window_chunk_dict:
         score += math.pow(future_window_chunk_dict[chunk] - lag_window_chunk_dict[chunk], 2)
       else:
-        score += math.pow(lag_window_chunk_dict[i], 2)
-    for i in future_window_chunk_dict:
-      if i not in lag_window_chunk_dict:
-        score += math.pow(future_window_chunk_dict[i], 2)
+        score += math.pow(lag_window_chunk_dict[chunk], 2)
+    for chunk in future_window_chunk_dict:
+      if chunk not in lag_window_chunk_dict:
+        score += math.pow(future_window_chunk_dict[chunk], 2)
     return score
 
   def _set_scores(self):
@@ -285,8 +285,8 @@ class BitmapDetector(AnomalyDetectorAlgorithm):
       if index < self.lag_window_size or index > self.time_series_length - self.future_window_size:
         anom_scores[timestamp] = 0
       else:
-        lag_window_sax = self.sax[i - self.lag_window_size: i + 1]
-        future_window_sax = self.sax[i: i + self.future_window_size]
+        lag_window_sax = self.sax[index - self.lag_window_size: index + 1]
+        future_window_sax = self.sax[index: index + self.future_window_size]
         anom_scores[timestamp] = self._compute_anom_score_between_two_windows(lag_window_sax, future_window_sax)
     self.anom_scores = TimeSeries(anom_scores)
 

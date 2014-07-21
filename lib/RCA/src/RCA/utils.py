@@ -13,7 +13,7 @@ def read_csv(csv_name):
   :return dict: a dictionary represents the data in file.
   """
   data = {}
-  if not isinstance(csv_name, str):
+  if not isinstance(csv_name, (str, unicode)):
     raise exceptions.InvalidDataFormat('RCA.utils: csv_name has to be a string!')
   with open(csv_name, 'r') as csv_data:
     reader = csv.reader(csv_data, delimiter=',', quotechar='|')
