@@ -1,55 +1,86 @@
 """
 API for Correlator Module
-this module finds correlation between two time series
+This module finds correlation between two time series.
 """
 
-from RCA.algorithm import correlator_algorithms
-import RCA.settings as settings
+from RCA.algorithms import correlator_algorithms
+import RCA.constants as constants
+import RCA.exceptions as exceptions
+from RCA.modules.time_series import TimeSeries
 import RCA.utils as utils
 
 
 class Correlator(object):
-  def __init__(self, time_series_a, time_series_b):
+  def __init__(self, time_series_a, time_series_b, algorithm=None, algorithm_params=None):
     """
-    initializer
-    :param time_series_a: a python timeseries list(list) or a path to a csv file(str).
-    :param time_series_b: a python timeseries list(list) or a path to a csv file(str).
+    Initializer
+    :param time_series_a: a TimeSeries, a dictionary or a path to a csv file(str).
+    :param time_series_b: a TimeSeries, a dictionary or a path to a csv file(str).
+    :param str algorithm: name of the algorithm to use.
+    :param dict algorithm_params: additional params for the specific algorithm.
     """
-    if isinstance(time_series_a, list):
-      self.time_series_a = time_series_a
-    else:
-      self.time_series_a = utils.read_csv(time_series_a)
-    if isinstance(time_series_b, list):
-      self.time_series_b = time_series_b
-    else:
-      self.time_series_b = utils.read_csv(time_series_b)
-    self._sanity_check(self.time_series_a, self.time_series_a)
+    self.time_series_a = self._load(time_series_a)
+    self.time_series_b = self._load(time_series_b)
+    self._sanity_check()
+    self.algorithm_params = {'time_series_a': self.time_series_a, 'time_series_b': self.time_series_b}
+    self._get_algorithm_and_params(algorithm, algorithm_params)
     self._correlate()
 
-  def _sanity_check(self, time_series_a, time_series_b):
+  def _load(self, time_series):
     """
-    check if the timeseries have more than two data points
-    :param time_series_a: timeseries a
-    :param time_series_b: timeseries b
+    Load time series.
+    :param timeseries: a TimeSeries, a dictionary or a path to a csv file(str).
+    :return TimeSeries: a TimeSeries object.
     """
-    if len(time_series_a) < 2 or len(time_series_b) < 2:
-      raise Exception("RCA.correlator: Too few data points!")
+    if isinstance(time_series, TimeSeries):
+      return time_series
+    if isinstance(time_series, dict):
+      return TimeSeries(time_series)
+    return TimeSeries(utils.read_csv(time_series))
+
+  def _get_algorithm_and_params(self, algorithm, algorithm_params):
+    """
+    Get the specific algorithm and merge the algorithm params.
+    :param str algorithm: name of the algorithm to use.
+    :param dict algorithm_params: additional params for the specific algorithm.
+    """
+    if not algorithm:
+      algorithm = constants.CORRELATOR_ALGORITHM
+    try:
+      self.algorithm = getattr(correlator_algorithms, algorithm)
+    except AttributeError:
+      raise exceptions.AlgorithmNotFound('RCA.Correlator: ' + str(algorithm) + ' not found.')
+    # Merge parameters.
+    if algorithm_params:
+      if not isinstance(algorithm_params, dict):
+        raise exceptions.InvalidDataFormat('RCA.Correlator: algorithm_params passed is not a dictionary.')
+      else:
+        self.algorithm_params = dict(algorithm_params.items() + self.algorithm_params.items())
+
+  def _sanity_check(self):
+    """
+    Check if the time series have more than two data points.
+    """
+    if len(self.time_series_a) < 2 or len(self.time_series_b) < 2:
+      raise exceptions.NotEnoughDataPoints("RCA.Correlator: Too few data points!")
 
   def _correlate(self):
     """
-    get correlation
-    :return: correlation object"
+    Run correlation algorithm.
     """
-    alg = getattr(correlator_algorithms, settings.CORRELATOR_ALGORITHM)
-    a = alg(self.time_series_a, self.time_series_b)
+    a = self.algorithm(**self.algorithm_params)
     self.correlation_result = a.run()
 
   def get_correlation_result(self):
+    """
+    Get correlation result.
+    :return CorrelationResult: a CorrelationResult object.
+    """
     return self.correlation_result
 
   def is_correlated(self, threshold=None):
     """
-    compare with a threshould to answer weather two timeseries correlate
-    :return: correlation object if two series correlate otherwise false
+    Compare with a threshold to determine whether two timeseries correlate to each other.
+    :return: a CorrelationResult object if two time series correlate otherwise false.
     """
     return self.correlation_result if self.correlation_result.coefficient >= threshold else False
