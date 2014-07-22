@@ -1,49 +1,23 @@
+#!/usr/bin/env python
+# coding=utf-8
+"""
+© 2014 LinkedIn Corp. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+"""
 import numpy
 
+from RCA.algorithms.correlator_algorithms import CorrelatorAlgorithm
 import RCA.constants as constants
 from RCA.modules.correlation_result import CorrelationResult
-from RCA.modules.time_series import TimeSeries
 
 
-class CorrelatorAlgorithm(object):
-  """
-  Base class for Correlator algorithm.
-  """
-  def __init__(self, class_name, time_series_a, time_series_b):
-    """
-    Initializer
-    :param class_name: name of extended class.
-    :param TimeSeries time_series_a: TimeSeries a.
-    :param TimeSeries time_series_b: TimeSeries b.
-    """
-    self.class_name = class_name
-    self.time_series_a = time_series_a
-    self.time_series_b = time_series_b
-
-  # Need to be extended.
-  def _detect_correlation(self):
-    """
-    Detect correlation.
-    """
-    self.correlation_result = None
-
-  def get_correlation_result(self):
-    """
-    Get correlation result.
-    :return CorrelationResult: a CorrelationResult object represents the correlation result.
-    """
-    return self.correlation_result
-
-  def run(self):
-    """
-    Execute algorithm.
-    :return CorrelationResult: a CorrelationResult object represents the correlation result.
-    """
-    self._detect_correlation()
-    return self.correlation_result
-
-
-class CrossCorrelation(CorrelatorAlgorithm):
+class CrossCorrelator(CorrelatorAlgorithm):
   """
   Method 1: CrossCorrelation algorithm.
   Ideas come from Paul Bourke(http://paulbourke.net/miscellaneous/correlate/).
@@ -55,7 +29,7 @@ class CrossCorrelation(CorrelatorAlgorithm):
     :param TimeSeries time_series_b: TimeSeries b.
     :param int max_shift_seconds: allowed maximal shift seconds.
     """
-    super(CrossCorrelation, self).__init__(self.__class__.__name__, time_series_a, time_series_b)
+    super(CrossCorrelator, self).__init__(self.__class__.__name__, time_series_a, time_series_b)
     if max_shift_seconds is not None:
       self.max_shift_seconds = max_shift_seconds
     else:

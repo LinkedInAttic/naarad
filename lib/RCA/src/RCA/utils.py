@@ -1,10 +1,46 @@
+#!/usr/bin/env python
+# coding=utf-8
+"""
+© 2014 LinkedIn Corp. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+"""
 """
 Utilities for RCA
 """
 import csv
 import time
 
-import exceptions
+import RCA.exceptions as exceptions
+
+def compute_ema(smoothing_factor, points):
+  '''
+  Compute exponential moving average of a list of points.
+  :param float smoothing_factor: the smoothing factor.
+  :param list points: the data points.
+  :return list: all ema in a list.
+  '''
+  ema = list()
+  # The initial point has a ema equal to itself.
+  if(len(points) > 0):
+    ema.append(points[0])
+  for i in range(1, len(points)):
+    ema.append(smoothing_factor * points[i] + (1 - smoothing_factor) * ema[i - 1])
+  return ema
+
+def covert_to_class_name(file_name):
+  """
+  Covert a python file name to a python class name according to convention.
+  :param str file_name: a file name.
+  :return str: a class name.
+  """
+  words = file_name.split("_")
+  return ''.join(word.title() for word in words)
 
 def read_csv(csv_name):
   """
@@ -40,18 +76,3 @@ def to_epoch(t_str):
     except:
       return float(t_str)
   return t
-
-def compute_ema(smoothing_factor, points):
-  '''
-  Compute exponential moving average of a list of points.
-  :param float smoothing_factor: the smoothing factor.
-  :param list points: the data points.
-  :return list: all ema in a list.
-  '''
-  ema = list()
-  # The initial point has a ema equal to itself.
-  if(len(points) > 0):
-    ema.append(points[0])
-  for i in range(1, len(points)):
-    ema.append(smoothing_factor * points[i] + (1 - smoothing_factor) * ema[i - 1])
-  return ema
