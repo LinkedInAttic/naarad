@@ -16,8 +16,6 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-print os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from RCA.anomaly_detector import AnomalyDetector
 from RCA.correlator import Correlator
 import RCA.exceptions as exceptions
