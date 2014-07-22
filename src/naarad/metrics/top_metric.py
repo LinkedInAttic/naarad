@@ -29,6 +29,7 @@ class TopMetric(Metric):
     # It will search for any processes that match the PIDs listed or the commands listed. It's not an intersection of the PIDs and commands.
     self.PID = []
     self.COMMAND = []
+    self.ts_valid_lines = True
 
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
@@ -93,6 +94,11 @@ class TopMetric(Metric):
     """
     self.ts_time = words[2]
     self.ts = self.ts_date + ' ' + self.ts_time
+    if self.ts_out_of_range(self.ts):
+      self.ts_valid_lines = False
+    else:
+      self.ts_valid_lines = True
+    print self.ts_valid_lines
     up_days = int(words[4])
     up_hour_minute = words[6].split(':')  # E.g. '4:02,'
     up_minutes = int(up_hour_minute[0]) * 60 + int(up_hour_minute[1].split(',')[0])
@@ -248,20 +254,21 @@ class TopMetric(Metric):
           if prefix_word == 'top':
             self.process_top_line(words)
             self.saw_pid = False  # Turn off the processing of individual process line
-          elif prefix_word == 'Tasks:':
-            self.process_tasks_line(words)
-          elif prefix_word == 'Cpu(s):':
-            self.process_cpu_line(words)
-          elif prefix_word == 'Mem:':
-            self.process_mem_line(words)
-          elif prefix_word == 'Swap:':
-            self.process_swap_line(words)
-          elif prefix_word == 'PID':
-            self.saw_pid = True  # Turn on the processing of individual process line
-            self.process_headers = words
-          else: # Each individual process line
-            if self.saw_pid and len(words) >= len(self.process_headers): # Only valid process lines
-              self.process_individual_command(words)
+          elif self.ts_valid_lines:
+            if prefix_word == 'Tasks:':
+              self.process_tasks_line(words)
+            elif prefix_word == 'Cpu(s):':
+              self.process_cpu_line(words)
+            elif prefix_word == 'Mem:':
+              self.process_mem_line(words)
+            elif prefix_word == 'Swap:':
+              self.process_swap_line(words)
+            elif prefix_word == 'PID':
+              self.saw_pid = True  # Turn on the processing of individual process line
+              self.process_headers = words
+            else: # Each individual process line
+              if self.saw_pid and len(words) >= len(self.process_headers): # Only valid process lines
+                self.process_individual_command(words)
 
     # Putting data in csv files;
     for out_csv in self.data.keys():    # All sub_metrics
