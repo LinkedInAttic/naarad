@@ -14,7 +14,6 @@ from naarad.graphing.plot_data import PlotData as PD
 import naarad.utils
 import naarad.httpdownload
 import naarad.naarad_constants as CONSTANTS
-#from naarad.naarad_imports import metric_classes
 import datetime
 import heapq
 
