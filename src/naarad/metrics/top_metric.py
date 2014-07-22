@@ -98,7 +98,6 @@ class TopMetric(Metric):
       self.ts_valid_lines = False
     else:
       self.ts_valid_lines = True
-    print self.ts_valid_lines
     up_days = int(words[4])
     up_hour_minute = words[6].split(':')  # E.g. '4:02,'
     up_minutes = int(up_hour_minute[0]) * 60 + int(up_hour_minute[1].split(',')[0])
