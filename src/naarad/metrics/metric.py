@@ -325,7 +325,7 @@ class Metric(object):
 
   def calculate_stats(self):
     metric_type = self.metric_type.split('-')[0]
-    if metric_type in naarad.naarad_imports.metric_classes:
+    if metric_type in naarad.naarad_imports.metric_classes or metric_type in naarad.naarad_imports.aggregate_metric_classes:
       self.calculate_other_metric_stats()
     else:
       self.calculate_base_metric_stats()
