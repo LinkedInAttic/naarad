@@ -15,7 +15,6 @@ import os
 import re
 import sys
 import threading
-import naarad.naarad_constants as CONSTANTS
 
 from naarad.metrics.metric import Metric
 import naarad.utils
@@ -193,4 +192,3 @@ class GCMetric(Metric):
       if naarad.utils.is_valid_file(outcsv):
         self.csv_files.append(outcsv)
     return True
-
