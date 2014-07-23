@@ -324,6 +324,19 @@ class Metric(object):
         self.update_summary_stats(column)
 
   def calculate_stats(self):
+    """
+    Calculate stats with different function depending on the metric type:
+    Data is recorded in memory for base metric type, and use calculate_base_metric_stats()
+    Data is recorded in CSV file for other metric types, and use calculate_other_metric_stats()
+
+    """
+    metric_type = self.metric_type.split('-')[0]
+    if metric_type in naarad.naarad_imports.metric_classes or metric_type in naarad.naarad_imports.aggregate_metric_classes:
+      self.calculate_other_metric_stats()
+    else:
+      self.calculate_base_metric_stats()
+
+  def calculate_base_metric_stats(self):
     stats_to_calculate = ['mean', 'std', 'min', 'max']  # TODO: get input from user
     percentiles_to_calculate = range(0, 101, 1)  # TODO: get input from user
     headers = CONSTANTS.SUBMETRIC_HEADER + ',mean,std,p50,p75,p90,p95,p99,min,max\n'  # TODO: This will be built from user input later on
@@ -357,6 +370,59 @@ class Metric(object):
         for percentile in sorted(percentile_data):
           FH.write(str(percentile) + ',' + str(round(percentile_data[percentile],2)) + '\n')
         self.percentiles_files.append(percentiles_csv_file)
+
+  def calculate_other_metric_stats(self):
+    stats_to_calculate = ['mean', 'std', 'min', 'max']  # TODO: get input from user
+    percentiles_to_calculate = range(0, 101, 1)  # TODO: get input from user
+    headers = CONSTANTS.SUBMETRIC_HEADER + ',mean,std,p50,p75,p90,p95,p99,min,max\n'  # TODO: This will be built from user input later on
+    metric_stats_csv_file = self.get_stats_csv()
+    imp_metric_stats_csv_file = self.get_important_sub_metrics_csv()
+    imp_metric_stats_present = False
+    metric_stats_present = False
+    logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
+    with open(metric_stats_csv_file, 'w') as FH_W:
+      with open(imp_metric_stats_csv_file, 'w') as FH_W_IMP:
+        for csv_file in self.csv_files:
+          data = []
+          value_error = False
+          if not os.path.getsize(csv_file):
+            continue
+          column = self.csv_column_map[csv_file]
+          percentile_csv_file = self.get_percentiles_csv_from_data_csv(csv_file)
+          with open(csv_file, 'r') as FH:
+            for line in FH:
+              words = line.split(',')
+              try:
+                data.append(float(words[1]))
+              except ValueError:
+                if not value_error:
+                  logger.error("Cannot convert to float. Some data is ignored in file " + csv_file)
+                  value_error = True
+                continue
+          self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
+          with open(percentile_csv_file, 'w') as FH_P:
+            for percentile in sorted(self.calculated_percentiles[column].iterkeys()):
+              FH_P.write("%d, %f\n" % (percentile, self.calculated_percentiles[column][percentile]))
+          self.percentiles_files.append(percentile_csv_file)
+          self.update_summary_stats(column)
+          to_write = [column, self.calculated_stats[column]['mean'], self.calculated_stats[column]['std'], self.calculated_percentiles[column][50], self.calculated_percentiles[column][75], self.calculated_percentiles[column][90], self.calculated_percentiles[column][95], self.calculated_percentiles[column][99], self.calculated_stats[column]['min'], self.calculated_stats[column]['max']]
+          to_write = map(lambda x: naarad.utils.normalize_float_for_display(x), to_write)
+          if not metric_stats_present:
+            metric_stats_present = True
+            FH_W.write(headers)
+          FH_W.write(','.join(to_write) + '\n')
+          # Important sub-metrics and their stats go in imp_metric_stats_csv_file
+          sub_metric = column
+          if self.metric_type in self.device_types:
+            sub_metric = column.split('.')[1]
+          if self.important_sub_metrics and sub_metric in self.important_sub_metrics:
+            if not imp_metric_stats_present:
+              FH_W_IMP.write(headers)
+              imp_metric_stats_present = True
+            FH_W_IMP.write(','.join(to_write) + '\n')
+        if imp_metric_stats_present:
+          self.important_stats_files.append(imp_metric_stats_csv_file)
+      self.stats_files.append(metric_stats_csv_file)
 
   def calc(self):
     if not self.calc_metrics:
