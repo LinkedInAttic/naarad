@@ -34,7 +34,7 @@ class CorrelatorAlgorithm(object):
     """
     Detect correlation.
     """
-    self.correlation_result = None
+    raise NotImplementedError
 
   def get_correlation_result(self):
     """

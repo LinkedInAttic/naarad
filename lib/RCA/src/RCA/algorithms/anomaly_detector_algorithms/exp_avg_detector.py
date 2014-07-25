@@ -19,7 +19,7 @@ import RCA.utils as utils
 
 class ExpAvgDetector(AnomalyDetectorAlgorithm):
   """
-  Method 1: Exponential Moving Average.
+  Exponential Moving Average.
   This method uses a data point's deviation from the exponential moving average of a lagging window
   to determine its anomaly score.
   """

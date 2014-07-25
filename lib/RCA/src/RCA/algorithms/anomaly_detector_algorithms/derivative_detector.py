@@ -18,7 +18,7 @@ import RCA.utils as utils
 
 class DerivativeDetector(AnomalyDetectorAlgorithm):
   '''
-  Method 3: Derivative Algorithm.
+  Derivative Algorithm.
   This method is the derivative version of Method 1.
   Instead of data point value, it uses the derivative of the data point.
   '''
@@ -31,8 +31,8 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
     :param int lag_window_size: lagging window size.
     """
     super(DerivativeDetector, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
-    self.smoothing_factor = smoothing_factor if smoothing_factor is not None else 0.2
-    self.lag_window_size = lag_window_size if lag_window_size is not None else int(self.time_series_length * 0.2)
+    self.smoothing_factor = (smoothing_factor or 0.2)
+    self.lag_window_size = (lag_window_size or int(self.time_series_length * 0.2))
 
   def _compute_derivatives(self):
     """

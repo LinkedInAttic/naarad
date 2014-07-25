@@ -44,7 +44,7 @@ class AnomalyDetectorAlgorithm(object):
     """
     Compute anomaly scores for the time series.
     """
-    self.anom_scores = None
+    raise NotImplementedError
 
   def get_scores(self):
     """

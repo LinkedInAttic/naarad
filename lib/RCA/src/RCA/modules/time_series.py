@@ -252,7 +252,8 @@ class TimeSeries(object):
     :return: `None`
     """
     maximum = self.max()
-    self.values = map(lambda value: value / maximum, self.values)
+    if maximum:
+      self.values = map(lambda value: value / maximum, self.values)
 
   def crop(self, start_timestamp, end_timestamp):
     """

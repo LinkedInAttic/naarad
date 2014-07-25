@@ -65,7 +65,7 @@ class CrossCorrelator(CorrelatorAlgorithm):
           continue
         else:
           s += ((a_values[i] - a_avg) * (b_values[j] - b_avg))
-      r = s / denom
+      r = s / denom if denom != 0 else s
       correlations.append([delay, r])
     max_correlation = max(correlations, key=lambda k: k[1])
     self.correlation_result = CorrelationResult(*max_correlation)

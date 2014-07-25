@@ -21,7 +21,7 @@ from RCA.modules.time_series import TimeSeries
 
 class BitmapDetector(AnomalyDetectorAlgorithm):
   """
-  Method 2: Bitmap Algorithm.
+  Bitmap Algorithm.
   This method breaks time series into chunks and uses the frequency of similar chunks
   to determine anomaly scores.
   The ideas are from this paper:

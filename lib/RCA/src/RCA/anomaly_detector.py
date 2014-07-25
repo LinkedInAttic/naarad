@@ -121,35 +121,36 @@ class AnomalyDetector(object):
     anom_scores = self.anom_scores
     anomaly_intervals, anomalies = list(), list()
     maximal_anom_score = anom_scores.max()
-    threshold = maximal_anom_score * self.score_percentile_threshold
-    # Find all the anomaly intervals.
-    start_timestamp, end_timestamp = None, None
-    for (timestamp, value) in anom_scores.iteritems():
-      if value > threshold:
-        end_timestamp = timestamp
-        if not start_timestamp:
-          start_timestamp = timestamp
-      elif start_timestamp and end_timestamp:
+    if maximal_anom_score:
+      threshold = maximal_anom_score * self.score_percentile_threshold
+      # Find all the anomaly intervals.
+      start_timestamp, end_timestamp = None, None
+      for (timestamp, value) in anom_scores.iteritems():
+        if value > threshold:
+          end_timestamp = timestamp
+          if not start_timestamp:
+            start_timestamp = timestamp
+        elif start_timestamp and end_timestamp:
+          anomaly_intervals.append([start_timestamp, end_timestamp])
+          start_timestamp = None
+          end_timestamp = None
+      if start_timestamp:
         anomaly_intervals.append([start_timestamp, end_timestamp])
-        start_timestamp = None
-        end_timestamp = None
-    if start_timestamp:
-      anomaly_intervals.append([start_timestamp, end_timestamp])
-    # Locate the exact anomaly point within each anomaly interval.
-    for anomaly_interval in anomaly_intervals:
-      anomaly_interval_start_timestamp = anomaly_interval[0]
-      anomaly_interval_end_timestamp = anomaly_interval[1]
-      anomaly_interval_time_series = anom_scores.crop(anomaly_interval_start_timestamp, anomaly_interval_end_timestamp)
-      self.refine_algorithm_params['time_series'] = anomaly_interval_time_series
-      e = self.refine_algorithm(**self.refine_algorithm_params)
-      scores = e.run()
-      maximal_expAvg_score = scores.max()
-      # Get the timestamp of the maximal score.
-      maximal_expAvg_timestamp = scores.timestamps[scores.values.index(maximal_expAvg_score)]
-      anomaly = Anomaly(anomaly_interval_start_timestamp, anomaly_interval_end_timestamp,
-        maximal_expAvg_score, maximal_expAvg_timestamp)
-      anomalies.append(anomaly)
-    self.anomalies = anomalies
+      # Locate the exact anomaly point within each anomaly interval.
+      for anomaly_interval in anomaly_intervals:
+        anomaly_interval_start_timestamp = anomaly_interval[0]
+        anomaly_interval_end_timestamp = anomaly_interval[1]
+        anomaly_interval_time_series = anom_scores.crop(anomaly_interval_start_timestamp, anomaly_interval_end_timestamp)
+        self.refine_algorithm_params['time_series'] = anomaly_interval_time_series
+        e = self.refine_algorithm(**self.refine_algorithm_params)
+        scores = e.run()
+        maximal_expAvg_score = scores.max()
+        # Get the timestamp of the maximal score.
+        maximal_expAvg_timestamp = scores.timestamps[scores.values.index(maximal_expAvg_score)]
+        anomaly = Anomaly(anomaly_interval_start_timestamp, anomaly_interval_end_timestamp,
+          maximal_expAvg_score, maximal_expAvg_timestamp)
+        anomalies.append(anomaly)
+      self.anomalies = anomalies
 
   def get_anomalies(self):
     """
