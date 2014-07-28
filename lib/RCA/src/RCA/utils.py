@@ -33,15 +33,6 @@ def compute_ema(smoothing_factor, points):
     ema.append(smoothing_factor * points[i] + (1 - smoothing_factor) * ema[i - 1])
   return ema
 
-def covert_to_class_name(file_name):
-  """
-  Covert a python file name to a python class name according to convention.
-  :param str file_name: a file name.
-  :return str: a class name.
-  """
-  words = file_name.split("_")
-  return ''.join(word.title() for word in words)
-
 def read_csv(csv_name):
   """
   Read data from a csv file into a dictionary.

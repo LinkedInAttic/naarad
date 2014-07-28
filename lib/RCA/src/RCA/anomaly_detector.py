@@ -15,7 +15,7 @@ API for Anomaly Detector Module
 This module detects anomalies in a single time series.
 """
 
-from RCA.algorithms.anomaly_detector_algorithms import *
+from RCA.algorithms import anomaly_detector_algorithms
 import RCA.constants as constants
 import RCA.exceptions as exceptions
 from RCA.modules.time_series import TimeSeries
@@ -77,9 +77,8 @@ class AnomalyDetector(object):
     :return: algorithm object.
     """
     try:
-      algorithm_class_name = utils.covert_to_class_name(algorithm_name)
-      exec("algorithm = " + algorithm_name + "." + algorithm_class_name)
-    except NameError:
+      algorithm = anomaly_detector_algorithms[algorithm_name]
+    except KeyError:
       raise exceptions.AlgorithmNotFound('RCA.AnomalyDetector: ' + str(algorithm_name) + ' not found.')
     return algorithm
 
@@ -110,7 +109,7 @@ class AnomalyDetector(object):
         a = self.algorithm(**self.algorithm_params)
         self.anom_scores = a.run()
       except exceptions.NotEnoughDataPoints:
-        a = exp_avg_detector.ExpAvgDetector(self.time_series)
+        a = anomaly_detector_algorithms['exp_avg_detector'](self.time_series)
         self.anom_scores = a.run()
     self._detect_anomalies()
 
