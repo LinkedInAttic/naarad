@@ -82,17 +82,14 @@ class AnomalyDetector(object):
       raise exceptions.AlgorithmNotFound('RCA.AnomalyDetector: ' + str(algorithm_name) + ' not found.')
     return algorithm
 
-  def _prepare_params(self, algorithm_params, additional_params=None):
+  def _prepare_params(self, algorithm_params, additional_params={}):
     """
     Format parameter dict.
     :param dict algorithm_params: algorithm parameter dict.
     :param dict additional_params: additional parameter dict.
     :return dict: parameter dict.
     """
-    if not algorithm_params:
-      algorithm_params = dict()
-    if not additional_params:
-      additional_params = dict()
+    algorithm_params = algorithm_params or {}
     if not isinstance(algorithm_params, dict) or not isinstance(additional_params, dict):
       raise exceptions.InvalidDataFormat('RCA.AnomalyDetector: algorithm parameters passed are not in a dictionary.')
     return dict(algorithm_params.items() + additional_params.items())
@@ -149,7 +146,7 @@ class AnomalyDetector(object):
         anomaly = Anomaly(anomaly_interval_start_timestamp, anomaly_interval_end_timestamp,
           maximal_expAvg_score, maximal_expAvg_timestamp)
         anomalies.append(anomaly)
-      self.anomalies = anomalies
+    self.anomalies = anomalies
 
   def get_anomalies(self):
     """
