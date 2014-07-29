@@ -15,7 +15,7 @@ API for Anomaly Detector Module
 This module detects anomalies in a single time series.
 """
 
-from RCA.algorithms.anomaly_detector_algorithms import *
+from RCA.algorithms import anomaly_detector_algorithms
 import RCA.constants as constants
 import RCA.exceptions as exceptions
 from RCA.modules.time_series import TimeSeries
@@ -77,23 +77,19 @@ class AnomalyDetector(object):
     :return: algorithm object.
     """
     try:
-      algorithm_class_name = utils.covert_to_class_name(algorithm_name)
-      exec("algorithm = " + algorithm_name + "." + algorithm_class_name)
-    except NameError:
+      algorithm = anomaly_detector_algorithms[algorithm_name]
+    except KeyError:
       raise exceptions.AlgorithmNotFound('RCA.AnomalyDetector: ' + str(algorithm_name) + ' not found.')
     return algorithm
 
-  def _prepare_params(self, algorithm_params, additional_params=None):
+  def _prepare_params(self, algorithm_params, additional_params={}):
     """
     Format parameter dict.
     :param dict algorithm_params: algorithm parameter dict.
     :param dict additional_params: additional parameter dict.
     :return dict: parameter dict.
     """
-    if not algorithm_params:
-      algorithm_params = dict()
-    if not additional_params:
-      additional_params = dict()
+    algorithm_params = algorithm_params or {}
     if not isinstance(algorithm_params, dict) or not isinstance(additional_params, dict):
       raise exceptions.InvalidDataFormat('RCA.AnomalyDetector: algorithm parameters passed are not in a dictionary.')
     return dict(algorithm_params.items() + additional_params.items())
@@ -110,7 +106,7 @@ class AnomalyDetector(object):
         a = self.algorithm(**self.algorithm_params)
         self.anom_scores = a.run()
       except exceptions.NotEnoughDataPoints:
-        a = exp_avg_detector.ExpAvgDetector(self.time_series)
+        a = anomaly_detector_algorithms['exp_avg_detector'](self.time_series)
         self.anom_scores = a.run()
     self._detect_anomalies()
 
@@ -150,7 +146,7 @@ class AnomalyDetector(object):
         anomaly = Anomaly(anomaly_interval_start_timestamp, anomaly_interval_end_timestamp,
           maximal_expAvg_score, maximal_expAvg_timestamp)
         anomalies.append(anomaly)
-      self.anomalies = anomalies
+    self.anomalies = anomalies
 
   def get_anomalies(self):
     """

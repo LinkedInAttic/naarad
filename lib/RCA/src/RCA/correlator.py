@@ -15,7 +15,7 @@ API for Correlator Module
 This module finds correlation between two time series.
 """
 
-from RCA.algorithms.correlator_algorithms import *
+from RCA.algorithms import correlator_algorithms
 import RCA.constants as constants
 import RCA.exceptions as exceptions
 from RCA.modules.time_series import TimeSeries
@@ -59,9 +59,8 @@ class Correlator(object):
     if not algorithm_name:
       algorithm_name = constants.CORRELATOR_ALGORITHM
     try:
-      algorithm_class_name = utils.covert_to_class_name(algorithm_name)
-      exec("self.algorithm = " + algorithm_name + "." + algorithm_class_name)
-    except NameError:
+      self.algorithm = correlator_algorithms[algorithm_name]
+    except KeyError:
       raise exceptions.AlgorithmNotFound('RCA.Correlator: ' + str(algorithm_name) + ' not found.')
     # Merge parameters.
     if algorithm_params:
