@@ -25,7 +25,7 @@ from RCA.modules.time_series import TimeSeries
 class TestCorrelator(unittest.TestCase):
 
   def setUp(self):
-    self.s1 = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0.5, 5: 1, 6: 2, 7: 1, 8: 0}
+    self.s1 = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0.5, 5: 1, 6: 1, 7: 1, 8: 0}
     self.s2 = {0: 0, 1: 0.5, 2: 1, 3: 1, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0}
     self.s3 = {0: 0, 1: 0.5, 2: 1, 3: 1, 4: 1, 5: 0}
     self.correlator1 = Correlator(self.s1, self.s2)
