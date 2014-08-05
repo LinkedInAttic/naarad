@@ -105,11 +105,11 @@ class TestAnomalyDetector(unittest.TestCase):
     """
     self.assertTrue(self.detector1.get_anomalies() is not None)
 
-  def test_algorithm_ExpAvgDetector(self):
+  def test_algorithm_DefaultDetector(self):
     """
     Test if optional parameter algorithm works as expected.
     """
-    detector = AnomalyDetector(self.s1, algorithm_name='exp_avg_detector')
+    detector = AnomalyDetector(self.s1, algorithm_name='default_detector')
     self.assertEqual(detector.get_all_scores().timestamps, self.detector1.get_all_scores().timestamps)
     self.assertEqual(detector.get_all_scores().values, self.detector1.get_all_scores().values)
 
@@ -132,7 +132,8 @@ class TestAnomalyDetector(unittest.TestCase):
     Test if score_percentile_threshold works as expected.
     """
     detector = AnomalyDetector(self.s1, score_percentile_threshold=0.8, algorithm_name='exp_avg_detector')
-    self.assertNotEqual(self.detector1.get_anomalies()[0].end_timestamp, detector.get_anomalies()[0].end_timestamp)
+    detector1 = AnomalyDetector(self.s1, algorithm_name='exp_avg_detector')
+    self.assertNotEqual(detector1.get_anomalies()[0].end_timestamp, detector.get_anomalies()[0].end_timestamp)
 
 if __name__ == '__main__':
   s1 = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0.5, 5: 1, 6: 1, 7: 1, 8: 0}

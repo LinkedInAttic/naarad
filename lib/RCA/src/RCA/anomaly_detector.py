@@ -39,20 +39,21 @@ class AnomalyDetector(object):
     """
     self.time_series = self._load(time_series)
     self.baseline_time_series = self._load(baseline_time_series)
-    if score_percentile_threshold:
-      self.score_percentile_threshold = score_percentile_threshold
-    else:
-      self.score_percentile_threshold = constants.DEFAULT_SCORE_PERCENTILE_THRESHOLD
-    if not algorithm_name:
-      algorithm_name = constants.ANOMALY_DETECTOR_ALGORITHM
-    if not refine_algorithm_params:
-      refine_algorithm_name = constants.ANOMALY_DETECTOR_REFINE_ALGORITHM
-    # Prepare algorithms and parameters.
+    self.score_percentile_threshold = score_percentile_threshold or constants.DEFAULT_SCORE_PERCENTILE_THRESHOLD
+    # Prepare algorithms.
+    algorithm_name = algorithm_name or constants.ANOMALY_DETECTOR_ALGORITHM
+    refine_algorithm_name = refine_algorithm_name or constants.ANOMALY_DETECTOR_REFINE_ALGORITHM
     self.algorithm = self._get_algorithm(algorithm_name)
     self.refine_algorithm = self._get_algorithm(refine_algorithm_name)
+    # Prepare parameters.
     self.algorithm_params = {'time_series': self.time_series, 'baseline_time_series': self.baseline_time_series}
     self.algorithm_params = self._prepare_params(algorithm_params, self.algorithm_params)
     self.refine_algorithm_params = self._prepare_params(refine_algorithm_params)
+    # Use predefined threshold for an algorithm if there is one
+    if algorithm_name in constants.ANOMALY_THRESHOLD:
+      self.threshold = constants.ANOMALY_THRESHOLD[algorithm_name]
+    else:
+      self.threshold = None
     # Detect anomalies.
     self._detect()
 
@@ -106,7 +107,8 @@ class AnomalyDetector(object):
         a = self.algorithm(**self.algorithm_params)
         self.anom_scores = a.run()
       except exceptions.NotEnoughDataPoints:
-        a = anomaly_detector_algorithms['exp_avg_detector'](self.time_series)
+        a = anomaly_detector_algorithms['default_detector'](self.time_series)
+        self.threshold = constants.ANOMALY_THRESHOLD['default_detector']
         self.anom_scores = a.run()
     self._detect_anomalies()
 
@@ -118,7 +120,7 @@ class AnomalyDetector(object):
     anomaly_intervals, anomalies = list(), list()
     maximal_anom_score = anom_scores.max()
     if maximal_anom_score:
-      threshold = maximal_anom_score * self.score_percentile_threshold
+      threshold = self.threshold or maximal_anom_score * self.score_percentile_threshold
       # Find all the anomaly intervals.
       start_timestamp, end_timestamp = None, None
       for (timestamp, value) in anom_scores.iteritems():

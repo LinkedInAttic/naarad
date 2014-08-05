@@ -10,6 +10,8 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import numpy
+
 from RCA.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
 import RCA.constants as constants
 from RCA.exceptions import *
@@ -67,9 +69,10 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     anom_scores = dict()
     values = self.time_series.values
     ema = utils.compute_ema(self.smoothing_factor, values)
+    stdev = numpy.std(values)
     for (timestamp, value) in self.time_series.iteritems():
       index = self.time_series.timestamps.index(timestamp)
-      anom_score = abs(value - ema[index])
+      anom_score = abs((value - ema[index])/stdev) if stdev else value - ema[index]
       anom_scores[timestamp] = anom_score
     self.anom_scores = TimeSeries(anom_scores)
 

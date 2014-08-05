@@ -45,6 +45,11 @@ DEFAULT_EMA_SMOTHING_FACTOR = 0.2
 
 DEFAULT_EMA_WINDOW_SIZE_PCT = 0.2
 
+ANOMALY_THRESHOLD = {
+  "exp_avg_detector": 3,
+  "default_detector": 3
+}
+
 """
 Correlator Constants
 """

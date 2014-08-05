@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 from RCA.exceptions import *
 
-__all__ = ['bitmap_detector', 'derivative_detector', 'exp_avg_detector']
+__all__ = ['bitmap_detector', 'derivative_detector', 'exp_avg_detector', 'default_detector']
 
 
 class AnomalyDetectorAlgorithm(object):

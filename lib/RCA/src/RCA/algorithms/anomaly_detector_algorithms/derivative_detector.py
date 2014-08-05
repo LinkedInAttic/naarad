@@ -10,6 +10,8 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import numpy
+
 from RCA.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
 from RCA.exceptions import *
 from RCA.modules.time_series import TimeSeries
@@ -61,6 +63,10 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
     self._compute_derivatives()
     derivatives_ema = utils.compute_ema(self.smoothing_factor, self.derivatives)
     for (timestamp, value) in self.time_series.iteritems():
-      index = self.time_series.timestamps[timestamp]
+      index = self.time_series.timestamps.index(timestamp)
       anom_scores[timestamp] = abs(self.derivatives[index] - derivatives_ema[index])
+    stdev = numpy.std(anom_scores.values())
+    if stdev:
+        for timestamp in anom_scores.keys():
+          anom_scores[timestamp] /= stdev
     self.anom_scores = TimeSeries(anom_scores)

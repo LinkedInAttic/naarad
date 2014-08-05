@@ -56,8 +56,7 @@ class Correlator(object):
     :param str algorithm: name of the algorithm to use.
     :param dict algorithm_params: additional params for the specific algorithm.
     """
-    if not algorithm_name:
-      algorithm_name = constants.CORRELATOR_ALGORITHM
+    algorithm_name = algorithm_name or constants.CORRELATOR_ALGORITHM
     try:
       self.algorithm = correlator_algorithms[algorithm_name]
     except KeyError:
