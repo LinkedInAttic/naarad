@@ -25,7 +25,7 @@ from RCA.modules.time_series import TimeSeries
 class TestCorrelator(unittest.TestCase):
 
   def setUp(self):
-    self.s1 = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0.5, 5: 1, 6: 1, 7: 1, 8: 0}
+    self.s1 = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0.5, 5: 1, 6: 2, 7: 1, 8: 0}
     self.s2 = {0: 0, 1: 0.5, 2: 1, 3: 1, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0}
     self.s3 = {0: 0, 1: 0.5, 2: 1, 3: 1, 4: 1, 5: 0}
     self.correlator1 = Correlator(self.s1, self.s2)
@@ -99,7 +99,7 @@ class TestAnomalyDetector(unittest.TestCase):
     self.assertTrue(isinstance(self.detector1.get_all_scores(), TimeSeries))
     self.assertEqual(len(self.detector1.get_all_scores()), len(self.detector1.time_series))
 
-  def test_get_anomalied(self):
+  def test_get_anomalies(self):
     """
     Test if anomaly is found as expected.
     """
@@ -132,10 +132,8 @@ class TestAnomalyDetector(unittest.TestCase):
     Test if score_percentile_threshold works as expected.
     """
     detector = AnomalyDetector(self.s1, score_percentile_threshold=0.8, algorithm_name='exp_avg_detector')
-    detector1 = AnomalyDetector(self.s1, algorithm_name='exp_avg_detector')
+    detector1 = AnomalyDetector(self.s1, score_percentile_threshold=0.1, algorithm_name='exp_avg_detector')
     self.assertNotEqual(detector1.get_anomalies()[0].end_timestamp, detector.get_anomalies()[0].end_timestamp)
 
 if __name__ == '__main__':
-  s1 = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0.5, 5: 1, 6: 1, 7: 1, 8: 0}
-  detector1 = AnomalyDetector(s1)
   unittest.main()

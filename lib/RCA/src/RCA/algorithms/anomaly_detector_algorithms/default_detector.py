@@ -38,5 +38,7 @@ class DefaultDetector(AnomalyDetectorAlgorithm):
     anom_scores_deri = self.derivative_detector.run()
     anom_scores = dict()
     for timestamp in anom_scores_ema.timestamps:
-      anom_scores[timestamp] = anom_scores_ema[timestamp] * 0.75 + anom_scores_deri[timestamp] * 0.25
+      anom_scores[timestamp] = max(anom_scores_ema[timestamp], anom_scores_ema[timestamp] * 0.65 + anom_scores_deri[timestamp] * 0.35)
+      if anom_scores_ema[timestamp] > 0.94:
+        anom_scores[timestamp] = max(anom_scores[timestamp], anom_scores_deri[timestamp])
     self.anom_scores = TimeSeries(anom_scores)

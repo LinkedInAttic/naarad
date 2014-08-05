@@ -72,7 +72,7 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     stdev = numpy.std(values)
     for (timestamp, value) in self.time_series.iteritems():
       index = self.time_series.timestamps.index(timestamp)
-      anom_score = abs((value - ema[index])/stdev) if stdev else value - ema[index]
+      anom_score = abs((value - ema[index]) / stdev) if stdev else value - ema[index]
       anom_scores[timestamp] = anom_score
     self.anom_scores = TimeSeries(anom_scores)
 

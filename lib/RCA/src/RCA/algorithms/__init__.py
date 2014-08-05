@@ -22,5 +22,5 @@ anomaly_detector_algorithms = {
 }
 
 correlator_algorithms = {
-  'cross_correlator':cross_correlator.CrossCorrelator
+  'cross_correlator': cross_correlator.CrossCorrelator
 }
