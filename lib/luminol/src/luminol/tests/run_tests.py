@@ -16,10 +16,10 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from RCA.anomaly_detector import AnomalyDetector
-from RCA.correlator import Correlator
-import RCA.exceptions as exceptions
-from RCA.modules.time_series import TimeSeries
+from luminol.anomaly_detector import AnomalyDetector
+from luminol.correlator import Correlator
+import luminol.exceptions as exceptions
+from luminol.modules.time_series import TimeSeries
 
 
 class TestCorrelator(unittest.TestCase):

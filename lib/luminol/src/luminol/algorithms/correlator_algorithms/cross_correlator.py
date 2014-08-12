@@ -12,9 +12,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import numpy
 
-from RCA.algorithms.correlator_algorithms import CorrelatorAlgorithm
-import RCA.constants as constants
-from RCA.modules.correlation_result import CorrelationResult
+from luminol.algorithms.correlator_algorithms import CorrelatorAlgorithm
+import luminol.constants as constants
+from luminol.modules.correlation_result import CorrelationResult
 
 
 class CrossCorrelator(CorrelatorAlgorithm):

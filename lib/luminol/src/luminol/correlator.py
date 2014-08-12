@@ -15,11 +15,11 @@ API for Correlator Module
 This module finds correlation between two time series.
 """
 
-from RCA.algorithms import correlator_algorithms
-import RCA.constants as constants
-import RCA.exceptions as exceptions
-from RCA.modules.time_series import TimeSeries
-import RCA.utils as utils
+from luminol.algorithms import correlator_algorithms
+import luminol.constants as constants
+import luminol.exceptions as exceptions
+from luminol.modules.time_series import TimeSeries
+import luminol.utils as utils
 
 
 class Correlator(object):
@@ -61,11 +61,11 @@ class Correlator(object):
     try:
       self.algorithm = correlator_algorithms[algorithm_name]
     except KeyError:
-      raise exceptions.AlgorithmNotFound('RCA.Correlator: ' + str(algorithm_name) + ' not found.')
+      raise exceptions.AlgorithmNotFound('luminol.Correlator: ' + str(algorithm_name) + ' not found.')
     # Merge parameters.
     if algorithm_params:
       if not isinstance(algorithm_params, dict):
-        raise exceptions.InvalidDataFormat('RCA.Correlator: algorithm_params passed is not a dictionary.')
+        raise exceptions.InvalidDataFormat('luminol.Correlator: algorithm_params passed is not a dictionary.')
       else:
         self.algorithm_params = dict(algorithm_params.items() + self.algorithm_params.items())
 
@@ -74,7 +74,7 @@ class Correlator(object):
     Check if the time series have more than two data points.
     """
     if len(self.time_series_a) < 2 or len(self.time_series_b) < 2:
-      raise exceptions.NotEnoughDataPoints("RCA.Correlator: Too few data points!")
+      raise exceptions.NotEnoughDataPoints("luminol.Correlator: Too few data points!")
 
   def _correlate(self):
     """
