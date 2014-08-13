@@ -11,8 +11,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 
-from RCA.algorithms.anomaly_detector_algorithms import *
-from RCA.algorithms.correlator_algorithms import *
+from luminol.algorithms.anomaly_detector_algorithms import *
+from luminol.algorithms.correlator_algorithms import *
 
 anomaly_detector_algorithms = {
   'bitmap_detector': bitmap_detector.BitmapDetector,

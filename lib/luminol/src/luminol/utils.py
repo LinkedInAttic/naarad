@@ -11,12 +11,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 """
-Utilities for RCA
+Utilities for luminol
 """
 import csv
 import time
 
-import RCA.exceptions as exceptions
+import luminol.exceptions as exceptions
 
 def compute_ema(smoothing_factor, points):
   '''
@@ -41,7 +41,7 @@ def read_csv(csv_name):
   """
   data = {}
   if not isinstance(csv_name, (str, unicode)):
-    raise exceptions.InvalidDataFormat('RCA.utils: csv_name has to be a string!')
+    raise exceptions.InvalidDataFormat('luminol.utils: csv_name has to be a string!')
   with open(csv_name, 'r') as csv_data:
     reader = csv.reader(csv_data, delimiter=',', quotechar='|')
     for row in reader:

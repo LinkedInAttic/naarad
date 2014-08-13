@@ -15,12 +15,12 @@ API for Anomaly Detector Module
 This module detects anomalies in a single time series.
 """
 
-from RCA.algorithms import anomaly_detector_algorithms
-import RCA.constants as constants
-import RCA.exceptions as exceptions
-from RCA.modules.time_series import TimeSeries
-from RCA.modules.anomaly import Anomaly
-import RCA.utils as utils
+from luminol.algorithms import anomaly_detector_algorithms
+import luminol.constants as constants
+import luminol.exceptions as exceptions
+from luminol.modules.time_series import TimeSeries
+from luminol.modules.anomaly import Anomaly
+import luminol.utils as utils
 
 
 class AnomalyDetector(object):
@@ -79,7 +79,7 @@ class AnomalyDetector(object):
     try:
       algorithm = anomaly_detector_algorithms[algorithm_name]
     except KeyError:
-      raise exceptions.AlgorithmNotFound('RCA.AnomalyDetector: ' + str(algorithm_name) + ' not found.')
+      raise exceptions.AlgorithmNotFound('luminol.AnomalyDetector: ' + str(algorithm_name) + ' not found.')
     return algorithm
 
   def _prepare_params(self, algorithm_params, additional_params={}):
@@ -91,7 +91,7 @@ class AnomalyDetector(object):
     """
     algorithm_params = algorithm_params or {}
     if not isinstance(algorithm_params, dict) or not isinstance(additional_params, dict):
-      raise exceptions.InvalidDataFormat('RCA.AnomalyDetector: algorithm parameters passed are not in a dictionary.')
+      raise exceptions.InvalidDataFormat('luminol.AnomalyDetector: algorithm parameters passed are not in a dictionary.')
     return dict(algorithm_params.items() + additional_params.items())
 
   def _detect(self):

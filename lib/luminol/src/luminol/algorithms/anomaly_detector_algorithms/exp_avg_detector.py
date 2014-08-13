@@ -10,11 +10,11 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-from RCA.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-import RCA.constants as constants
-from RCA.exceptions import *
-from RCA.modules.time_series import TimeSeries
-import RCA.utils as utils
+from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
+import luminol.constants as constants
+from luminol.exceptions import *
+from luminol.modules.time_series import TimeSeries
+import luminol.utils as utils
 
 
 class ExpAvgDetector(AnomalyDetectorAlgorithm):
