@@ -2,7 +2,11 @@
 
 from setuptools import setup, find_packages
 
-luminol_version=0.1
+with open('VERSION') as f:
+      luminol_version = f.read().strip()
+
+with open('requirements.txt') as f:
+      required = f.read().splitlines()
 
 setup(name="luminol",
       description='luminol is an anomaly detection and correlation library for timeseries data.',
@@ -12,6 +16,6 @@ setup(name="luminol",
       version=luminol_version,
       packages=['luminol', 'luminol.algorithms', 'luminol.modules', 'luminol.algorithms.anomaly_detector_algorithms', 'luminol.algorithms.correlator_algorithms'],  
       package_dir={ '' : 'src'},
-      install_requires=['numpy'],
+      install_requires=required,
       license='Apache 2.0',
       )
