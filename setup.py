@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 with open('VERSION') as f:
-      naarad_version = f.read()
+      naarad_version = f.read().strip()
 
 with open('requirements.txt') as f:
       required = f.read().splitlines()
