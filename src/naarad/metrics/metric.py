@@ -358,7 +358,7 @@ class Metric(object):
                                                                               percentile_data[99], stats_data['min'],
                                                                               stats_data['max']]))
           FH.write(csv_data + '\n')
-          if sub_metric in self.important_sub_metrics:
+          if self.important_sub_metrics is not None and sub_metric in self.important_sub_metrics:
             FH_IMP.write(csv_data + '\n')
         self.stats_files.append(metric_stats_csv_file)
         self.important_stats_files.append(imp_metric_stats_csv_file)
