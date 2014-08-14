@@ -1,0 +1,7 @@
+[TOP-host1]
+infile=top.out
+PID=9609 16089
+COMMAND=firefox
+
+[GRAPH]
+graphing_library=matplotlib
