@@ -50,6 +50,15 @@ ANOMALY_THRESHOLD = {
   "default_detector": 3
 }
 
+# threshold on anomaly score below which is considered noises.
+DEFAULT_NOISE_THRESHOLD = 0.1
+
+# The score weight default detector uses.
+DEFAULT_DETECTOR_EMA_WEIGHT = 0.65
+
+# The default minimal ema score for the deault detector to use weighted score.
+DEFAULT_DETECTOR_EMA_SIGNIFICANT = 0.94
+
 """
 Correlator Constants
 """
