@@ -11,7 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 """
-Constants to use for RCA
+Constants to use for luminol
 """
 
 """
@@ -24,7 +24,7 @@ ANOMALY_DETECTOR_ALGORITHM = 'bitmap_detector'
 ANOMALY_DETECTOR_REFINE_ALGORITHM = 'exp_avg_detector'
 
 # Default percentile threshold value on anomaly score above which is considered an anomaly.
-DEFAULT_SCORE_PERCENTILE_THRESHOLD = 0.1
+DEFAULT_SCORE_PERCENTILE_THRESHOLD = 0.2
 
 # Constants for BitmapDetector.
 # Window sizes as percentiles of the whole data length.
@@ -58,7 +58,10 @@ CORRELATOR_ALGORITHM = 'cross_correlator'
 # Since anomalies take time to propagate between two different timeseries,
 # similar irregularities may happen close in time but not exactly at the same point in time.
 # To take this into account, when correlates, we allow a "shift room".
-DEFAULT_ALLOWED_SHIFT_SECONDS = 180
+DEFAULT_ALLOWED_SHIFT_SECONDS = 60
 
 # The threshold above which is considered "correlated".
 DEFAULT_CORRELATE_THRESHOLD = 0.7
+
+# The impact of shift on shifted correlation coefficient.
+DEFAULT_SHIFT_IMPACT = 0.05

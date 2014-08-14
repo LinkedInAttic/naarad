@@ -13,10 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 from collections import defaultdict
 import math
 
-from RCA.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-import RCA.constants as constants
-from RCA.exceptions import *
-from RCA.modules.time_series import TimeSeries
+from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
+import luminol.constants as constants
+from luminol.exceptions import *
+from luminol.modules.time_series import TimeSeries
 
 
 class BitmapDetector(AnomalyDetectorAlgorithm):
@@ -141,4 +141,4 @@ class BitmapDetector(AnomalyDetectorAlgorithm):
         lag_window_sax = self.sax[index - self.lag_window_size: index + 1]
         future_window_sax = self.sax[index: index + self.future_window_size]
         anom_scores[timestamp] = self._compute_anom_score_between_two_windows(lag_window_sax, future_window_sax)
-    self.anom_scores = TimeSeries(anom_scores)
+    self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))

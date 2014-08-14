@@ -12,8 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 from exp_avg_detector import ExpAvgDetector
 from derivative_detector import DerivativeDetector
-from RCA.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-from RCA.modules.time_series import TimeSeries
+from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
+from luminol.modules.time_series import TimeSeries
 
 
 class DefaultDetector(AnomalyDetectorAlgorithm):
@@ -41,4 +41,4 @@ class DefaultDetector(AnomalyDetectorAlgorithm):
       anom_scores[timestamp] = max(anom_scores_ema[timestamp], anom_scores_ema[timestamp] * 0.65 + anom_scores_deri[timestamp] * 0.35)
       if anom_scores_ema[timestamp] > 0.94:
         anom_scores[timestamp] = max(anom_scores[timestamp], anom_scores_deri[timestamp])
-    self.anom_scores = TimeSeries(anom_scores)
+    self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))

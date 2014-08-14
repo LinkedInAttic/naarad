@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-from RCA.exceptions import *
+from luminol.exceptions import *
 
 __all__ = ['bitmap_detector', 'derivative_detector', 'exp_avg_detector', 'default_detector']
 
@@ -38,6 +38,16 @@ class AnomalyDetectorAlgorithm(object):
     """
     self._set_scores()
     return self.anom_scores
+
+  def _denoise_scores(self, scores):
+    """
+    Denoise anomaly scores.
+    param dict scores: the scores to be denoised.
+    """
+    for key in scores:
+      if scores[key] < 0.1:
+        scores[key] = 0
+    return scores
 
   # Need to be extended.
   def _set_scores(self):

@@ -15,15 +15,16 @@ API for Correlator Module
 This module finds correlation between two time series.
 """
 
-from RCA.algorithms import correlator_algorithms
-import RCA.constants as constants
-import RCA.exceptions as exceptions
-from RCA.modules.time_series import TimeSeries
-import RCA.utils as utils
+from luminol.algorithms import correlator_algorithms
+from luminol.anomaly_detector import AnomalyDetector
+import luminol.constants as constants
+import luminol.exceptions as exceptions
+from luminol.modules.time_series import TimeSeries
+import luminol.utils as utils
 
 
 class Correlator(object):
-  def __init__(self, time_series_a, time_series_b, algorithm_name=None, algorithm_params=None):
+  def __init__(self, time_series_a, time_series_b, time_period=None, algorithm_name=None, algorithm_params=None):
     """
     Initializer
     :param time_series_a: a TimeSeries, a dictionary or a path to a csv file(str).
@@ -33,6 +34,14 @@ class Correlator(object):
     """
     self.time_series_a = self._load(time_series_a)
     self.time_series_b = self._load(time_series_b)
+    if time_period:
+      start_p, end_p = time_period
+      try:
+        self.time_series_a = self.time_series_a.crop(start_p, end_p)
+        self.time_series_b = self.time_series_b.crop(start_p, end_p)
+      # No data points fall into the specific time range.
+      except ValueError:
+        raise NotEnoughDataPoints
     self._sanity_check()
     self.algorithm_params = {'time_series_a': self.time_series_a, 'time_series_b': self.time_series_b}
     self._get_algorithm_and_params(algorithm_name, algorithm_params)
@@ -60,11 +69,11 @@ class Correlator(object):
     try:
       self.algorithm = correlator_algorithms[algorithm_name]
     except KeyError:
-      raise exceptions.AlgorithmNotFound('RCA.Correlator: ' + str(algorithm_name) + ' not found.')
+      raise exceptions.AlgorithmNotFound('luminol.Correlator: ' + str(algorithm_name) + ' not found.')
     # Merge parameters.
     if algorithm_params:
       if not isinstance(algorithm_params, dict):
-        raise exceptions.InvalidDataFormat('RCA.Correlator: algorithm_params passed is not a dictionary.')
+        raise exceptions.InvalidDataFormat('luminol.Correlator: algorithm_params passed is not a dictionary.')
       else:
         self.algorithm_params = dict(algorithm_params.items() + self.algorithm_params.items())
 
@@ -73,7 +82,7 @@ class Correlator(object):
     Check if the time series have more than two data points.
     """
     if len(self.time_series_a) < 2 or len(self.time_series_b) < 2:
-      raise exceptions.NotEnoughDataPoints("RCA.Correlator: Too few data points!")
+      raise exceptions.NotEnoughDataPoints('luminol.Correlator: Too few data points!')
 
   def _correlate(self):
     """

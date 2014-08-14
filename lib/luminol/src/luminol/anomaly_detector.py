@@ -15,17 +15,17 @@ API for Anomaly Detector Module
 This module detects anomalies in a single time series.
 """
 
-from RCA.algorithms import anomaly_detector_algorithms
-import RCA.constants as constants
-import RCA.exceptions as exceptions
-from RCA.modules.time_series import TimeSeries
-from RCA.modules.anomaly import Anomaly
-import RCA.utils as utils
+from luminol.algorithms import anomaly_detector_algorithms
+import luminol.constants as constants
+import luminol.exceptions as exceptions
+from luminol.modules.time_series import TimeSeries
+from luminol.modules.anomaly import Anomaly
+import luminol.utils as utils
 
 
 class AnomalyDetector(object):
 
-  def __init__(self, time_series, baseline_time_series=None, score_percentile_threshold=None, algorithm_name=None, algorithm_params=None,
+  def __init__(self, time_series, baseline_time_series=None, score_only=False, score_threshold=None, score_percentile_threshold=None, algorithm_name=None, algorithm_params=None,
     refine_algorithm_name=None, refine_algorithm_params=None):
     """
     Initializer
@@ -39,19 +39,20 @@ class AnomalyDetector(object):
     """
     self.time_series = self._load(time_series)
     self.baseline_time_series = self._load(baseline_time_series)
-    self.score_percentile_threshold = score_percentile_threshold
+    self.score_percentile_threshold = score_percentile_threshold or constants.DEFAULT_SCORE_PERCENTILE_THRESHOLD
     # Prepare algorithms.
     algorithm_name = algorithm_name or constants.ANOMALY_DETECTOR_ALGORITHM
     refine_algorithm_name = refine_algorithm_name or constants.ANOMALY_DETECTOR_REFINE_ALGORITHM
     self.algorithm = self._get_algorithm(algorithm_name)
-    self.threshold = constants.ANOMALY_THRESHOLD.get(algorithm_name)
+    self.threshold = score_threshold or constants.ANOMALY_THRESHOLD.get(algorithm_name)
+    self.score_percentile_threshold = score_percentile_threshold or constants.DEFAULT_SCORE_PERCENTILE_THRESHOLD
     self.refine_algorithm = self._get_algorithm(refine_algorithm_name)
     # Prepare parameters.
     self.algorithm_params = {'time_series': self.time_series, 'baseline_time_series': self.baseline_time_series}
     self.algorithm_params = self._prepare_params(algorithm_params, self.algorithm_params)
     self.refine_algorithm_params = self._prepare_params(refine_algorithm_params)
     # Detect anomalies.
-    self._detect()
+    self._detect(score_only)
 
   def _load(self, time_series):
     """
@@ -76,7 +77,7 @@ class AnomalyDetector(object):
     try:
       algorithm = anomaly_detector_algorithms[algorithm_name]
     except KeyError:
-      raise exceptions.AlgorithmNotFound('RCA.AnomalyDetector: ' + str(algorithm_name) + ' not found.')
+      raise exceptions.AlgorithmNotFound('luminol.AnomalyDetector: ' + str(algorithm_name) + ' not found.')
     return algorithm
 
   def _prepare_params(self, algorithm_params, additional_params={}):
@@ -88,12 +89,13 @@ class AnomalyDetector(object):
     """
     algorithm_params = algorithm_params or {}
     if not isinstance(algorithm_params, dict) or not isinstance(additional_params, dict):
-      raise exceptions.InvalidDataFormat('RCA.AnomalyDetector: algorithm parameters passed are not in a dictionary.')
+      raise exceptions.InvalidDataFormat('luminol.AnomalyDetector: algorithm parameters passed are not in a dictionary.')
     return dict(algorithm_params.items() + additional_params.items())
 
-  def _detect(self):
+  def _detect(self, score_only):
     """
     Detect anomaly periods.
+    :param bool score_only: if true, only anomaly scores are computed.
     """
     if self.baseline_time_series:
       # To-Do(Yarong): algorithms to use baseline.
@@ -104,9 +106,10 @@ class AnomalyDetector(object):
         self.anom_scores = a.run()
       except exceptions.NotEnoughDataPoints:
         a = anomaly_detector_algorithms['default_detector'](self.time_series)
-        self.threshold = constants.ANOMALY_THRESHOLD['default_detector']
+        self.threshold = self.threshold or constants.ANOMALY_THRESHOLD['default_detector']
         self.anom_scores = a.run()
-    self._detect_anomalies()
+    if not score_only:
+      self._detect_anomalies()
 
   def _detect_anomalies(self):
     """
@@ -116,11 +119,7 @@ class AnomalyDetector(object):
     anomaly_intervals, anomalies = list(), list()
     maximal_anom_score = anom_scores.max()
     if maximal_anom_score:
-      # Set Anomaly Threshold.
-      if self.score_percentile_threshold:
-        threshold = self.score_percentile_threshold * maximal_anom_score
-      else:
-        threshold = self.threshold or maximal_anom_score * constants.DEFAULT_SCORE_PERCENTILE_THRESHOLD
+      threshold = self.threshold or maximal_anom_score * self.score_percentile_threshold
       # Find all the anomaly intervals.
       start_timestamp, end_timestamp = None, None
       for (timestamp, value) in anom_scores.iteritems():
@@ -146,7 +145,7 @@ class AnomalyDetector(object):
         # Get the timestamp of the maximal score.
         maximal_expAvg_timestamp = scores.timestamps[scores.values.index(maximal_expAvg_score)]
         anomaly = Anomaly(anomaly_interval_start_timestamp, anomaly_interval_end_timestamp,
-          maximal_expAvg_score, maximal_expAvg_timestamp)
+          anomaly_interval_time_series.max(), maximal_expAvg_timestamp)
         anomalies.append(anomaly)
     self.anomalies = anomalies
 
@@ -155,11 +154,11 @@ class AnomalyDetector(object):
     Get anomalies.
     :return list: a list of Anomaly objects.
     """
-    return self.anomalies if self.anomalies else None
+    return getattr(self, 'anomalies', None)
 
   def get_all_scores(self):
     """
     Get anomaly scores.
     :return: a TimeSeries object represents anomaly scores.
     """
-    return self.anom_scores if self.anom_scores else None
+    return getattr(self, 'anom_scores', None)

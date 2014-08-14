@@ -16,10 +16,11 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from RCA.anomaly_detector import AnomalyDetector
-from RCA.correlator import Correlator
-import RCA.exceptions as exceptions
-from RCA.modules.time_series import TimeSeries
+from luminol import Luminol
+from luminol.anomaly_detector import AnomalyDetector
+from luminol.correlator import Correlator
+import luminol.exceptions as exceptions
+from luminol.modules.time_series import TimeSeries
 
 
 class TestCorrelator(unittest.TestCase):
@@ -50,8 +51,8 @@ class TestCorrelator(unittest.TestCase):
     """
     Test if optional parameter algorithm works as expected.
     """
-    self.assertRaises(exceptions.AlgorithmNotFound, lambda: Correlator(self.s1, self.s2, 'NotValidAlgorithm'))
-    correlator = Correlator(self.s1, self.s2, 'cross_correlator')
+    self.assertRaises(exceptions.AlgorithmNotFound, lambda: Correlator(self.s1, self.s2, algorithm_name='NotValidAlgorithm'))
+    correlator = Correlator(self.s1, self.s2, algorithm_name='cross_correlator')
     self.assertEqual(self.correlator2.get_correlation_result().coefficient, correlator.get_correlation_result().coefficient)
     self.assertEqual(self.correlator2.get_correlation_result().shift, correlator.get_correlation_result().shift)
 
@@ -59,15 +60,15 @@ class TestCorrelator(unittest.TestCase):
     """
     Test if optional parameter algorithm_params works as expected.
     """
-    self.assertRaises(exceptions.InvalidDataFormat, lambda: Correlator(self.s1, self.s2, 'cross_correlator', 1))
-    correlator = Correlator(self.s1, self.s2, 'cross_correlator', {'max_shift_seconds': 180})
+    self.assertRaises(exceptions.InvalidDataFormat, lambda: Correlator(self.s1, self.s2, algorithm_name='cross_correlator', algorithm_params=1))
+    correlator = Correlator(self.s1, self.s2, algorithm_name='cross_correlator', algorithm_params={'max_shift_seconds': 180})
     self.assertEqual(self.correlator2.get_correlation_result().coefficient, correlator.get_correlation_result().coefficient)
 
   def test_maximal_shift_seconds(self):
     """
     Test if parameter max_shift_seconds works as expected.
     """
-    correlator = Correlator(self.s1, self.s2, 'cross_correlator', {'max_shift_seconds': 0})
+    correlator = Correlator(self.s1, self.s2, algorithm_name='cross_correlator', algorithm_params={'max_shift_seconds': 0})
     self.assertNotEqual(self.correlator2.get_correlation_result().coefficient, correlator.get_correlation_result().coefficient)
 
   def test_sanity_check(self):
@@ -91,6 +92,17 @@ class TestAnomalyDetector(unittest.TestCase):
     self.s2 = {0: 0, 1: 0.5, 2: 1, 3: 1, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0}
     self.detector1 = AnomalyDetector(self.s1)
     self.detector2 = AnomalyDetector(self.s2)
+
+  def test_threshold(self):
+    detector = AnomalyDetector(self.s1, score_threshold=0)
+    self.assertTrue(len(detector.get_anomalies()) == 1)
+    self.assertTrue(detector.get_anomalies() is not None)
+
+  def test_score_only(self):
+    detector = AnomalyDetector(self.s1, score_only=True, algorithm_name='derivative_detector')
+    detector2 = AnomalyDetector(self.s1, algorithm_name='derivative_detector')
+    self.assertTrue(detector2.get_anomalies() is not None)
+    self.assertTrue(detector.get_anomalies() is None)
 
   def test_get_all_scores(self):
     """
@@ -131,9 +143,23 @@ class TestAnomalyDetector(unittest.TestCase):
     """
     Test if score_percentile_threshold works as expected.
     """
-    detector = AnomalyDetector(self.s1, score_percentile_threshold=0.8, algorithm_name='exp_avg_detector')
-    detector1 = AnomalyDetector(self.s1, score_percentile_threshold=0.1, algorithm_name='exp_avg_detector')
-    self.assertNotEqual(detector1.get_anomalies()[0].end_timestamp, detector.get_anomalies()[0].end_timestamp)
+    detector = AnomalyDetector(self.s1, score_percentile_threshold=0.1, algorithm_name='exp_avg_detector')
+    detector1 = AnomalyDetector(self.s1, score_percentile_threshold=0.1, algorithm_name='derivative_detector')
+    self.assertNotEqual(detector1.get_anomalies(), detector.get_anomalies())
+
+class TestLuminol(unittest.TestCase):
+  def setUp(self):
+    self.anomaly = ['A', 'B']
+    self.correlation = {
+      'A': ['m1', 'm2', 'm3'],
+      'B': ['m2', 'm1', 'm3']
+    }
+    self.luminol = Luminol(self.anomaly, self.correlation)
+
+  def test_get_result(self):
+    self.assertTrue(isinstance(self.luminol.get_root_causes(), dict))
+    self.assertEqual(self.luminol.get_root_causes()['A'], 'm1')
+    self.assertEqual(self.luminol.get_root_causes()['B'], 'm2')
 
 if __name__ == '__main__':
   unittest.main()

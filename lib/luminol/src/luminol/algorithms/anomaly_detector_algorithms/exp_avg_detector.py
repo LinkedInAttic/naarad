@@ -12,11 +12,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import numpy
 
-from RCA.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-import RCA.constants as constants
-from RCA.exceptions import *
-from RCA.modules.time_series import TimeSeries
-import RCA.utils as utils
+from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
+import luminol.constants as constants
+from luminol.exceptions import *
+from luminol.modules.time_series import TimeSeries
+import luminol.utils as utils
 
 
 class ExpAvgDetector(AnomalyDetectorAlgorithm):
@@ -25,7 +25,7 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
   This method uses a data point's deviation from the exponential moving average of a lagging window
   to determine its anomaly score.
   """
-  def __init__(self, time_series, baseline_time_series=None, smoothing_factor=None, lag_window_size=None):
+  def __init__(self, time_series, baseline_time_series=None, smoothing_factor=None, use_lag_window=False, lag_window_size=None):
     """
     Initializer
     :param TimeSeries time_series: a TimeSeries object.
@@ -34,6 +34,7 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     :param int lag_window_size: lagging window size.
     """
     super(ExpAvgDetector, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
+    self.use_lag_window = use_lag_window
     self.smoothing_factor = smoothing_factor if smoothing_factor > 0 else constants.DEFAULT_EMA_SMOTHING_FACTOR
     self.lag_window_size = lag_window_size if lag_window_size else int(self.time_series_length * constants.DEFAULT_EMA_WINDOW_SIZE_PCT)
 
@@ -74,11 +75,13 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
       index = self.time_series.timestamps.index(timestamp)
       anom_score = abs((value - ema[index]) / stdev) if stdev else value - ema[index]
       anom_scores[timestamp] = anom_score
-    self.anom_scores = TimeSeries(anom_scores)
+    self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))
 
   def _set_scores(self):
     """
     Compute anomaly scores for the time series.
     Currently uses a lagging window covering all the data points before.
     """
+    if self.use_lag_window:
+      self._compute_anom_data_using_window()
     self._compute_anom_data_decay_all()

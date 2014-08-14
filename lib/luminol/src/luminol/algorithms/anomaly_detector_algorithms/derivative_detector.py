@@ -12,10 +12,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import numpy
 
-from RCA.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-from RCA.exceptions import *
-from RCA.modules.time_series import TimeSeries
-import RCA.utils as utils
+from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
+from luminol.exceptions import *
+from luminol.modules.time_series import TimeSeries
+import luminol.utils as utils
 
 
 class DerivativeDetector(AnomalyDetectorAlgorithm):
@@ -24,17 +24,15 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
   This method is the derivative version of Method 1.
   Instead of data point value, it uses the derivative of the data point.
   '''
-  def __init__(self, time_series, baseline_time_series=None, smoothing_factor=0.2, lag_window_size=None):
+  def __init__(self, time_series, baseline_time_series=None, smoothing_factor=0.2):
     """
     Initializer
     :param TimeSeries time_series: a TimeSeries object.
     :param TimeSeries baseline_time_series: baseline TimeSeries.
     :param float smoothing_factor: smoothing factor.
-    :param int lag_window_size: lagging window size.
     """
     super(DerivativeDetector, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
     self.smoothing_factor = (smoothing_factor or 0.2)
-    self.lag_window_size = (lag_window_size or int(self.time_series_length * 0.2))
 
   def _compute_derivatives(self):
     """
@@ -52,7 +50,8 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
         derivative = abs(derivative)
         derivatives.append(derivative)
     # First timestamp is assigned the same derivative as the second timestamp.
-    derivatives.insert(0, derivatives[0])
+    if derivatives:
+      derivatives.insert(0, derivatives[0])
     self.derivatives = derivatives
 
   def _set_scores(self):
@@ -69,4 +68,4 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
     if stdev:
         for timestamp in anom_scores.keys():
           anom_scores[timestamp] /= stdev
-    self.anom_scores = TimeSeries(anom_scores)
+    self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))
