@@ -666,9 +666,9 @@ def get_standardized_timestamp(timestamp, ts_format):
       ts = datetime.datetime.utcfromtimestamp(float(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')
     elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
       date_today = str(datetime.date.today())
-      ts = datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
+      ts = (datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format)).strftime('%Y-%m-%d %H:%M:%S.%f')
     else:
-      ts = datetime.datetime.strptime(timestamp,ts_format).strftime('%Y-%m-%d %H:%M:%S.%f')
+      ts = (datetime.datetime.strptime(timestamp,ts_format)).strftime('%Y-%m-%d %H:%M:%S.%f')
   except ValueError:
     return -1    
   return ts
