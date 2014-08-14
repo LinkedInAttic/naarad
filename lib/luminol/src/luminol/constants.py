@@ -50,8 +50,8 @@ ANOMALY_THRESHOLD = {
   "default_detector": 3
 }
 
-# threshold on anomaly score below which is considered noises.
-DEFAULT_NOISE_THRESHOLD = 0.1
+# Percentage threshold on anomaly score below which is considered noises.
+DEFAULT_NOISE_PCT_THRESHOLD = 0.001
 
 # The score weight default detector uses.
 DEFAULT_DETECTOR_EMA_WEIGHT = 0.65

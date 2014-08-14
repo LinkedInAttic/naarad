@@ -43,11 +43,17 @@ class AnomalyDetectorAlgorithm(object):
   def _denoise_scores(self, scores):
     """
     Denoise anomaly scores.
+    Low anomaly scores could be noisy. The following two series will have good correlation result with out denoise:
+    [0.08, 4.6, 4.6, 4.6, 1.0, 1.0]
+    [0.0010, 0.0012, 0.0012, 0.0008, 0.0008]
+    while the second series is pretty flat(suppose it has a max score of 100).
     param dict scores: the scores to be denoised.
     """
-    for key in scores:
-      if scores[key] < constants.DEFAULT_NOISE_THRESHOLD:
-        scores[key] = 0
+    maximal = max(scores.values())
+    if maximal:
+      for key in scores:
+        if scores[key] < constants.DEFAULT_NOISE_PCT_THRESHOLD * maximal:
+          scores[key] = 0
     return scores
 
   # Need to be extended.
