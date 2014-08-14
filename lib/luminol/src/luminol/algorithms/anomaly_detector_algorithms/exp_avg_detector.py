@@ -61,7 +61,7 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
         anom_scores[timestamp] = self._compute_anom_score(values[:index + 1], value)
       else:
         anom_scores[timestamp] = self._compute_anom_score(values[index - self.lag_window_size: index + 1], value)
-    self.anom_scores = TimeSeries(anom_scores)
+    self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))
 
   def _compute_anom_data_decay_all(self):
     """
