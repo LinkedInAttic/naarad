@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 import numpy
 
 from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
+import luminol.constants as constants
 from luminol.exceptions import *
 from luminol.modules.time_series import TimeSeries
 import luminol.utils as utils
@@ -24,7 +25,7 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
   This method is the derivative version of Method 1.
   Instead of data point value, it uses the derivative of the data point.
   '''
-  def __init__(self, time_series, baseline_time_series=None, smoothing_factor=0.2):
+  def __init__(self, time_series, baseline_time_series=None, smoothing_factor=None):
     """
     Initializer
     :param TimeSeries time_series: a TimeSeries object.
@@ -32,7 +33,7 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
     :param float smoothing_factor: smoothing factor.
     """
     super(DerivativeDetector, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
-    self.smoothing_factor = (smoothing_factor or 0.2)
+    self.smoothing_factor = (smoothing_factor or constants.DEFAULT_DERI_SMOOTHING_FACTOR)
 
   def _compute_derivatives(self):
     """

@@ -35,7 +35,7 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     """
     super(ExpAvgDetector, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
     self.use_lag_window = use_lag_window
-    self.smoothing_factor = smoothing_factor if smoothing_factor > 0 else constants.DEFAULT_EMA_SMOTHING_FACTOR
+    self.smoothing_factor = smoothing_factor if smoothing_factor > 0 else constants.DEFAULT_EMA_SMOOTHING_FACTOR
     self.lag_window_size = lag_window_size if lag_window_size else int(self.time_series_length * constants.DEFAULT_EMA_WINDOW_SIZE_PCT)
 
   def _compute_anom_score(self, lag_window_points, point):
