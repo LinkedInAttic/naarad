@@ -10,8 +10,6 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-import numpy
-
 from luminol.algorithms.correlator_algorithms import CorrelatorAlgorithm
 import luminol.constants as constants
 from luminol.modules.correlation_result import CorrelationResult
@@ -53,7 +51,7 @@ class CrossCorrelator(CorrelatorAlgorithm):
     a_stdev, b_stdev = a.stdev(), b.stdev()
     n = len(a)
     denom = a_stdev * b_stdev * n
-    #find the maximal shift steps according to the maximal shift seconds.
+    # Find the maximal shift steps according to the maximal shift seconds.
     allowed_shift_step = self._find_allowed_shift(a.timestamps)
     if allowed_shift_step:
       shift_upper_bound = allowed_shift_step
@@ -87,7 +85,6 @@ class CrossCorrelator(CorrelatorAlgorithm):
     Find the maximum allowed shift steps based on max_shift_seconds.
     param list timestamps: timestamps of a time series.
     """
-    steps = 0
     init_ts = timestamps[0]
     residual_timestamps = map(lambda ts: ts - init_ts, timestamps)
     n = len(residual_timestamps)

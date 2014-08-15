@@ -15,7 +15,7 @@ API for Anomaly Detector Module
 This module detects anomalies in a single time series.
 """
 
-from luminol.algorithms import anomaly_detector_algorithms
+from luminol.algorithms.anomaly_detector_algorithms.all import anomaly_detector_algorithms
 import luminol.constants as constants
 import luminol.exceptions as exceptions
 from luminol.modules.time_series import TimeSeries
@@ -25,8 +25,8 @@ import luminol.utils as utils
 
 class AnomalyDetector(object):
 
-  def __init__(self, time_series, baseline_time_series=None, score_only=False, score_threshold=None, score_percentile_threshold=None, algorithm_name=None, algorithm_params=None,
-    refine_algorithm_name=None, refine_algorithm_params=None):
+  def __init__(self, time_series, baseline_time_series=None, score_only=False, score_threshold=None, score_percentile_threshold=None, algorithm_name=None,
+    algorithm_params=None, refine_algorithm_name=None, refine_algorithm_params=None):
     """
     Initializer
     :param time_series: a TimeSeries, a dictionary or a path to a csv file(str).
