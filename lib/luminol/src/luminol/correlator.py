@@ -23,7 +23,7 @@ import luminol.utils as utils
 
 
 class Correlator(object):
-  def __init__(self, time_series_a, time_series_b, algorithm_name=None, algorithm_params=None):
+  def __init__(self, time_series_a, time_series_b, time_period=None, algorithm_name=None, algorithm_params=None):
     """
     Initializer
     :param time_series_a: a TimeSeries, a dictionary or a path to a csv file(str).
@@ -33,6 +33,14 @@ class Correlator(object):
     """
     self.time_series_a = self._load(time_series_a)
     self.time_series_b = self._load(time_series_b)
+    if time_period:
+      start_p, end_p = time_period
+      try:
+        self.time_series_a = self.time_series_a.crop(start_p, end_p)
+        self.time_series_b = self.time_series_b.crop(start_p, end_p)
+      # No data points fall into the specific time range.
+      except ValueError:
+        raise NotEnoughDataPoints
     self._sanity_check()
     self.algorithm_params = {'time_series_a': self.time_series_a, 'time_series_b': self.time_series_b}
     self._get_algorithm_and_params(algorithm_name, algorithm_params)
@@ -56,8 +64,7 @@ class Correlator(object):
     :param str algorithm: name of the algorithm to use.
     :param dict algorithm_params: additional params for the specific algorithm.
     """
-    if not algorithm_name:
-      algorithm_name = constants.CORRELATOR_ALGORITHM
+    algorithm_name = algorithm_name or constants.CORRELATOR_ALGORITHM
     try:
       self.algorithm = correlator_algorithms[algorithm_name]
     except KeyError:
@@ -74,7 +81,7 @@ class Correlator(object):
     Check if the time series have more than two data points.
     """
     if len(self.time_series_a) < 2 or len(self.time_series_b) < 2:
-      raise exceptions.NotEnoughDataPoints("luminol.Correlator: Too few data points!")
+      raise exceptions.NotEnoughDataPoints('luminol.Correlator: Too few data points!')
 
   def _correlate(self):
     """

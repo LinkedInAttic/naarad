@@ -16,10 +16,11 @@ from luminol.algorithms.correlator_algorithms import *
 
 anomaly_detector_algorithms = {
   'bitmap_detector': bitmap_detector.BitmapDetector,
+  'default_detector': default_detector.DefaultDetector,
   'derivative_detector': derivative_detector.DerivativeDetector,
   'exp_avg_detector': exp_avg_detector.ExpAvgDetector
 }
 
 correlator_algorithms = {
-  'cross_correlator':cross_correlator.CrossCorrelator
+  'cross_correlator': cross_correlator.CrossCorrelator
 }

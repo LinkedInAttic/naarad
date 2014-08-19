@@ -10,6 +10,8 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+import numpy
+
 from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
 import luminol.constants as constants
 from luminol.exceptions import *
@@ -23,7 +25,7 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
   This method uses a data point's deviation from the exponential moving average of a lagging window
   to determine its anomaly score.
   """
-  def __init__(self, time_series, baseline_time_series=None, smoothing_factor=None, lag_window_size=None):
+  def __init__(self, time_series, baseline_time_series=None, smoothing_factor=None, use_lag_window=False, lag_window_size=None):
     """
     Initializer
     :param TimeSeries time_series: a TimeSeries object.
@@ -32,7 +34,8 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     :param int lag_window_size: lagging window size.
     """
     super(ExpAvgDetector, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
-    self.smoothing_factor = smoothing_factor if smoothing_factor > 0 else constants.DEFAULT_EMA_SMOTHING_FACTOR
+    self.use_lag_window = use_lag_window
+    self.smoothing_factor = smoothing_factor if smoothing_factor > 0 else constants.DEFAULT_EMA_SMOOTHING_FACTOR
     self.lag_window_size = lag_window_size if lag_window_size else int(self.time_series_length * constants.DEFAULT_EMA_WINDOW_SIZE_PCT)
 
   def _compute_anom_score(self, lag_window_points, point):
@@ -58,7 +61,7 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
         anom_scores[timestamp] = self._compute_anom_score(values[:index + 1], value)
       else:
         anom_scores[timestamp] = self._compute_anom_score(values[index - self.lag_window_size: index + 1], value)
-    self.anom_scores = TimeSeries(anom_scores)
+    self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))
 
   def _compute_anom_data_decay_all(self):
     """
@@ -67,15 +70,18 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     anom_scores = dict()
     values = self.time_series.values
     ema = utils.compute_ema(self.smoothing_factor, values)
+    stdev = numpy.std(values)
     for (timestamp, value) in self.time_series.iteritems():
       index = self.time_series.timestamps.index(timestamp)
-      anom_score = abs(value - ema[index])
+      anom_score = abs((value - ema[index]) / stdev) if stdev else value - ema[index]
       anom_scores[timestamp] = anom_score
-    self.anom_scores = TimeSeries(anom_scores)
+    self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))
 
   def _set_scores(self):
     """
     Compute anomaly scores for the time series.
     Currently uses a lagging window covering all the data points before.
     """
+    if self.use_lag_window:
+      self._compute_anom_data_using_window()
     self._compute_anom_data_decay_all()
