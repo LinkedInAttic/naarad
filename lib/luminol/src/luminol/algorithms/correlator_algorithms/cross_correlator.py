@@ -61,6 +61,8 @@ class CrossCorrelator(CorrelatorAlgorithm):
       shift_lower_bound = 0
     for delay in range(shift_lower_bound, shift_upper_bound):
       delay_in_seconds = a.timestamps[abs(delay)] - a.timestamps[0]
+      if delay < 0:
+        delay_in_seconds = -delay_in_seconds
       s = 0
       for i in range(n):
         j = i + delay
@@ -69,10 +71,10 @@ class CrossCorrelator(CorrelatorAlgorithm):
         else:
           s += ((a_values[i] - a_avg) * (b_values[j] - b_avg))
       r = s / denom if denom != 0 else s
-      correlations.append([delay, r])
+      correlations.append([delay_in_seconds, r])
       # Take shift into account to create a "shifted correlation coefficient".
       if self.max_shift_seconds:
-        shifted_correlations.append(r * (1 - float(delay_in_seconds) / (self.max_shift_seconds * self.shift_impact)))
+        shifted_correlations.append(r * (1 - float(delay_in_seconds) / self.max_shift_seconds * self.shift_impact))
       else:
         shifted_correlations.append(r)
     max_correlation = max(correlations, key=lambda k: k[1])
