@@ -134,7 +134,7 @@ class TimeSeries(object):
     for item in self.items():
       yield item
 
-  def iteritems_slient(self):
+  def iteritems_silent(self):
     for item in self.items():
       yield item
     yield None
@@ -204,8 +204,9 @@ class TimeSeries(object):
     """
     if isinstance(other, TimeSeries):
       aligned, other_aligned = dict(), dict()
-      i, other_i = self.iteritems_slient(), other.iteritems_slient()
+      i, other_i = self.iteritems_silent(), other.iteritems_silent()
       item, other_item = i.next(), other_i.next()
+
       while item and other_item:
         # Unpack timestamps and values.
         timestamp, value = item

@@ -80,7 +80,7 @@ class AnomalyDetector(object):
       raise exceptions.AlgorithmNotFound('luminol.AnomalyDetector: ' + str(algorithm_name) + ' not found.')
     return algorithm
 
-  def _prepare_params(self, algorithm_params, additional_params={}):
+  def _prepare_params(self, algorithm_params, additional_params=None):
     """
     Format parameter dict.
     :param dict algorithm_params: algorithm parameter dict.
@@ -88,6 +88,7 @@ class AnomalyDetector(object):
     :return dict: parameter dict.
     """
     algorithm_params = algorithm_params or {}
+    additional_params = additional_params or {}
     if not isinstance(algorithm_params, dict) or not isinstance(additional_params, dict):
       raise exceptions.InvalidDataFormat('luminol.AnomalyDetector: algorithm parameters passed are not in a dictionary.')
     return dict(algorithm_params.items() + additional_params.items())
