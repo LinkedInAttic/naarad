@@ -237,6 +237,32 @@ class TimeSeries(object):
         other_item = other_i.next()
       return TimeSeries(aligned), TimeSeries(other_aligned)
 
+  def smooth(self, smoothing_factor):
+    """
+    return a new time series which is a exponential smoothed version of the original data series.
+    soomth forward once, backward once, and then take the average.
+
+    :param float smoothing_factor: smoothing factor
+    :return: :class:`TimeSeries` object.
+    """
+    forward_smooth = {}
+    backward_smooth = {}
+    output = {}
+
+    if self:
+      pre = self.values[0]
+      next = self.values[-1]
+      for key, value in self.items():
+        forward_smooth[key] = smoothing_factor * pre + (1 - smoothing_factor) * value
+        pre = forward_smooth[key]
+      for key, value in reversed(self.items()):
+        backward_smooth[key] = smoothing_factor * next + (1 - smoothing_factor) * value
+        next = backward_smooth[key]
+      for key in forward_smooth.keys():
+        output[key] = (forward_smooth[key] + backward_smooth[key]) / 2
+
+    return TimeSeries(output)
+
   def add_offset(self, offset):
     """
     Return a new time series with all timestamps incremented by some offset.

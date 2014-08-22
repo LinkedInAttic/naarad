@@ -77,7 +77,7 @@ class CrossCorrelator(CorrelatorAlgorithm):
         shifted_correlations.append(r * (1 - float(delay_in_seconds) / self.max_shift_seconds * self.shift_impact))
       else:
         shifted_correlations.append(r)
-    max_correlation = max(correlations, key=lambda k: k[1])
+    max_correlation = list(max(correlations, key=lambda k: k[1]))
     max_shifted_correlation = max(shifted_correlations)
     max_correlation.append(max_shifted_correlation)
     self.correlation_result = CorrelationResult(*max_correlation)
