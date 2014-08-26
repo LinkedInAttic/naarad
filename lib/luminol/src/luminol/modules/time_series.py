@@ -23,7 +23,7 @@ class TimeSeries(object):
     for ts in sorted(series):
       if series[ts] is not None:
         self.timestamps.append(int(ts))
-        self.values.append(series[ts])
+        self.values.append(float(series[ts]))
 
   @property
   def start(self):
