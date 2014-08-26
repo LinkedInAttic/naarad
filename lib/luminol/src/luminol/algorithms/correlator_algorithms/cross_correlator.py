@@ -26,7 +26,6 @@ class CrossCorrelator(CorrelatorAlgorithm):
     :param TimeSeries time_series_a: TimeSeries a.
     :param TimeSeries time_series_b: TimeSeries b.
     :param int max_shift_seconds: allowed maximal shift seconds.
-    :param bool use_anomaly_score: correlate anomaly scores instead.
     :param time_period: if given, correlate the data inside the time period only.
     """
     super(CrossCorrelator, self).__init__(self.__class__.__name__, time_series_a, time_series_b)
