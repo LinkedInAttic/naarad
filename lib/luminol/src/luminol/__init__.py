@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 """
 © 2014 LinkedIn Corp. All rights reserved.
@@ -15,15 +14,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 class Luminol(object):
   def __init__(self, anomalies, correlations):
     """
-    Initializer
-    :param list anomalies: a list of anomalies.
+    :param list anomalies: a list of 'Anomaly' objects.
     :param dict correlations: a dict represents correlated metrics to each anomaly.
     """
     self.anomalies = anomalies
     self.correlations = correlations
     self._analyze_root_causes()
 
-  # Need to be modified.
+  # TODO(yaguo): Replace this with valid root cause analysis.
   def _analyze_root_causes(self):
     """
     Conduct root cause analysis.

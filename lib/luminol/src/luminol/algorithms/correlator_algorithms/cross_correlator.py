@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 """
 © 2014 LinkedIn Corp. All rights reserved.
@@ -73,7 +72,7 @@ class CrossCorrelator(CorrelatorAlgorithm):
       correlations.append([delay_in_seconds, r])
       # Take shift into account to create a "shifted correlation coefficient".
       if self.max_shift_seconds:
-        shifted_correlations.append(r * (1 - float(delay_in_seconds) / self.max_shift_seconds * self.shift_impact))
+        shifted_correlations.append(r * (1 + float(delay_in_seconds) / self.max_shift_seconds * self.shift_impact))
       else:
         shifted_correlations.append(r)
     max_correlation = list(max(correlations, key=lambda k: k[1]))
@@ -91,17 +90,17 @@ class CrossCorrelator(CorrelatorAlgorithm):
     n = len(residual_timestamps)
     return self._find_first_bigger(residual_timestamps, self.max_shift_seconds, 0, n)
 
-  def _find_first_bigger(self, values, target, lower_bound, upper_bound):
+  def _find_first_bigger(self, timestamps, target, lower_bound, upper_bound):
     """
-    Find the first element in values whose value is bigger than target.
-    param list values: list of values.
+    Find the first element in timestamps whose value is bigger than target.
+    param list values: list of timestamps(epoch number).
     param target: target value.
     param lower_bound: lower bound for binary search.
     param upper_bound: upper bound for binary search.
     """
     while lower_bound < upper_bound:
       pos = lower_bound + (upper_bound - lower_bound) / 2
-      if values[pos] > target:
+      if timestamps[pos] > target:
         upper_bound = pos
       else:
         lower_bound = pos + 1

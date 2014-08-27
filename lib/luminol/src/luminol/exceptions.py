@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 """
 © 2014 LinkedIn Corp. All rights reserved.
