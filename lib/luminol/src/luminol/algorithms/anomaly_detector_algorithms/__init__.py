@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 """
 © 2014 LinkedIn Corp. All rights reserved.
@@ -49,11 +48,12 @@ class AnomalyDetectorAlgorithm(object):
     while the second series is pretty flat(suppose it has a max score of 100).
     param dict scores: the scores to be denoised.
     """
-    maximal = max(scores.values())
-    if maximal:
-      for key in scores:
-        if scores[key] < constants.DEFAULT_NOISE_PCT_THRESHOLD * maximal:
-          scores[key] = 0
+    if scores:
+      maximal = max(scores.values())
+      if maximal:
+        for key in scores:
+          if scores[key] < constants.DEFAULT_NOISE_PCT_THRESHOLD * maximal:
+            scores[key] = 0
     return scores
 
   # Need to be extended.

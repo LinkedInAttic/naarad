@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding=utf-8
 """
 © 2014 LinkedIn Corp. All rights reserved.
@@ -15,7 +14,7 @@ API for Anomaly Detector Module
 This module detects anomalies in a single time series.
 """
 
-from luminol.algorithms import anomaly_detector_algorithms
+from luminol.algorithms.anomaly_detector_algorithms.all import anomaly_detector_algorithms
 import luminol.constants as constants
 import luminol.exceptions as exceptions
 from luminol.modules.time_series import TimeSeries
@@ -25,8 +24,8 @@ import luminol.utils as utils
 
 class AnomalyDetector(object):
 
-  def __init__(self, time_series, baseline_time_series=None, score_only=False, score_threshold=None, score_percentile_threshold=None, algorithm_name=None, algorithm_params=None,
-    refine_algorithm_name=None, refine_algorithm_params=None):
+  def __init__(self, time_series, baseline_time_series=None, score_only=False, score_threshold=None, score_percentile_threshold=None, algorithm_name=None,
+    algorithm_params=None, refine_algorithm_name=None, refine_algorithm_params=None):
     """
     Initializer
     :param time_series: a TimeSeries, a dictionary or a path to a csv file(str).
@@ -80,7 +79,7 @@ class AnomalyDetector(object):
       raise exceptions.AlgorithmNotFound('luminol.AnomalyDetector: ' + str(algorithm_name) + ' not found.')
     return algorithm
 
-  def _prepare_params(self, algorithm_params, additional_params={}):
+  def _prepare_params(self, algorithm_params, additional_params=None):
     """
     Format parameter dict.
     :param dict algorithm_params: algorithm parameter dict.
@@ -88,6 +87,7 @@ class AnomalyDetector(object):
     :return dict: parameter dict.
     """
     algorithm_params = algorithm_params or {}
+    additional_params = additional_params or {}
     if not isinstance(algorithm_params, dict) or not isinstance(additional_params, dict):
       raise exceptions.InvalidDataFormat('luminol.AnomalyDetector: algorithm parameters passed are not in a dictionary.')
     return dict(algorithm_params.items() + additional_params.items())

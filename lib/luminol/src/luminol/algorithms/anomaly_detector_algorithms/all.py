@@ -9,27 +9,11 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-"""
-Exception Classes
-"""
+from luminol.algorithms.anomaly_detector_algorithms import *
 
-
-class AlgorithmNotFound(Exception):
-  """
-  Raise when algorithm can not be found.
-  """
-  pass
-
-
-class InvalidDataFormat(Exception):
-  """
-  Raise when data has invalid format.
-  """
-  pass
-
-
-class NotEnoughDataPoints(Exception):
-  """
-  Raise when there are not enough data points.
-  """
-  pass
+anomaly_detector_algorithms = {
+  'bitmap_detector': bitmap_detector.BitmapDetector,
+  'default_detector': default_detector.DefaultDetector,
+  'derivative_detector': derivative_detector.DerivativeDetector,
+  'exp_avg_detector': exp_avg_detector.ExpAvgDetector
+}

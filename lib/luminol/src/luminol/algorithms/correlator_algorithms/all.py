@@ -9,27 +9,8 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-"""
-Exception Classes
-"""
+from luminol.algorithms.correlator_algorithms import *
 
-
-class AlgorithmNotFound(Exception):
-  """
-  Raise when algorithm can not be found.
-  """
-  pass
-
-
-class InvalidDataFormat(Exception):
-  """
-  Raise when data has invalid format.
-  """
-  pass
-
-
-class NotEnoughDataPoints(Exception):
-  """
-  Raise when there are not enough data points.
-  """
-  pass
+correlator_algorithms = {
+  'cross_correlator': cross_correlator.CrossCorrelator
+}

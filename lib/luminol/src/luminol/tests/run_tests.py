@@ -32,6 +32,13 @@ class TestCorrelator(unittest.TestCase):
     self.correlator1 = Correlator(self.s1, self.s2)
     self.correlator2 = Correlator(self.s1, self.s3)
 
+  def test_use_anomaly_score(self):
+    """
+    Test if use_anomaly_score works as expected.
+    """
+    correlator1 = Correlator(self.s1, self.s2, use_anomaly_score=True)
+    self.assertNotEqual(self.correlator1.get_correlation_result().coefficient, correlator1.get_correlation_result().coefficient)
+
   def test_cross_correlation(self):
     """
     Test if CrossCorrelation algorithm gives same results as expected.
@@ -146,6 +153,7 @@ class TestAnomalyDetector(unittest.TestCase):
     detector = AnomalyDetector(self.s1, score_percentile_threshold=0.1, algorithm_name='exp_avg_detector')
     detector1 = AnomalyDetector(self.s1, score_percentile_threshold=0.1, algorithm_name='derivative_detector')
     self.assertNotEqual(detector1.get_anomalies(), detector.get_anomalies())
+
 
 class TestLuminol(unittest.TestCase):
   def setUp(self):
