@@ -9,13 +9,14 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
-import luminol.constants as constants
+from luminol.constants import *
 from luminol.exceptions import *
 
 __all__ = ['bitmap_detector', 'derivative_detector', 'exp_avg_detector', 'default_detector']
 
 
 class AnomalyDetectorAlgorithm(object):
+
   """
   Base Class for AnomalyDetector algorithm.
   """
@@ -52,7 +53,7 @@ class AnomalyDetectorAlgorithm(object):
       maximal = max(scores.values())
       if maximal:
         for key in scores:
-          if scores[key] < constants.DEFAULT_NOISE_PCT_THRESHOLD * maximal:
+          if scores[key] < DEFAULT_NOISE_PCT_THRESHOLD * maximal:
             scores[key] = 0
     return scores
 

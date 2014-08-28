@@ -10,11 +10,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 from luminol.algorithms.correlator_algorithms import CorrelatorAlgorithm
-import luminol.constants as constants
+from luminol.constants import *
 from luminol.modules.correlation_result import CorrelationResult
 
 
 class CrossCorrelator(CorrelatorAlgorithm):
+
   """
   Method 1: CrossCorrelation algorithm.
   Ideas come from Paul Bourke(http://paulbourke.net/miscellaneous/correlate/).
@@ -28,19 +29,19 @@ class CrossCorrelator(CorrelatorAlgorithm):
     :param time_period: if given, correlate the data inside the time period only.
     """
     super(CrossCorrelator, self).__init__(self.__class__.__name__, time_series_a, time_series_b)
-    self.shift_impact = shift_impact or constants.DEFAULT_SHIFT_IMPACT
+    self.shift_impact = shift_impact or DEFAULT_SHIFT_IMPACT
     if max_shift_seconds is not None:
       self.max_shift_seconds = max_shift_seconds
     else:
-      self.max_shift_seconds = constants.DEFAULT_ALLOWED_SHIFT_SECONDS
+      self.max_shift_seconds = DEFAULT_ALLOWED_SHIFT_SECONDS
 
   def _detect_correlation(self):
     """
     Detect correlation by computing correlation coefficients for all allowed shift steps,
     then take the maximum.
     """
-    correlations = list()
-    shifted_correlations = list()
+    correlations = []
+    shifted_correlations = []
     self.time_series_a.normalize()
     self.time_series_b.normalize()
     a, b = self.time_series_a.align(self.time_series_b)

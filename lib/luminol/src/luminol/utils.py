@@ -15,16 +15,16 @@ Utilities for luminol
 import csv
 import time
 
-import luminol.exceptions as exceptions
+from luminol import exceptions
 
 def compute_ema(smoothing_factor, points):
-  '''
+  """
   Compute exponential moving average of a list of points.
   :param float smoothing_factor: the smoothing factor.
   :param list points: the data points.
   :return list: all ema in a list.
-  '''
-  ema = list()
+  """
+  ema = []
   # The initial point has a ema equal to itself.
   if(len(points) > 0):
     ema.append(points[0])

@@ -16,10 +16,10 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+from luminol import exceptions
 from luminol import Luminol
 from luminol.anomaly_detector import AnomalyDetector
 from luminol.correlator import Correlator
-import luminol.exceptions as exceptions
 from luminol.modules.time_series import TimeSeries
 
 
@@ -142,7 +142,7 @@ class TestAnomalyDetector(unittest.TestCase):
     """
     Test if optional parameter algorithm_params works as expected.
     """
-    self.assertRaises(exceptions.InvalidDataFormat, lambda: AnomalyDetector(self.s1, algorithm_name='exp_avg_detector', algorithm_params='0'))
+    self.assertRaises(ValueError, lambda: AnomalyDetector(self.s1, algorithm_name='exp_avg_detector', algorithm_params='0'))
     detector = AnomalyDetector(self.s1, algorithm_name="exp_avg_detector", algorithm_params={'smoothing_factor': 0.3})
     self.assertNotEqual(self.detector1.get_all_scores().values, detector.get_all_scores().values)
 

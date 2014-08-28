@@ -48,8 +48,8 @@ DEFAULT_EMA_WINDOW_SIZE_PCT = 0.2
 DEFAULT_DERI_SMOOTHING_FACTOR = 0.2
 
 ANOMALY_THRESHOLD = {
-  "exp_avg_detector": 3,
-  "default_detector": 3
+  'exp_avg_detector': 3,
+  'default_detector': 3
 }
 
 # Percentage threshold on anomaly score below which is considered noises.

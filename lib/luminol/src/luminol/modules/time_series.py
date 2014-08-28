@@ -202,7 +202,7 @@ class TimeSeries(object):
     :return: :tuple:(`TimeSeries` object(the aligned self), `TimeSeries` object(the aligned other))
     """
     if isinstance(other, TimeSeries):
-      aligned, other_aligned = dict(), dict()
+      aligned, other_aligned = {}, {}
       i, other_i = self.iteritems_silent(), other.iteritems_silent()
       item, other_item = i.next(), other_i.next()
 

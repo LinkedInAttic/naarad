@@ -11,14 +11,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import numpy
 
+from luminol import utils
 from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-import luminol.constants as constants
+from  luminol.constants import *
 from luminol.exceptions import *
 from luminol.modules.time_series import TimeSeries
-import luminol.utils as utils
 
 
 class DerivativeDetector(AnomalyDetectorAlgorithm):
+
   '''
   Derivative Algorithm.
   This method is the derivative version of Method 1.
@@ -32,13 +33,13 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
     :param float smoothing_factor: smoothing factor.
     """
     super(DerivativeDetector, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
-    self.smoothing_factor = (smoothing_factor or constants.DEFAULT_DERI_SMOOTHING_FACTOR)
+    self.smoothing_factor = (smoothing_factor or DEFAULT_DERI_SMOOTHING_FACTOR)
 
   def _compute_derivatives(self):
     """
     Compute derivatives of the time series.
     """
-    derivatives = list()
+    derivatives = []
     for (timestamp, value) in self.time_series.iteritems():
       index = self.time_series.timestamps.index(timestamp)
       if index > 0:
@@ -58,7 +59,7 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
     """
     Compute anomaly scores for the time series.
     """
-    anom_scores = dict()
+    anom_scores = {}
     self._compute_derivatives()
     derivatives_ema = utils.compute_ema(self.smoothing_factor, self.derivatives)
     for (timestamp, value) in self.time_series.iteritems():

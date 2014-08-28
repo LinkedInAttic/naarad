@@ -15,6 +15,7 @@ Anomaly Object
 
 
 class Anomaly(object):
+
   def __init__(self, start_timestamp, end_timestamp, anomaly_score, exact_timestamp):
     """
     Construct an anomaly object.

@@ -14,6 +14,7 @@ __all__ = ['cross_correlator']
 
 
 class CorrelatorAlgorithm(object):
+
   """
   Base class for Correlator algorithm.
   """

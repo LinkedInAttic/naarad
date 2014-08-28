@@ -11,14 +11,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import numpy
 
+from luminol import utils
 from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-import luminol.constants as constants
+from  luminol.constants import *
 from luminol.exceptions import *
 from luminol.modules.time_series import TimeSeries
-import luminol.utils as utils
 
 
 class ExpAvgDetector(AnomalyDetectorAlgorithm):
+
   """
   Exponential Moving Average.
   This method uses a data point's deviation from the exponential moving average of a lagging window
@@ -34,8 +35,8 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     """
     super(ExpAvgDetector, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
     self.use_lag_window = use_lag_window
-    self.smoothing_factor = smoothing_factor if smoothing_factor > 0 else constants.DEFAULT_EMA_SMOOTHING_FACTOR
-    self.lag_window_size = lag_window_size if lag_window_size else int(self.time_series_length * constants.DEFAULT_EMA_WINDOW_SIZE_PCT)
+    self.smoothing_factor = smoothing_factor if smoothing_factor > 0 else DEFAULT_EMA_SMOOTHING_FACTOR
+    self.lag_window_size = lag_window_size if lag_window_size else int(self.time_series_length * DEFAULT_EMA_WINDOW_SIZE_PCT)
 
   def _compute_anom_score(self, lag_window_points, point):
     """
@@ -52,7 +53,7 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     """
     Compute anomaly scores using a lagging window.
     """
-    anom_scores = dict()
+    anom_scores = {}
     values = self.time_series.values
     for (timestamp, value) in self.time_series.iteritems():
       index = self.time_series.timestamps.index(timestamp)
@@ -66,7 +67,7 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     """
     Compute anomaly scores using a lagging window covering all the data points before.
     """
-    anom_scores = dict()
+    anom_scores = {}
     values = self.time_series.values
     ema = utils.compute_ema(self.smoothing_factor, values)
     stdev = numpy.std(values)

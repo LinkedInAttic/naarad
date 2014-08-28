@@ -13,12 +13,13 @@ from collections import defaultdict
 import math
 
 from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-import luminol.constants as constants
+from luminol.constants import *
 from luminol.exceptions import *
 from luminol.modules.time_series import TimeSeries
 
 
 class BitmapDetector(AnomalyDetectorAlgorithm):
+
   """
   Bitmap Algorithm.
   This method breaks time series into chunks and uses the frequency of similar chunks
@@ -38,16 +39,16 @@ class BitmapDetector(AnomalyDetectorAlgorithm):
     :param int chunk_size: chunk size.
     """
     super(BitmapDetector, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
-    self.precision = precision if precision and precision > 0 else constants.DEFAULT_BITMAP_PRECISION
-    self.chunk_size = chunk_size if chunk_size and chunk_size > 0 else constants.DEFAULT_BITMAP_CHUNK_SIZE
+    self.precision = precision if precision and precision > 0 else DEFAULT_BITMAP_PRECISION
+    self.chunk_size = chunk_size if chunk_size and chunk_size > 0 else DEFAULT_BITMAP_CHUNK_SIZE
     if lag_window_size:
       self.lag_window_size = lag_window_size
     else:
-      self.lag_window_size = int(self.time_series_length * constants.DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT)
+      self.lag_window_size = int(self.time_series_length * DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT)
     if future_window_size:
       self.future_window_size = future_window_size
     else:
-      self.future_window_size = int(self.time_series_length * constants.DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT)
+      self.future_window_size = int(self.time_series_length * DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT)
     self._sanity_check()
 
   def _sanity_check(self):
@@ -56,7 +57,7 @@ class BitmapDetector(AnomalyDetectorAlgorithm):
     """
     windows = self.lag_window_size + self.future_window_size
     if (not self.lag_window_size or not self.future_window_size
-      or self.time_series_length < windows or windows < constants.DEFAULT_BITMAP_MINIMAL_POINTS_IN_WINDOWS):
+      or self.time_series_length < windows or windows < DEFAULT_BITMAP_MINIMAL_POINTS_IN_WINDOWS):
         raise NotEnoughDataPoints
 
   def _generate_SAX_single(self, sections, value):
@@ -80,7 +81,7 @@ class BitmapDetector(AnomalyDetectorAlgorithm):
     """
     Generate SAX representation for all values of the time series.
     """
-    sections = dict()
+    sections = {}
     self.value_min = self.time_series.min()
     self.value_max = self.time_series.max()
     # Break the whole value range into different sections.
@@ -130,7 +131,7 @@ class BitmapDetector(AnomalyDetectorAlgorithm):
     """
     Compute anomaly scores for the time series by sliding both lagging window and future window.
     """
-    anom_scores = dict()
+    anom_scores = {}
     self._generate_SAX()
     for timestamp in self.time_series.iterkeys():
       index = self.time_series.timestamps.index(timestamp)
