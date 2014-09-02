@@ -13,8 +13,7 @@ import numpy
 
 from luminol import utils
 from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-from  luminol.constants import *
-from luminol.exceptions import *
+from luminol.constants import *
 from luminol.modules.time_series import TimeSeries
 
 
@@ -37,6 +36,7 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     self.use_lag_window = use_lag_window
     self.smoothing_factor = smoothing_factor if smoothing_factor > 0 else DEFAULT_EMA_SMOOTHING_FACTOR
     self.lag_window_size = lag_window_size if lag_window_size else int(self.time_series_length * DEFAULT_EMA_WINDOW_SIZE_PCT)
+    self.time_series_items = self.time_series.items()
 
   def _compute_anom_score(self, lag_window_points, point):
     """
@@ -55,12 +55,11 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     """
     anom_scores = {}
     values = self.time_series.values
-    for (timestamp, value) in self.time_series.iteritems():
-      index = self.time_series.timestamps.index(timestamp)
-      if index < self.lag_window_size:
-        anom_scores[timestamp] = self._compute_anom_score(values[:index + 1], value)
+    for i, (timestamp, value) in enumerate(self.time_series_items):
+      if i < self.lag_window_size:
+        anom_scores[timestamp] = self._compute_anom_score(values[:i + 1], value)
       else:
-        anom_scores[timestamp] = self._compute_anom_score(values[index - self.lag_window_size: index + 1], value)
+        anom_scores[timestamp] = self._compute_anom_score(values[i - self.lag_window_size: i + 1], value)
     self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))
 
   def _compute_anom_data_decay_all(self):
@@ -71,9 +70,8 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     values = self.time_series.values
     ema = utils.compute_ema(self.smoothing_factor, values)
     stdev = numpy.std(values)
-    for (timestamp, value) in self.time_series.iteritems():
-      index = self.time_series.timestamps.index(timestamp)
-      anom_score = abs((value - ema[index]) / stdev) if stdev else value - ema[index]
+    for i, (timestamp, value) in enumerate(self.time_series_items):
+      anom_score = abs((value - ema[i]) / stdev) if stdev else value - ema[i]
       anom_scores[timestamp] = anom_score
     self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))
 

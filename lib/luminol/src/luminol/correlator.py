@@ -18,7 +18,7 @@ from luminol import exceptions
 from luminol import utils
 from luminol.algorithms.correlator_algorithms.all import correlator_algorithms
 from luminol.anomaly_detector import AnomalyDetector
-from  luminol.constants import *
+from luminol.constants import *
 from luminol.modules.time_series import TimeSeries
 
 

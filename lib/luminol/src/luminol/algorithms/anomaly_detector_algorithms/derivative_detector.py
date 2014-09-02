@@ -13,8 +13,7 @@ import numpy
 
 from luminol import utils
 from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-from  luminol.constants import *
-from luminol.exceptions import *
+from luminol.constants import *
 from luminol.modules.time_series import TimeSeries
 
 
@@ -34,16 +33,16 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
     """
     super(DerivativeDetector, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
     self.smoothing_factor = (smoothing_factor or DEFAULT_DERI_SMOOTHING_FACTOR)
+    self.time_series_items = self.time_series.items()
 
   def _compute_derivatives(self):
     """
     Compute derivatives of the time series.
     """
     derivatives = []
-    for (timestamp, value) in self.time_series.iteritems():
-      index = self.time_series.timestamps.index(timestamp)
-      if index > 0:
-        pre_item = self.time_series.items()[index - 1]
+    for i, (timestamp, value) in enumerate(self.time_series_items):
+      if i > 0:
+        pre_item = self.time_series_items[i - 1]
         pre_timestamp = pre_item[0]
         pre_value = pre_item[1]
         td = timestamp - pre_timestamp
@@ -62,9 +61,8 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
     anom_scores = {}
     self._compute_derivatives()
     derivatives_ema = utils.compute_ema(self.smoothing_factor, self.derivatives)
-    for (timestamp, value) in self.time_series.iteritems():
-      index = self.time_series.timestamps.index(timestamp)
-      anom_scores[timestamp] = abs(self.derivatives[index] - derivatives_ema[index])
+    for i, (timestamp, value) in enumerate(self.time_series_items):
+      anom_scores[timestamp] = abs(self.derivatives[i] - derivatives_ema[i])
     stdev = numpy.std(anom_scores.values())
     if stdev:
         for timestamp in anom_scores.keys():
