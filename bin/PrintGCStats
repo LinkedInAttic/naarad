@@ -113,12 +113,11 @@
 #              start.
 #
 # ts_start - Start time for analysis of the gc log. Any entries before this
-#            time will be ignored. Specify ts_start in the format below
-#            "YYYY-MM-DD HH:MM:SS.sss"
+#            time will be ignored. Specify ts_start in epoch ms
+#
 #
 # ts_end -  End time for analysis of the gc log. Once the end time is reached
-#           the program will quit. Specify ts_end in the format below
-#           "YYYY-MM-DD HH:MM:SS.sss"
+#           the program will quit. Specify ts_end in the format in epoch ms
 #
 # Typical usage:
 #
@@ -217,8 +216,8 @@ BEGIN {
   timeStampOffset = 0.0;
 
   # Support time range filtering
-  if(ts_start == "") ts_start = "2000-01-01 00:00:00.000";
-  if(ts_end == "") ts_end = "3000-01-01 00:00:00.000";
+  if(ts_start == "") ts_start = 336955068000;
+  if(ts_end == "") ts_end = 2072558268000;
 
   i = -1;
   gen0c_idx = ++i;	# With PrintGCDetails, DefNew collection time only.
@@ -681,6 +680,12 @@ function getDateTimeStamp() {
   if (!match(gts_tmp_str,"^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9]+")) return -1.0;
   gts_tmp = substr(gts_tmp_str, RSTART, RLENGTH);
   sub(/T/, " ", gts_tmp);
+  sub(/-/, " ", gts_tmp);
+  sub(/-/, " ", gts_tmp);
+  sub(/:/, " ", gts_tmp);
+  sub(/:/, " ", gts_tmp);
+  split(gts_tmp, tmp_ts, ".");
+  gts_tmp = mktime(tmp_ts[1]) * 1000 + tmp_ts[2];
   return gts_tmp;
 }
 
