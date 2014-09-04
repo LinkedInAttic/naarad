@@ -177,11 +177,11 @@ class Metric(object):
     :return: string aggregate_timestamp: timestamp used for metrics aggregation in all functions
     """
     if granularity == 'hour':
-      return naarad.utils.reconcile_timezones(datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000), 'UTC', self.graph_timezone).strftime('%Y-%m-%d %H') + ':00:00', 3600
+      return (int(timestamp)/(3600*1000)) * 3600 * 1000, 3600
     elif granularity == 'minute':
-      return naarad.utils.reconcile_timezones(datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000), 'UTC', self.graph_timezone).strftime('%Y-%m-%d %H:%M') + ':00', 60
+      return (int(timestamp)/(60*1000)) * 60 * 1000, 60
     else:
-      return naarad.utils.reconcile_timezones(datetime.datetime.utcfromtimestamp(naarad.utils.convert_to_unixts(timestamp) / 1000), 'UTC', self.graph_timezone).strftime('%Y-%m-%d %H:%M:%S'), 1
+      return (int(timestamp)/1000) * 1000, 1
 
   def aggregate_count_over_time(self, metric_store, groupby_name, aggregate_timestamp):
     """

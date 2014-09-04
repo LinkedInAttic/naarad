@@ -20,10 +20,7 @@ logger = logging.getLogger('naarad.graphing.matplotlib')
 
 
 def convert_to_mdate(date_str):
-  try:
-    mdate = mdates.strpdate2num('%Y-%m-%d %H:%M:%S.%f')(date_str)
-  except:
-    mdate = mdates.strpdate2num('%Y-%m-%d %H:%M:%S')(date_str)
+  mdate = mdates.epoch2num(int(date_str)/1000)
   return mdate
 
 # MPL-WA-07

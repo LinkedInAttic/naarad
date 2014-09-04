@@ -655,6 +655,37 @@ def get_standardized_timestamp(timestamp, ts_format):
   if not ts_format:
     ts_format = detect_timestamp_format(timestamp)
   try:
+    if ts_format == 'unknown':
+      logger.error('Unable to determine timestamp format for : %s', timestamp)
+      return -1
+    elif ts_format == 'epoch':
+      ts = timestamp * 1000;
+    elif ts_format == 'epoch_ms':
+      ts = timestamp
+    elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
+      date_today = str(datetime.date.today())
+      ts = (datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format)).strftime('%Y-%m-%d %H:%M:%S.%f')
+    else:
+      dt_obj = datetime.datetime.strptime(timestamp, ts_format)
+      ts = calendar.timegm(dt_obj.utctimetuple())*1000.0 + dt_obj.microsecond/1000.0
+  except ValueError:
+    return -1
+  return ts
+
+
+
+def get_standardized_timestamp_deprecated(timestamp, ts_format):
+  """
+  Given a timestamp string, return a time stamp in the format YYYY-MM-DD HH:MM:SS.sss. If no date is present in
+  timestamp then today's date will be added as a prefix
+  """
+  if not timestamp:
+    return None
+  if timestamp == 'now':
+    timestamp = str(datetime.datetime.now())
+  if not ts_format:
+    ts_format = detect_timestamp_format(timestamp)
+  try:
     if ts_format == '%Y-%m-%d %H:%M:%S.%f':
       return timestamp
     elif ts_format == 'unknown':

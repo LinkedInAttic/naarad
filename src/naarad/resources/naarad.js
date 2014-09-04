@@ -34,26 +34,31 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
   var chart_data_title = "" ;
   chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
   chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
-  document.getElementById(url_div).innerHTML = "<a href=" + chart_data_source + " target=\"_blank\">[csv]</a>"
+//  document.getElementById(url_div).innerHTML = "<a href=" + chart_data_source + " target=\"_blank\">[csv]</a>"
+  document.getElementById(url_div).innerHTML = "<a href=\"javascript:convertCSVTimeStamp('" + chart_data_source + "');\">[csv]</a>"
   var div_width = document.getElementById(div_id).clientWidth;
   var div_height = document.getElementById(div_id).clientHeight;
   var blockRedraw = false;
-  var initialized = false;
+  var initial = true;
   chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,
   {
     axes : {
       x : {
-            ticker: Dygraph.dateTicker
+            ticker: Dygraph.dateTicker,
+            axisLabelFormatter: function(x) {
+                var date = new Date(x);
+                return (date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + date.getMilliseconds());
+            },
+            valueFormatter: function(x) {
+                var date = new Date(x);
+                return (date.getMonth()+1 + "/" + date.getDate() + "/" + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds());
+            }
           },
       y : {
             drawGrid: true
           }
     },
     legend: 'always',
-    xValueParser: function(x) {
-       var date_components = x.split(/[^0-9]/);
-       return new Date(date_components[0], date_components[1]-1, date_components[2], date_components[3], date_components[4], date_components[5], date_components[6] || 0).getTime();
-    },
     xlabel: "Time",
     colors: colorSets[colorset_id],
     labels: [ "Time", chart_data_title],
@@ -340,4 +345,40 @@ function resetFilter(timeseriesSelector, cdfSelector, filterId)
   addOptions(timeseriesSelector,timeseriesOptionsList);
   purgeOptions(cdfSelector);
   addOptions(cdfSelector,cdfOptionsList);
+}
+
+function convertCSVTimeStamp(csvURL)
+{
+    var xhr = new XMLHttpRequest();
+    var csvData = '';
+    var url = csvURL.split("/");
+    var fileName = url[url.length - 1];
+    xhr.onreadystatechange = function() {
+        if(xhr.readyState == xhr.DONE) {
+            var lines = xhr.responseText.split("\n");
+            for(var i=0; i< lines.length; i++)
+            {
+                var lineData = lines[i].split(",");
+                if(lineData[0] > syncRange[0] && lineData[0] < syncRange[1])
+                {
+                    var date = new Date(parseInt(lineData[0]));
+                    var timestamp = date.getMonth()+1 + "/" + date.getDate() + "/" + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds();
+                    csvData += timestamp + ',' + lineData[1] + '\n';
+                }
+            }
+            download(csvData,fileName, 'application/octet-stream')
+        }
+    }
+    xhr.open('GET', csvURL, true);
+    xhr.send(null);
+}
+
+function download(content, filename, contentType)
+{
+    if(!contentType) contentType = 'application/octet-stream';
+        var a = document.createElement('a');
+        var blob = new Blob([content], {'type':contentType});
+        a.href = window.URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
 }
