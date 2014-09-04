@@ -366,7 +366,7 @@ function convertCSVTimeStamp(csvURL)
                     csvData += timestamp + ',' + lineData[1] + '\n';
                 }
             }
-            download(csvData,fileName, 'application/octet-stream')
+            download(csvData,fileName, 'text/csv');
         }
     }
     xhr.open('GET', csvURL, true);
@@ -376,9 +376,15 @@ function convertCSVTimeStamp(csvURL)
 function download(content, filename, contentType)
 {
     if(!contentType) contentType = 'application/octet-stream';
+    if(navigator.userAgent.indexOf('Chrome') > -1)
+    {
         var a = document.createElement('a');
         var blob = new Blob([content], {'type':contentType});
         a.href = window.URL.createObjectURL(blob);
         a.download = filename;
         a.click();
+    } else {
+        document.location = 'data:' + contentType + ',' + encodeURIComponent(content);
+    }
+
 }
