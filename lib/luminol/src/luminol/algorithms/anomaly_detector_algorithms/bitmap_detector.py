@@ -61,6 +61,13 @@ class BitmapDetector(AnomalyDetectorAlgorithm):
       or self.time_series_length < windows or windows < DEFAULT_BITMAP_MINIMAL_POINTS_IN_WINDOWS):
         raise exceptions.NotEnoughDataPoints
 
+    # If window size is too big, too many data points will be assigned a score of 0 in the first lag window
+    # and the last future window.
+    if self.lag_window_size > DEFAULT_BITMAP_MAXIMAL_POINTS_IN_WINDOWS:
+      self.lag_window_size = DEFAULT_BITMAP_MAXIMAL_POINTS_IN_WINDOWS
+    if self.future_window_size > DEFAULT_BITMAP_MAXIMAL_POINTS_IN_WINDOWS:
+      self.future_window_size = DEFAULT_BITMAP_MAXIMAL_POINTS_IN_WINDOWS
+
   def _generate_SAX_single(self, sections, value):
     """
     Generate SAX representation(Symbolic Aggregate approXimation) for a single data point.

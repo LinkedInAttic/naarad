@@ -22,8 +22,8 @@ ANOMALY_DETECTOR_ALGORITHM = 'bitmap_detector'
 # Indicate which algorithm to use to get refined maximal score within each anomaly.
 ANOMALY_DETECTOR_REFINE_ALGORITHM = 'exp_avg_detector'
 
-# Default percentile threshold value on anomaly score above which is considered an anomaly.
-DEFAULT_SCORE_PERCENTILE_THRESHOLD = 0.2
+# Default percent threshold value on anomaly score above which is considered an anomaly.
+DEFAULT_SCORE_PERCENT_THRESHOLD = 0.2
 
 # Constants for BitmapDetector.
 # Window sizes as percentiles of the whole data length.
@@ -32,6 +32,8 @@ DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT = 0.2 / 16
 DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT = 0.2 / 16
 
 DEFAULT_BITMAP_MINIMAL_POINTS_IN_WINDOWS = 50
+
+DEFAULT_BITMAP_MAXIMAL_POINTS_IN_WINDOWS = 200
 
 # Chunk size.
 # Data points form chunks and frequencies of similar chunks are used to determine anomaly scores.

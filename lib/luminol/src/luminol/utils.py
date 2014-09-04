@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 Utilities for luminol
 """
 import csv
+import calendar
+import datetime
 import time
 
 from luminol import exceptions
@@ -59,10 +61,11 @@ def to_epoch(t_str):
   :return int: epoch number of the timestamp.
   """
   try:
-    t = time.mktime(time.strptime(t_str, "%Y-%m-%d %H:%M:%S.%f"))
+    t = float(t_str)
+    return t
   except:
     try:
-      t = time.mktime(time.strptime(t_str, "%Y-%m-%d %H:%M:%S"))
+      t = datetime.datetime.strptime(t_str, "%Y-%m-%d %H:%M:%S.%f")
     except:
-      return float(t_str)
-  return t
+      t = datetime.datetime.strptime(t_str, "%Y-%m-%d %H:%M:%S")
+    return float(calendar.timegm(t.utctimetuple())*1000.0 + t.microsecond/1000.0)

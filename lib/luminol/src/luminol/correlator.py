@@ -14,8 +14,7 @@ API for Correlator Module
 This module finds correlation between two time series.
 """
 
-from luminol import exceptions
-from luminol import utils
+from luminol import exceptions, utils
 from luminol.algorithms.correlator_algorithms.all import correlator_algorithms
 from luminol.anomaly_detector import AnomalyDetector
 from luminol.constants import *

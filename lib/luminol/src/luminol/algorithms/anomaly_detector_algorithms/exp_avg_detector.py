@@ -55,11 +55,16 @@ class ExpAvgDetector(AnomalyDetectorAlgorithm):
     """
     anom_scores = {}
     values = self.time_series.values
+    stdev = numpy.std(values)
     for i, (timestamp, value) in enumerate(self.time_series_items):
       if i < self.lag_window_size:
-        anom_scores[timestamp] = self._compute_anom_score(values[:i + 1], value)
+        anom_score = self._compute_anom_score(values[:i + 1], value)
       else:
-        anom_scores[timestamp] = self._compute_anom_score(values[i - self.lag_window_size: i + 1], value)
+        anom_score = self._compute_anom_score(values[i - self.lag_window_size: i + 1], value)
+      if stdev:
+        anom_scores[timestamp] = anom_score / stdev
+      else:
+        anom_scores[timestamp] = anom_score
     self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))
 
   def _compute_anom_data_decay_all(self):

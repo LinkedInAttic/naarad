@@ -109,7 +109,7 @@ class TestAnomalyDetector(unittest.TestCase):
     detector = AnomalyDetector(self.s1, score_only=True, algorithm_name='derivative_detector')
     detector2 = AnomalyDetector(self.s1, algorithm_name='derivative_detector')
     self.assertTrue(detector2.get_anomalies() is not None)
-    self.assertTrue(detector.get_anomalies() is None)
+    self.assertTrue(len(detector.get_anomalies()) == 0)
 
   def test_get_all_scores(self):
     """
@@ -150,8 +150,8 @@ class TestAnomalyDetector(unittest.TestCase):
     """
     Test if score_percentile_threshold works as expected.
     """
-    detector = AnomalyDetector(self.s1, score_percentile_threshold=0.1, algorithm_name='exp_avg_detector')
-    detector1 = AnomalyDetector(self.s1, score_percentile_threshold=0.1, algorithm_name='derivative_detector')
+    detector = AnomalyDetector(self.s1, score_percent_threshold=0.1, algorithm_name='exp_avg_detector')
+    detector1 = AnomalyDetector(self.s1, score_percent_threshold=0.1, algorithm_name='derivative_detector')
     self.assertNotEqual(detector1.get_anomalies(), detector.get_anomalies())
 
 
