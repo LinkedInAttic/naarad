@@ -71,14 +71,19 @@ class ClusterMetric(Metric):
         if metric.hostname in self.aggr_hosts and \
           cur_column in metric.csv_column_map.values():  
           file_csv = metric.get_csv(cur_column)
+          timestamp_format = None
           with open(file_csv) as fh:
             for line in fh:
               aggr_data['raw'].append(line.rstrip())
               words = line.split(",")
-              ts = words[0].split('.')[0]   #in case of sub-seconds; we only want the value of seconds; 
+              ts = words[0].split('.')[0]   #in case of sub-seconds; we only want the value of seconds;
+              if not timestamp_format or timestamp_format == 'unknown':
+                timestamp_format = naarad.utils.detect_timestamp_format(ts)
+              if timestamp_format == 'unknown':
+                continue
+              ts = naarad.utils.get_standardized_timestamp(ts, timestamp_format)
               aggr_data['sum'][ts] += float(words[1])
               aggr_data['count'][ts] += 1
-
       #"raw" csv file
       if 'raw' in functions_aggr:
         out_csv = self.get_csv(cur_column, 'raw')

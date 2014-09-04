@@ -65,6 +65,7 @@ class SARMetric(Metric):
       os.makedirs(self.resource_directory)
     data = {}
     for input_file in self.infile_list:
+      timestamp_format = None
       with open(input_file, 'r') as infile:
         line = infile.readline()
         # Pre-processing
@@ -112,6 +113,11 @@ class SARMetric(Metric):
               new_datetime = old_datetime + datetime.timedelta(days=1)
               date = new_datetime.strftime("%Y-%m-%d")
           datetimestamp = date + ' ' + ts
+          if not timestamp_format or timestamp_format == 'unknown':
+            timestamp_format = naarad.utils.detect_timestamp_format(datetimestamp)
+          if timestamp_format == 'unknown':
+            continue
+          datetimestamp = naarad.utils.get_standardized_timestamp(datetimestamp, timestamp_format)
           last_ts = ts
           if self.ts_out_of_range(datetimestamp):
             continue

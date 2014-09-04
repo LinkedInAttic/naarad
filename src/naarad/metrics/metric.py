@@ -233,14 +233,14 @@ class Metric(object):
         for time_stamp, column_data in sorted(time_store.items()):
           if column in ['qps']:
             if self.groupby:
-              data[self.get_csv(column, group)].append(','.join([time_stamp, str(column_data/float(averaging_factor))]))
+              data[self.get_csv(column, group)].append(','.join([str(time_stamp), str(column_data/float(averaging_factor))]))
             else:
-              data[self.get_csv(column)].append(','.join([time_stamp, str(column_data/float(averaging_factor))]))
+              data[self.get_csv(column)].append(','.join([str(time_stamp), str(column_data/float(averaging_factor))]))
           else:
             if self.groupby:
-              data[self.get_csv(column, group)].append(','.join([time_stamp, str(sum(map(float, column_data))/float(len(column_data)))]))
+              data[self.get_csv(column, group)].append(','.join([str(time_stamp), str(sum(map(float, column_data))/float(len(column_data)))]))
             else:
-              data[self.get_csv(column)].append(','.join([time_stamp, str(sum(map(float, column_data))/float(len(column_data)))]))
+              data[self.get_csv(column)].append(','.join([str(time_stamp), str(sum(map(float, column_data))/float(len(column_data)))]))
     return None
 
   def parse(self):

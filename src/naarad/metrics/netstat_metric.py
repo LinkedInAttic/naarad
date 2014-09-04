@@ -8,6 +8,7 @@ Unless required by applicable law or agreed to in writing, software distribute
 from collections import defaultdict
 import logging
 from naarad.metrics.metric import Metric
+import naarad.utils
 
 logger = logging.getLogger('naarad.metrics.NetstatMetric')
 
@@ -189,6 +190,7 @@ class NetstatMetric(Metric):
     data = {}  # stores the data of each sub-metric
     for infile in self.infile_list:
       logger.info('Processing : %s',infile)
+      timestamp_format = None
       with open(infile) as fh:
         for line in fh:
           if 'ESTABLISHED' not in line:
@@ -197,6 +199,11 @@ class NetstatMetric(Metric):
           if len(words) < 8 or words[2] != 'tcp':
             continue
           ts = words[0] + " " + words[1]
+          if not timestamp_format or timestamp_format == 'unknown':
+            timestamp_format = naarad.utils.detect_timestamp_format(ts)
+          if timestamp_format == 'unknown':
+            continue
+          ts = naarad.utils.get_standardized_timestamp(ts, timestamp_format)
           if self.ts_out_of_range(ts):
             continue
           # filtering based on user input; (local socket, remote socket, pid/process)

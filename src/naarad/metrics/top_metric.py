@@ -94,6 +94,8 @@ class TopMetric(Metric):
     """
     self.ts_time = words[2]
     self.ts = self.ts_date + ' ' + self.ts_time
+    self.ts = ts = naarad.utils.get_standardized_timestamp(self.ts, None)
+
     if self.ts_out_of_range(self.ts):
       self.ts_valid_lines = False
     else:

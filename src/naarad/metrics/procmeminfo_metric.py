@@ -57,12 +57,18 @@ class ProcMeminfoMetric(Metric):
     data = {}  # stores the data of each column
     for input_file in self.infile_list:
       logger.info('Processing : %s',input_file)
+      timestamp_format = None
       with open(input_file) as fh:
         for line in fh:
           words = line.split()        # [0] is day; [1] is seconds; [2] is field name:; [3] is value  [4] is unit
           if len(words) < 3:
             continue
           ts = words[0] + " " + words[1]
+          if not timestamp_format or timestamp_format == 'unknown':
+            timestamp_format = naarad.utils.detect_timestamp_format(ts)
+          if timestamp_format == 'unknown':
+            continue
+          ts = naarad.utils.get_standardized_timestamp(ts, timestamp_format)
           if self.ts_out_of_range(ts):
             continue
           col = words[2].strip(':')

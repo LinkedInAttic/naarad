@@ -47,11 +47,11 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
             ticker: Dygraph.dateTicker,
             axisLabelFormatter: function(x) {
                 var date = new Date(x);
-                return (date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + date.getMilliseconds());
+                return (makeTwoDigit(date.getHours()) + ":" + makeTwoDigit(date.getMinutes()) + ":" + makeTwoDigit(date.getSeconds()) + "." + date.getMilliseconds());
             },
             valueFormatter: function(x) {
                 var date = new Date(x);
-                return (date.getMonth()+1 + "/" + date.getDate() + "/" + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds());
+                return (makeTwoDigit(date.getMonth()+1) + "/" + makeTwoDigit(date.getDate()) + "/" + date.getFullYear() + " " + makeTwoDigit(date.getHours()) + ":" + makeTwoDigit(date.getMinutes()) + ":" + makeTwoDigit(date.getSeconds()) + "." + date.getMilliseconds());
             }
           },
       y : {
@@ -362,7 +362,7 @@ function convertCSVTimeStamp(csvURL)
                 if(lineData[0] > syncRange[0] && lineData[0] < syncRange[1])
                 {
                     var date = new Date(parseInt(lineData[0]));
-                    var timestamp = date.getMonth()+1 + "/" + date.getDate() + "/" + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds();
+                    var timestamp = makeTwoDigit(date.getMonth()+1) + "/" + makeTwoDigit(date.getDate()) + "/" + date.getFullYear() + " " + makeTwoDigit(date.getHours()) + ":" + makeTwoDigit(date.getMinutes()) + ":" + makeTwoDigit(date.getSeconds()) + "." + date.getMilliseconds();
                     csvData += timestamp + ',' + lineData[1] + '\n';
                 }
             }
@@ -386,5 +386,9 @@ function download(content, filename, contentType)
     } else {
         document.location = 'data:' + contentType + ',' + encodeURIComponent(content);
     }
+}
 
+function makeTwoDigit(input)
+{
+    return ("0" + input).slice(-2)
 }
