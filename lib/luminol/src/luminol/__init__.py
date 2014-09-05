@@ -10,12 +10,19 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 
+from luminol import exceptions
+
 
 class Luminol(object):
+
   def __init__(self, anomalies, correlations):
     """
-    :param list anomalies: a list of 'Anomaly' objects.
-    :param dict correlations: a dict represents correlated metrics to each anomaly.
+    :param list anomalies: a list of `Anomaly` objects.
+                           `Anomaly` is defined in luminol.modules.anomaly.
+
+    :param dict correlations: a dict represents correlated metrics(`TimeSeries` object) to each anomaly.
+                              each key-value pair looks like this:
+                              `Anomaly` --> [metric1, metric2, metric3 ...].
     """
     self.anomalies = anomalies
     self.correlations = correlations
@@ -25,10 +32,14 @@ class Luminol(object):
   def _analyze_root_causes(self):
     """
     Conduct root cause analysis.
+    The first metric of the list is taken as the root cause right now.
     """
-    causes = dict()
+    causes = {}
     for a in self.anomalies:
-      causes[a] = self.correlations[a][0]
+      try:
+        causes[a] = self.correlations[a][0]
+      except IndexError:
+        raise exceptions.InvalidDataFormat('luminol.luminol: dict correlations contains empty list.')
     self.causes = causes
 
   def get_root_causes(self):

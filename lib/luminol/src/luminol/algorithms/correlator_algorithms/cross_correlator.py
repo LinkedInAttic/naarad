@@ -10,11 +10,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 from luminol.algorithms.correlator_algorithms import CorrelatorAlgorithm
-import luminol.constants as constants
+from luminol.constants import *
 from luminol.modules.correlation_result import CorrelationResult
 
 
 class CrossCorrelator(CorrelatorAlgorithm):
+
   """
   Method 1: CrossCorrelation algorithm.
   Ideas come from Paul Bourke(http://paulbourke.net/miscellaneous/correlate/).
@@ -24,23 +25,23 @@ class CrossCorrelator(CorrelatorAlgorithm):
     Initializer
     :param TimeSeries time_series_a: TimeSeries a.
     :param TimeSeries time_series_b: TimeSeries b.
-    :param int max_shift_seconds: allowed maximal shift seconds.
+    :param int max_shift_milliseconds: allowed maximal shift seconds.
     :param time_period: if given, correlate the data inside the time period only.
     """
     super(CrossCorrelator, self).__init__(self.__class__.__name__, time_series_a, time_series_b)
-    self.shift_impact = shift_impact or constants.DEFAULT_SHIFT_IMPACT
+    self.shift_impact = shift_impact or DEFAULT_SHIFT_IMPACT
     if max_shift_seconds is not None:
-      self.max_shift_seconds = max_shift_seconds
+      self.max_shift_milliseconds = max_shift_seconds
     else:
-      self.max_shift_seconds = constants.DEFAULT_ALLOWED_SHIFT_SECONDS
+      self.max_shift_milliseconds = DEFAULT_ALLOWED_SHIFT_SECONDS * 1000
 
   def _detect_correlation(self):
     """
     Detect correlation by computing correlation coefficients for all allowed shift steps,
     then take the maximum.
     """
-    correlations = list()
-    shifted_correlations = list()
+    correlations = []
+    shifted_correlations = []
     self.time_series_a.normalize()
     self.time_series_b.normalize()
     a, b = self.time_series_a.align(self.time_series_b)
@@ -71,8 +72,8 @@ class CrossCorrelator(CorrelatorAlgorithm):
       r = s / denom if denom != 0 else s
       correlations.append([delay_in_seconds, r])
       # Take shift into account to create a "shifted correlation coefficient".
-      if self.max_shift_seconds:
-        shifted_correlations.append(r * (1 + float(delay_in_seconds) / self.max_shift_seconds * self.shift_impact))
+      if self.max_shift_milliseconds:
+        shifted_correlations.append(r * (1 + float(delay_in_seconds) / self.max_shift_milliseconds * self.shift_impact))
       else:
         shifted_correlations.append(r)
     max_correlation = list(max(correlations, key=lambda k: k[1]))
@@ -82,13 +83,13 @@ class CrossCorrelator(CorrelatorAlgorithm):
 
   def _find_allowed_shift(self, timestamps):
     """
-    Find the maximum allowed shift steps based on max_shift_seconds.
+    Find the maximum allowed shift steps based on max_shift_milliseconds.
     param list timestamps: timestamps of a time series.
     """
     init_ts = timestamps[0]
     residual_timestamps = map(lambda ts: ts - init_ts, timestamps)
     n = len(residual_timestamps)
-    return self._find_first_bigger(residual_timestamps, self.max_shift_seconds, 0, n)
+    return self._find_first_bigger(residual_timestamps, self.max_shift_milliseconds, 0, n)
 
   def _find_first_bigger(self, timestamps, target, lower_bound, upper_bound):
     """

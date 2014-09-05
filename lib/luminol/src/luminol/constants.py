@@ -22,8 +22,8 @@ ANOMALY_DETECTOR_ALGORITHM = 'bitmap_detector'
 # Indicate which algorithm to use to get refined maximal score within each anomaly.
 ANOMALY_DETECTOR_REFINE_ALGORITHM = 'exp_avg_detector'
 
-# Default percentile threshold value on anomaly score above which is considered an anomaly.
-DEFAULT_SCORE_PERCENTILE_THRESHOLD = 0.2
+# Default percent threshold value on anomaly score above which is considered an anomaly.
+DEFAULT_SCORE_PERCENT_THRESHOLD = 0.2
 
 # Constants for BitmapDetector.
 # Window sizes as percentiles of the whole data length.
@@ -32,6 +32,8 @@ DEFAULT_BITMAP_LEADING_WINDOW_SIZE_PCT = 0.2 / 16
 DEFAULT_BITMAP_LAGGING_WINDOW_SIZE_PCT = 0.2 / 16
 
 DEFAULT_BITMAP_MINIMAL_POINTS_IN_WINDOWS = 50
+
+DEFAULT_BITMAP_MAXIMAL_POINTS_IN_WINDOWS = 200
 
 # Chunk size.
 # Data points form chunks and frequencies of similar chunks are used to determine anomaly scores.
@@ -48,8 +50,8 @@ DEFAULT_EMA_WINDOW_SIZE_PCT = 0.2
 DEFAULT_DERI_SMOOTHING_FACTOR = 0.2
 
 ANOMALY_THRESHOLD = {
-  "exp_avg_detector": 3,
-  "default_detector": 3
+  'exp_avg_detector': 3,
+  'default_detector': 3
 }
 
 # Percentage threshold on anomaly score below which is considered noises.
@@ -76,3 +78,20 @@ DEFAULT_CORRELATE_THRESHOLD = 0.7
 
 # The impact of shift on shifted correlation coefficient.
 DEFAULT_SHIFT_IMPACT = 0.05
+
+TIMESTAMP_STR_FORMATS = [
+  '%Y%m%d_%H:%M:%S',
+  '%Y-%m-%d %H:%M:%S.%f',
+  '%Y%m%d %H:%M:%S',
+  '%Y-%m-%d_%H:%M:%S',
+  '%Y-%m-%dT%H:%M:%S.%f',
+  '%H:%M:%S.%f',
+  '%Y-%m-%dT%H:%M:%S.%f%z',
+  '%Y%m%dT%H:%M:%S',
+  '%Y-%m-%d_%H:%M:%S.%f',
+  '%Y%m%d_%H:%M:%S.%f',
+  '%Y-%m-%dT%H:%M:%S',
+  '%Y-%m-%d %H:%M:%S',
+  '%Y%m%dT%H:%M:%S.%f',
+  '%H:%M:%S',
+  '%Y%m%d %H:%M:%S.%f']

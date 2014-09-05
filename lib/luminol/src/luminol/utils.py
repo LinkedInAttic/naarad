@@ -12,19 +12,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 Utilities for luminol
 """
+import calendar
 import csv
+import datetime
+import re
 import time
 
-import luminol.exceptions as exceptions
+from luminol import constants, exceptions
 
 def compute_ema(smoothing_factor, points):
-  '''
+  """
   Compute exponential moving average of a list of points.
   :param float smoothing_factor: the smoothing factor.
   :param list points: the data points.
   :return list: all ema in a list.
-  '''
-  ema = list()
+  """
+  ema = []
   # The initial point has a ema equal to itself.
   if(len(points) > 0):
     ema.append(points[0])
@@ -59,10 +62,13 @@ def to_epoch(t_str):
   :return int: epoch number of the timestamp.
   """
   try:
-    t = time.mktime(time.strptime(t_str, "%Y-%m-%d %H:%M:%S.%f"))
+    t = float(t_str)
+    return t
   except:
-    try:
-      t = time.mktime(time.strptime(t_str, "%Y-%m-%d %H:%M:%S"))
-    except:
-      return float(t_str)
-  return t
+    for format in constants.TIMESTAMP_STR_FORMATS:
+      try:
+        t = datetime.datetime.strptime(t_str, format)
+        return float(time.mktime(t.utctimetuple())*1000.0 + t.microsecond/1000.0)
+      except:
+        pass
+  raise exceptions.InvalidDataFormat

@@ -14,20 +14,21 @@ API for Correlator Module
 This module finds correlation between two time series.
 """
 
+from luminol import exceptions, utils
 from luminol.algorithms.correlator_algorithms.all import correlator_algorithms
 from luminol.anomaly_detector import AnomalyDetector
-import luminol.constants as constants
-import luminol.exceptions as exceptions
+from luminol.constants import *
 from luminol.modules.time_series import TimeSeries
-import luminol.utils as utils
 
 
 class Correlator(object):
+
   def __init__(self, time_series_a, time_series_b, time_period=None, use_anomaly_score=False, algorithm_name=None, algorithm_params=None):
     """
     Initializer
     :param time_series_a: a TimeSeries, a dictionary or a path to a csv file(str).
     :param time_series_b: a TimeSeries, a dictionary or a path to a csv file(str).
+    :param time_period: a tuple (start, end) representing a data period for considering correlation.
     :param str algorithm_name: name of the algorithm to use.
     :param dict algorithm_params: additional params for the specific algorithm.
     """
@@ -58,7 +59,7 @@ class Correlator(object):
 
   def _load(self, time_series):
     """
-    Load time series.
+    Load time series into a TimeSeries object.
     :param timeseries: a TimeSeries, a dictionary or a path to a csv file(str).
     :return TimeSeries: a TimeSeries object.
     """
@@ -74,7 +75,7 @@ class Correlator(object):
     :param str algorithm: name of the algorithm to use.
     :param dict algorithm_params: additional params for the specific algorithm.
     """
-    algorithm_name = algorithm_name or constants.CORRELATOR_ALGORITHM
+    algorithm_name = algorithm_name or CORRELATOR_ALGORITHM
     try:
       self.algorithm = correlator_algorithms[algorithm_name]
     except KeyError:
