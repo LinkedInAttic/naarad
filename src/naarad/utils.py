@@ -676,8 +676,8 @@ def get_standardized_timestamp(timestamp, ts_format):
 
 def get_standardized_timestamp_deprecated(timestamp, ts_format):
   """
-  Given a timestamp string, return a time stamp in the format YYYY-MM-DD HH:MM:SS.sss. If no date is present in
-  timestamp then today's date will be added as a prefix
+  Given a timestamp string, return a time stamp in the epoch ms format. If no date is present in
+  timestamp then today's date will be added as a prefix before conversion to epoch ms
   """
   if not timestamp:
     return None
