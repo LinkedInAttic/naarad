@@ -34,7 +34,6 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
   var chart_data_title = "" ;
   chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
   chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
-//  document.getElementById(url_div).innerHTML = "<a href=" + chart_data_source + " target=\"_blank\">[csv]</a>"
   document.getElementById(url_div).innerHTML = "<a href=\"javascript:convertCSVTimeStamp('" + chart_data_source + "');\">[csv]</a>"
   var div_width = document.getElementById(div_id).clientWidth;
   var div_height = document.getElementById(div_id).clientHeight;
