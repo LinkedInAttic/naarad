@@ -78,3 +78,20 @@ DEFAULT_CORRELATE_THRESHOLD = 0.7
 
 # The impact of shift on shifted correlation coefficient.
 DEFAULT_SHIFT_IMPACT = 0.05
+
+TIMESTAMP_STR_FORMATS = [
+  '%Y%m%d_%H:%M:%S',
+  '%Y-%m-%d %H:%M:%S.%f',
+  '%Y%m%d %H:%M:%S',
+  '%Y-%m-%d_%H:%M:%S',
+  '%Y-%m-%dT%H:%M:%S.%f',
+  '%H:%M:%S.%f',
+  '%Y-%m-%dT%H:%M:%S.%f%z',
+  '%Y%m%dT%H:%M:%S',
+  '%Y-%m-%d_%H:%M:%S.%f',
+  '%Y%m%d_%H:%M:%S.%f',
+  '%Y-%m-%dT%H:%M:%S',
+  '%Y-%m-%d %H:%M:%S',
+  '%Y%m%dT%H:%M:%S.%f',
+  '%H:%M:%S',
+  '%Y%m%d %H:%M:%S.%f']

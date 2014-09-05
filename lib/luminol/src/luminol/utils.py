@@ -12,12 +12,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 Utilities for luminol
 """
-import csv
 import calendar
+import csv
 import datetime
+import re
 import time
 
-from luminol import exceptions
+from luminol import constants, exceptions
 
 def compute_ema(smoothing_factor, points):
   """
@@ -64,8 +65,10 @@ def to_epoch(t_str):
     t = float(t_str)
     return t
   except:
-    try:
-      t = datetime.datetime.strptime(t_str, "%Y-%m-%d %H:%M:%S.%f")
-    except:
-      t = datetime.datetime.strptime(t_str, "%Y-%m-%d %H:%M:%S")
-    return float(calendar.timegm(t.utctimetuple())*1000.0 + t.microsecond/1000.0)
+    for format in constants.TIMESTAMP_STR_FORMATS:
+      try:
+        t = datetime.datetime.strptime(t_str, format)
+        return float(time.mktime(t.utctimetuple())*1000.0 + t.microsecond/1000.0)
+      except:
+        pass
+  raise exceptions.InvalidDataFormat

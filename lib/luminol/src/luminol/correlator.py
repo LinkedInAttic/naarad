@@ -28,6 +28,7 @@ class Correlator(object):
     Initializer
     :param time_series_a: a TimeSeries, a dictionary or a path to a csv file(str).
     :param time_series_b: a TimeSeries, a dictionary or a path to a csv file(str).
+    :param time_period: a tuple (start, end) representing a data period for considering correlation.
     :param str algorithm_name: name of the algorithm to use.
     :param dict algorithm_params: additional params for the specific algorithm.
     """
