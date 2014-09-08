@@ -180,6 +180,7 @@ def parse_basic_metric_options(config_obj, section):
   hostname = "localhost"
   rule_strings = {}
   important_sub_metrics = None
+  anomaly_detection_metrics = None
 
   try:
     if config_obj.has_option(section, 'important_sub_metrics'):
@@ -212,12 +213,15 @@ def parse_basic_metric_options(config_obj, section):
     if config_obj.has_option(section, 'aggr_metrics'):
       aggr_metrics = config_obj.get(section, 'aggr_metrics')
       config_obj.remove_option(section, 'aggr_metrics')
+    if config_obj.has_option(section, 'anomaly_detection_metrics'):
+      anomaly_detection_metrics = config_obj.get(section,'anomaly_detection_metrics').split()
+      config_obj.remove_option(section, 'anomaly_detection_metrics')
     rule_strings, other_options = get_rule_strings(config_obj, section)
   except ConfigParser.NoOptionError:
     logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
     sys.exit()
   return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
-         important_sub_metrics
+         important_sub_metrics, anomaly_detection_metrics
 
 def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregate_metric_classes, outdir_default, resource_path):
   """
@@ -232,14 +236,14 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
   :return: An initialized Metric object
   """
   hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
-    important_sub_metrics = parse_basic_metric_options(config_obj, section)
+    important_sub_metrics, anomaly_detection_metrics = parse_basic_metric_options(config_obj, section)
 
   #TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
   if metric_type in aggregate_metric_classes:
-    new_metric = initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options)
+    new_metric = initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options)
   else:
-    new_metric = initialize_metric(section, infile , hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options)
+    new_metric = initialize_metric(section, infile , hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options)
 
   if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
     new_metric.ignore = True

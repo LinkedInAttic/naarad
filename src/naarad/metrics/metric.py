@@ -22,7 +22,7 @@ logger = logging.getLogger('naarad.metrics.metric')
 class Metric(object):
 
   def __init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, important_sub_metrics, **other_options):
+                rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
     self.metric_type = metric_type
     self.infile_list = infile_list
     self.hostname = hostname
@@ -63,6 +63,7 @@ class Metric(object):
     self.aggregation_granularity = 'second'
     # Leave the flag here for the future use to control summary page
     self.summary_html_content_enabled = True
+    self.anomaly_detection_metrics = anomaly_detection_metrics
     for (key, val) in rule_strings.iteritems():
       naarad.utils.set_sla(self, self.label, key, val)
     if other_options:
