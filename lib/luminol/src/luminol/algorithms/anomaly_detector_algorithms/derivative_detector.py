@@ -11,14 +11,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import numpy
 
+from luminol import utils
 from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-import luminol.constants as constants
-from luminol.exceptions import *
+from luminol.constants import *
 from luminol.modules.time_series import TimeSeries
-import luminol.utils as utils
 
 
 class DerivativeDetector(AnomalyDetectorAlgorithm):
+
   '''
   Derivative Algorithm.
   This method is the derivative version of Method 1.
@@ -32,17 +32,17 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
     :param float smoothing_factor: smoothing factor.
     """
     super(DerivativeDetector, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
-    self.smoothing_factor = (smoothing_factor or constants.DEFAULT_DERI_SMOOTHING_FACTOR)
+    self.smoothing_factor = (smoothing_factor or DEFAULT_DERI_SMOOTHING_FACTOR)
+    self.time_series_items = self.time_series.items()
 
   def _compute_derivatives(self):
     """
     Compute derivatives of the time series.
     """
-    derivatives = list()
-    for (timestamp, value) in self.time_series.iteritems():
-      index = self.time_series.timestamps.index(timestamp)
-      if index > 0:
-        pre_item = self.time_series.items()[index - 1]
+    derivatives = []
+    for i, (timestamp, value) in enumerate(self.time_series_items):
+      if i > 0:
+        pre_item = self.time_series_items[i - 1]
         pre_timestamp = pre_item[0]
         pre_value = pre_item[1]
         td = timestamp - pre_timestamp
@@ -58,12 +58,11 @@ class DerivativeDetector(AnomalyDetectorAlgorithm):
     """
     Compute anomaly scores for the time series.
     """
-    anom_scores = dict()
+    anom_scores = {}
     self._compute_derivatives()
     derivatives_ema = utils.compute_ema(self.smoothing_factor, self.derivatives)
-    for (timestamp, value) in self.time_series.iteritems():
-      index = self.time_series.timestamps.index(timestamp)
-      anom_scores[timestamp] = abs(self.derivatives[index] - derivatives_ema[index])
+    for i, (timestamp, value) in enumerate(self.time_series_items):
+      anom_scores[timestamp] = abs(self.derivatives[i] - derivatives_ema[i])
     stdev = numpy.std(anom_scores.values())
     if stdev:
         for timestamp in anom_scores.keys():

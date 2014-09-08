@@ -15,6 +15,7 @@ Correlation object
 
 
 class CorrelationResult(object):
+
   def __init__(self, shift, coefficient, shifted_coefficient):
     """
     Construct a CorrelationResult object.

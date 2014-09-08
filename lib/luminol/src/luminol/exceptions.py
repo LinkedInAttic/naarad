@@ -15,6 +15,7 @@ Exception Classes
 
 
 class AlgorithmNotFound(Exception):
+
   """
   Raise when algorithm can not be found.
   """
@@ -22,6 +23,7 @@ class AlgorithmNotFound(Exception):
 
 
 class InvalidDataFormat(Exception):
+
   """
   Raise when data has invalid format.
   """
@@ -29,6 +31,7 @@ class InvalidDataFormat(Exception):
 
 
 class NotEnoughDataPoints(Exception):
+
   """
   Raise when there are not enough data points.
   """

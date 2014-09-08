@@ -12,11 +12,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 from exp_avg_detector import ExpAvgDetector
 from derivative_detector import DerivativeDetector
 from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
-import luminol.constants as constants
+from luminol.constants import *
 from luminol.modules.time_series import TimeSeries
 
 
 class DefaultDetector(AnomalyDetectorAlgorithm):
+
   """
   Default detector.
   Not configurable.
@@ -36,12 +37,12 @@ class DefaultDetector(AnomalyDetectorAlgorithm):
     """
     anom_scores_ema = self.exp_avg_detector.run()
     anom_scores_deri = self.derivative_detector.run()
-    anom_scores = dict()
+    anom_scores = {}
     for timestamp in anom_scores_ema.timestamps:
       # Compute a weighted anomaly score.
-      anom_scores[timestamp] = max(anom_scores_ema[timestamp], anom_scores_ema[timestamp] * constants.DEFAULT_DETECTOR_EMA_WEIGHT \
-        + anom_scores_deri[timestamp] * (1 - constants.DEFAULT_DETECTOR_EMA_WEIGHT))
+      anom_scores[timestamp] = max(anom_scores_ema[timestamp], anom_scores_ema[timestamp] * DEFAULT_DETECTOR_EMA_WEIGHT \
+        + anom_scores_deri[timestamp] * (1 - DEFAULT_DETECTOR_EMA_WEIGHT))
       # If ema score is significant enough, take the bigger one of the weighted score and deri score.
-      if anom_scores_ema[timestamp] > constants.DEFAULT_DETECTOR_EMA_SIGNIFICANT:
+      if anom_scores_ema[timestamp] > DEFAULT_DETECTOR_EMA_SIGNIFICANT:
         anom_scores[timestamp] = max(anom_scores[timestamp], anom_scores_deri[timestamp])
     self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))
