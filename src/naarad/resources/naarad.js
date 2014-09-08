@@ -390,5 +390,5 @@ function download(content, filename, contentType)
 
 function makeTwoDigit(input)
 {
-    return ("0" + input).slice(-2)
+    return ("0" + input).slice(-2);
 }
