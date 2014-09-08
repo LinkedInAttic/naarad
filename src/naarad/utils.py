@@ -645,8 +645,8 @@ def detect_timestamp_format(timestamp):
 
 def get_standardized_timestamp(timestamp, ts_format):
   """
-  Given a timestamp string, return a time stamp in the format YYYY-MM-DD HH:MM:SS.sss. If no date is present in
-  timestamp then today's date will be added as a prefix
+  Given a timestamp string, return a time stamp in the epoch ms format. If no date is present in
+  timestamp then today's date will be added as a prefix before conversion to epoch ms
   """
   if not timestamp:
     return None
@@ -672,38 +672,6 @@ def get_standardized_timestamp(timestamp, ts_format):
   except ValueError:
     return -1
   return str(ts)
-
-
-
-def get_standardized_timestamp_deprecated(timestamp, ts_format):
-  """
-  Given a timestamp string, return a time stamp in the format YYYY-MM-DD HH:MM:SS.sss. If no date is present in
-  timestamp then today's date will be added as a prefix
-  """
-  if not timestamp:
-    return None
-  if timestamp == 'now':
-    timestamp = str(datetime.datetime.now())
-  if not ts_format:
-    ts_format = detect_timestamp_format(timestamp)
-  try:
-    if ts_format == '%Y-%m-%d %H:%M:%S.%f':
-      return timestamp
-    elif ts_format == 'unknown':
-      logger.error('Unable to determine timestamp format for : %s', timestamp)
-      return -1
-    elif ts_format == 'epoch':
-      ts = datetime.datetime.utcfromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S.%f')
-    elif ts_format == 'epoch_ms':
-      ts = datetime.datetime.utcfromtimestamp(float(timestamp) / 1000).strftime('%Y-%m-%d %H:%M:%S.%f')
-    elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
-      date_today = str(datetime.date.today())
-      ts = (datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format)).strftime('%Y-%m-%d %H:%M:%S.%f')
-    else:
-      ts = (datetime.datetime.strptime(timestamp,ts_format)).strftime('%Y-%m-%d %H:%M:%S.%f')
-  except ValueError:
-    return -1    
-  return ts
 
 def set_sla(obj, metric, sub_metric, rules):
   """
