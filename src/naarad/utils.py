@@ -664,7 +664,8 @@ def get_standardized_timestamp(timestamp, ts_format):
       ts = timestamp
     elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
       date_today = str(datetime.date.today())
-      ts = (datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format)).strftime('%Y-%m-%d %H:%M:%S.%f')
+      dt_obj = datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format)
+      ts = calendar.timegm(dt_obj.utctimetuple())*1000 + dt_obj.microsecond/1000
     else:
       dt_obj = datetime.datetime.strptime(timestamp, ts_format)
       ts = calendar.timegm(dt_obj.utctimetuple())*1000 + dt_obj.microsecond/1000
