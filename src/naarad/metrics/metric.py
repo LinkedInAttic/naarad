@@ -16,6 +16,7 @@ import naarad.httpdownload
 import naarad.naarad_constants as CONSTANTS
 import datetime
 import heapq
+from luminol import anomaly_detector, correlator
 
 logger = logging.getLogger('naarad.metrics.metric')
 
@@ -64,6 +65,7 @@ class Metric(object):
     # Leave the flag here for the future use to control summary page
     self.summary_html_content_enabled = True
     self.anomaly_detection_metrics = anomaly_detection_metrics
+    self.anomalies = {}
     for (key, val) in rule_strings.iteritems():
       naarad.utils.set_sla(self, self.label, key, val)
     if other_options:
@@ -558,3 +560,18 @@ class Metric(object):
     self.plot_cdf(graphing_library)
     self.plot_timeseries(graphing_library)
     return True
+
+  def detect_anomaly(self):
+    if len(self.anomaly_detection_metrics) > 0:
+      for submetric in self.anomaly_detection_metrics:
+        csv_file = os.path.join(self.resource_directory, self.label + '.' + submetric + '.csv')
+        if naarad.utils.is_valid_file(csv_file):
+          detector = anomaly_detector.AnomalyDetector(csv_file)
+          anomalies = detector.get_anomalies()
+          if len(anomalies) > 0:
+            self.anomalies[submetric] = anomalies
+            anomaly_csv_file = os.path.join(self.resource_directory, self.label + '.' + submetric + '.anomalies.csv')
+            with open(anomaly_csv_file, 'w') as FH:
+              for anomaly in anomalies:
+                FH.write(",".join([str(anomaly.anomaly_score), str(anomaly.start_timestamp), str(anomaly.end_timestamp), str(anomaly.exact_timestamp)]))
+                FH.write('\n')

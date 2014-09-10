@@ -756,6 +756,7 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
         check_slas(metric)
         if not skip_plots:
           metric.graph(graphing_library)
+        metric.detect_anomaly()
       else:
         logger.error('Parsing failed for metric: '  + metric.label)
     else:
@@ -857,7 +858,7 @@ def discover_by_name(input_directory, output_directory):
       logger.warning('Unable to determine metric type for file: %s', log_file)
   return metric_list
 
-def initialize_metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options):
+def initialize_metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options):
   """
   Initialize appropriate metric based on type of metric.
   :param: section: config section name or auto discovered metric type
@@ -878,15 +879,15 @@ def initialize_metric(section, infile_list, hostname, output_directory, resource
   metric_type = section.split('-')[0]
   if metric_type in metric_classes:
     if 'SAR' in metric_type:
-      metric = metric_classes['SAR'](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+      metric = metric_classes['SAR'](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
     else:
-      metric = metric_classes[metric_type](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+      metric = metric_classes[metric_type](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   else:
-    metric = Metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+    metric = Metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   metric.bin_path = bin_path
   return metric
 
-def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options):
+def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options):
   """
   Initialize aggregate metric
   :param: section: config section name
@@ -906,6 +907,6 @@ def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outd
   bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
   metric = None
   metric_type = section.split('-')[0]
-  metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+  metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   metric.bin_path = bin_path
   return metric
