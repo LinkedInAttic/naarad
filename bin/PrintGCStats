@@ -679,11 +679,7 @@ function getDateTimeStamp() {
   gts_tmp_str = $0;
   if (!match(gts_tmp_str,"^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9]+")) return -1.0;
   gts_tmp = substr(gts_tmp_str, RSTART, RLENGTH);
-  sub(/T/, " ", gts_tmp);
-  sub(/-/, " ", gts_tmp);
-  sub(/-/, " ", gts_tmp);
-  sub(/:/, " ", gts_tmp);
-  sub(/:/, " ", gts_tmp);
+  gsub(/T|-|:/, " ", gts_tmp);
   split(gts_tmp, tmp_ts, ".");
   gts_tmp = mktime(tmp_ts[1]) * 1000 + tmp_ts[2];
   return gts_tmp;
