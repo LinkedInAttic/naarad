@@ -754,9 +754,9 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
         metric.calc()
         metric.calculate_stats()
         check_slas(metric)
+        metric.detect_anomaly()
         if not skip_plots:
           metric.graph(graphing_library)
-        metric.detect_anomaly()
       else:
         logger.error('Parsing failed for metric: '  + metric.label)
     else:
