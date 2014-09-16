@@ -573,7 +573,9 @@ class Metric(object):
 
   def detect_anomaly(self):
     """
-    Detect anomalies in the timeseries data for the submetrics specified in the config file.
+    Detect anomalies in the timeseries data for the submetrics specified in the config file. Identified anomalies are
+    stored in self.anomalies as well as written to .anomalies.csv file to be used by the client charting page. Anomaly
+    detection uses the luminol library (http://pypi.python.org/pypi/luminol)
     """
     if len(self.anomaly_detection_metrics) <= 0:
       return
