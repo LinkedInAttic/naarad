@@ -572,16 +572,21 @@ class Metric(object):
     return True
 
   def detect_anomaly(self):
-    if len(self.anomaly_detection_metrics) > 0:
-      for submetric in self.anomaly_detection_metrics:
-        csv_file = os.path.join(self.resource_directory, self.label + '.' + submetric + '.csv')
-        if naarad.utils.is_valid_file(csv_file):
-          detector = anomaly_detector.AnomalyDetector(csv_file)
-          anomalies = detector.get_anomalies()
-          if len(anomalies) > 0:
-            self.anomalies[submetric] = anomalies
-            anomaly_csv_file = os.path.join(self.resource_directory, self.label + '.' + submetric + '.anomalies.csv')
-            with open(anomaly_csv_file, 'w') as FH:
-              for anomaly in anomalies:
-                FH.write(",".join([str(anomaly.anomaly_score), str(anomaly.start_timestamp), str(anomaly.end_timestamp), str(anomaly.exact_timestamp)]))
-                FH.write('\n')
+    """
+    Detect anomalies in the timeseries data for the submetrics specified in the config file.
+    """
+    if len(self.anomaly_detection_metrics) <= 0:
+      return
+    for submetric in self.anomaly_detection_metrics:
+      csv_file = self.get_csv(submetric)
+      if naarad.utils.is_valid_file(csv_file):
+        detector = anomaly_detector.AnomalyDetector(csv_file)
+        anomalies = detector.get_anomalies()
+        if len(anomalies) <= 0:
+          return
+        self.anomalies[submetric] = anomalies
+        anomaly_csv_file = os.path.join(self.resource_directory, self.label + '.' + submetric + '.anomalies.csv')
+        with open(anomaly_csv_file, 'w') as FH:
+          for anomaly in anomalies:
+            FH.write(",".join([str(anomaly.anomaly_score), str(anomaly.start_timestamp), str(anomaly.end_timestamp), str(anomaly.exact_timestamp)]))
+            FH.write('\n')
