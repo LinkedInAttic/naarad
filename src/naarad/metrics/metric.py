@@ -16,13 +16,14 @@ import naarad.httpdownload
 import naarad.naarad_constants as CONSTANTS
 import datetime
 import heapq
+from luminol import anomaly_detector, correlator
 
 logger = logging.getLogger('naarad.metrics.metric')
 
 class Metric(object):
 
   def __init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, important_sub_metrics, **other_options):
+                rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
     self.metric_type = metric_type
     self.infile_list = infile_list
     self.hostname = hostname
@@ -63,6 +64,8 @@ class Metric(object):
     self.aggregation_granularity = 'second'
     # Leave the flag here for the future use to control summary page
     self.summary_html_content_enabled = True
+    self.anomaly_detection_metrics = anomaly_detection_metrics
+    self.anomalies = {}
     for (key, val) in rule_strings.iteritems():
       naarad.utils.set_sla(self, self.label, key, val)
     if other_options:
@@ -479,10 +482,15 @@ class Metric(object):
       # plot time series data for submetrics
       for out_csv in sorted(self.csv_files, reverse=True):
         csv_filename = os.path.basename(out_csv)
+        transaction_name = ".".join(csv_filename.split('.')[1:-1])
+        if transaction_name in self.anomalies.keys():
+          highlight_regions = self.anomalies[transaction_name]
+        else:
+          highlight_regions = None
         # The last element is .csv, don't need that in the name of the chart
         column = csv_filename.split('.')[-2]
         transaction_name = ' '.join(csv_filename.split('.')[1:-2])
-        plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name + '.' + column, y_label=column + ' (' + self.sub_metric_description[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line')
+        plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name + '.' + column, y_label=column + ' (' + self.sub_metric_description[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line', highlight_regions=highlight_regions)
         if transaction_name in plot_data:
           plot_data[transaction_name].append(plot)
         else:
@@ -495,6 +503,11 @@ class Metric(object):
       graphed = False
       for out_csv in self.csv_files:
         csv_filename = os.path.basename(out_csv)
+        transaction_name = ".".join(csv_filename.split('.')[1:-1])
+        if transaction_name in self.anomalies.keys():
+          highlight_regions = self.anomalies[transaction_name]
+        else:
+          highlight_regions = None
         # The last element is .csv, don't need that in the name of the chart
         column = self.csv_column_map[out_csv]
         column = naarad.utils.sanitize_string(column)
@@ -502,9 +515,9 @@ class Metric(object):
         if self.sub_metric_description and column in self.sub_metric_description.keys():
           graph_title += ' ('+self.sub_metric_description[column]+')'
         if self.sub_metric_unit and column in self.sub_metric_unit.keys():
-          plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column +' ('+ self.sub_metric_unit[column]+')', precision=None, graph_height=600, graph_width=1200, graph_type='line')]
+          plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column +' ('+ self.sub_metric_unit[column]+')', precision=None, graph_height=600, graph_width=1200, graph_type='line', highlight_regions=highlight_regions)]
         else:
-          plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
+          plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line', highlight_regions=highlight_regions)]
         graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.resource_directory, self.resource_path, graph_title)
         if graphed:
           self.plot_files.append(div_file)
@@ -557,3 +570,25 @@ class Metric(object):
     self.plot_cdf(graphing_library)
     self.plot_timeseries(graphing_library)
     return True
+
+  def detect_anomaly(self):
+    """
+    Detect anomalies in the timeseries data for the submetrics specified in the config file. Identified anomalies are
+    stored in self.anomalies as well as written to .anomalies.csv file to be used by the client charting page. Anomaly
+    detection uses the luminol library (http://pypi.python.org/pypi/luminol)
+    """
+    if len(self.anomaly_detection_metrics) <= 0:
+      return
+    for submetric in self.anomaly_detection_metrics:
+      csv_file = self.get_csv(submetric)
+      if naarad.utils.is_valid_file(csv_file):
+        detector = anomaly_detector.AnomalyDetector(csv_file)
+        anomalies = detector.get_anomalies()
+        if len(anomalies) <= 0:
+          return
+        self.anomalies[submetric] = anomalies
+        anomaly_csv_file = os.path.join(self.resource_directory, self.label + '.' + submetric + '.anomalies.csv')
+        with open(anomaly_csv_file, 'w') as FH:
+          for anomaly in anomalies:
+            FH.write(",".join([str(anomaly.anomaly_score), str(anomaly.start_timestamp), str(anomaly.end_timestamp), str(anomaly.exact_timestamp)]))
+            FH.write('\n')

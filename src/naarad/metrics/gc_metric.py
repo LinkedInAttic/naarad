@@ -53,9 +53,9 @@ class GCMetric(Metric):
       'g1-young-cpu.sys', 'g1-young-cpu.usr', 'g1-young-cpu.real', 'g1-mixed-cpu.usr', 'g1-mixed-cpu.sys', 'g1-mixed-cpu.real')
 
   def __init__ (self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
-                important_sub_metrics, **other_options):
+                important_sub_metrics, anomaly_detection_metrics, **other_options):
     Metric.__init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
-                    important_sub_metrics)
+                    important_sub_metrics, anomaly_detection_metrics)
     if not self.important_sub_metrics:
       self.important_sub_metrics = important_sub_metrics_import['GC']
     self.sub_metrics = self.val_types

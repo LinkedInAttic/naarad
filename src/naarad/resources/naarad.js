@@ -27,6 +27,24 @@ function switchDiffTable(metric)
 
 function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div)
 {
+    var chart_data_selector = document.getElementById(selector_id);
+    var csvURL = chart_data_selector.options[chart_data_selector.selectedIndex].value;
+    var xhr = new XMLHttpRequest();
+    var anomaliesURL = csvURL.replace('.csv', '.anomalies.csv');
+    var anomalies = [];
+    var chartObject = timeseriesChartsList[chartIndex];
+    xhr.onreadystatechange = function() {
+        if(xhr.readyState == xhr.DONE) {
+            anomalies = xhr.responseText.replace(/\n$/, '').split('\n');
+            plotWithAnomalies(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div, anomalies);
+        }
+    }
+    xhr.open('GET', anomaliesURL, true);
+    xhr.send(null);
+}
+
+function plotWithAnomalies(selector_id, reset_selector_id, div_id, colorset_id, advanced_source, url_div, anomalies)
+{
   document.getElementById(reset_selector_id).selectedIndex=0;
   var chartIndex = parseInt(selector_id.split("-")[2]);
   var chart_data_selector = document.getElementById(selector_id);
@@ -39,8 +57,10 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
   var div_height = document.getElementById(div_id).clientHeight;
   var blockRedraw = false;
   var initial = true;
-  chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,
+  var chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,
   {
+    height : window.screen.height*0.75/2,
+    width : div_width,
     axes : {
       x : {
             ticker: Dygraph.dateTicker,
@@ -63,6 +83,20 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
     labels: [ "Time", chart_data_title],
     labelsDiv: "labels-" + div_id,
     dateWindow: syncRange,
+    underlayCallback: function(canvas, area, chart_1) {
+        for(var i=0; i<anomalies.length; i++)
+        {
+            var anomalyData = anomalies[i].split(",");
+            var left = chart_1.toDomXCoord(parseInt(anomalyData[1]));
+            var right = chart_1.toDomXCoord(parseInt(anomalyData[2]));
+            if(left == right) {
+                left = left - 1;
+                right = right + 1;
+            }
+            canvas.fillStyle = 'lightblue';
+            canvas.fillRect(left, area.y, right-left, area.h);
+        }
+    },
     drawCallback: function(me, initial) {
       if (blockRedraw || initial) return;
       blockRedraw = true;
@@ -82,7 +116,6 @@ function plot(selector_id, reset_selector_id, div_id, colorset_id, advanced_sour
     }
   }
   );
-  chart_1.resize(div_width, window.screen.height*0.75/2);
   chartsList[chartIndex] = chart_1;
   timeseriesChartsList[chartIndex] = chart_1;
   cdfChartsList[chartIndex] = null;

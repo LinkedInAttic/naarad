@@ -180,6 +180,7 @@ def parse_basic_metric_options(config_obj, section):
   hostname = "localhost"
   rule_strings = {}
   important_sub_metrics = None
+  anomaly_detection_metrics = None
 
   try:
     if config_obj.has_option(section, 'important_sub_metrics'):
@@ -212,12 +213,15 @@ def parse_basic_metric_options(config_obj, section):
     if config_obj.has_option(section, 'aggr_metrics'):
       aggr_metrics = config_obj.get(section, 'aggr_metrics')
       config_obj.remove_option(section, 'aggr_metrics')
+    if config_obj.has_option(section, 'anomaly_detection_metrics'):
+      anomaly_detection_metrics = config_obj.get(section,'anomaly_detection_metrics').split()
+      config_obj.remove_option(section, 'anomaly_detection_metrics')
     rule_strings, other_options = get_rule_strings(config_obj, section)
   except ConfigParser.NoOptionError:
     logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
     sys.exit()
   return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
-         important_sub_metrics
+         important_sub_metrics, anomaly_detection_metrics
 
 def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregate_metric_classes, outdir_default, resource_path):
   """
@@ -232,14 +236,14 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
   :return: An initialized Metric object
   """
   hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
-    important_sub_metrics = parse_basic_metric_options(config_obj, section)
+    important_sub_metrics, anomaly_detection_metrics = parse_basic_metric_options(config_obj, section)
 
   #TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
   if metric_type in aggregate_metric_classes:
-    new_metric = initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options)
+    new_metric = initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options)
   else:
-    new_metric = initialize_metric(section, infile , hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options)
+    new_metric = initialize_metric(section, infile , hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options)
 
   if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
     new_metric.ignore = True
@@ -750,6 +754,7 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
         metric.calc()
         metric.calculate_stats()
         check_slas(metric)
+        metric.detect_anomaly()
         if not skip_plots:
           metric.graph(graphing_library)
       else:
@@ -853,7 +858,7 @@ def discover_by_name(input_directory, output_directory):
       logger.warning('Unable to determine metric type for file: %s', log_file)
   return metric_list
 
-def initialize_metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options):
+def initialize_metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options):
   """
   Initialize appropriate metric based on type of metric.
   :param: section: config section name or auto discovered metric type
@@ -874,15 +879,15 @@ def initialize_metric(section, infile_list, hostname, output_directory, resource
   metric_type = section.split('-')[0]
   if metric_type in metric_classes:
     if 'SAR' in metric_type:
-      metric = metric_classes['SAR'](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+      metric = metric_classes['SAR'](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
     else:
-      metric = metric_classes[metric_type](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+      metric = metric_classes[metric_type](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   else:
-    metric = Metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+    metric = Metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   metric.bin_path = bin_path
   return metric
 
-def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, other_options):
+def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options):
   """
   Initialize aggregate metric
   :param: section: config section name
@@ -902,6 +907,6 @@ def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outd
   bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
   metric = None
   metric_type = section.split('-')[0]
-  metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+  metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   metric.bin_path = bin_path
   return metric

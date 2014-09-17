@@ -9,7 +9,7 @@ Unless required by applicable law or agreed to in writing, software distribute
 
 class PlotData:
   """Class to hold details of the metrics to be plotted"""
-  def __init__(self, input_csv, csv_column, series_name, y_label, precision, graph_height, graph_width, graph_type, x_label=None, plot_label=None):
+  def __init__(self, input_csv, csv_column, series_name, y_label, precision, graph_height, graph_width, graph_type, x_label=None, plot_label=None, highlight_regions=None):
     self.input_csv = input_csv
     self.csv_column = csv_column
     self.graph_title = series_name
@@ -26,4 +26,5 @@ class PlotData:
     self.graph_type = graph_type
     self.plot_label = plot_label
     self.x_label = x_label
+    self.highlight_regions = highlight_regions
     return None

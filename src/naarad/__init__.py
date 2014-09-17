@@ -252,7 +252,6 @@ class Naarad(object):
     metrics = defaultdict()
     run_steps = defaultdict(list)
     discovery_mode = False
-    graphing_library = CONSTANTS.DEFAULT_GRAPHING_LIBRARY
     graph_timezone = None
 
     if isinstance(analysis.config, str):
@@ -277,6 +276,8 @@ class Naarad(object):
     if not discovery_mode:
       metrics, run_steps, crossplots, report_args, graph_timezone, graphing_library = self._process_naarad_config(config_object, analysis)
 
+    if graphing_library is None:
+      graphing_library = CONSTANTS.DEFAULT_GRAPHING_LIBRARY
     # If graphing libraries are not installed, skip static images
     if not graphing_library in self.available_graphing_modules.keys():
       logger.error("Naarad cannot import graphing library %s on your system. Will not generate static charts", graphing_library)
