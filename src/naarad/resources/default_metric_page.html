@@ -44,6 +44,31 @@
             </h2>
         </div>
     </div>
+    {%- if metric.anomalies|length > 0 %}
+    <div id="{{ metric.label }}-anomalies-table" class="row">
+        <div id="{{ metric.label }}-anomalies-table-span" class="span12">
+            <h3>Notes</h3>
+            <div style="overflow-x:auto;">
+                <p>Anomalous behavior was detected in
+                        {% set metrics_list = [] %}
+                        {%- for submetric in metric.anomalies.keys() %}
+                            <a href="report.html?charts=resources/{{ metric.label }}.{{ submetric }}.csv" target="_blank"><b>{{ submetric }}</b></a> (
+                            {%- for anomaly in metric.anomalies[submetric] %}
+                                <a href="report.html?charts=resources/{{ metric.label }}.{{ submetric }}.csv&range={{ anomaly.start_timestamp }},{{ anomaly.end_timestamp}}" target="_blank">#{{ loop.index }} </a>
+                            {%- endfor %}
+                            )
+                            {%- if loop.index < metric.anomalies|length %}
+                                ,
+                            {%- endif %}
+                            {%- if metrics_list.append('resources/' + metric.label + '.' + submetric + '.csv') %}
+                            {%- endif %}
+                        {%- endfor %}
+                        [<a href="report.html?charts={{ metrics_list|join(',')}}" target="_blank">View All</a>]
+                </p>
+            </div>
+        </div>
+    </div>
+    {%- endif %}
     {%- if metric.sla_list|length > 0 %}
     <div id="{{ metric.label }}-sla-table" class="row">
         <div id="{{ metric.label }}-sla-table-span" class="span12">
