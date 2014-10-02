@@ -51,7 +51,7 @@ class JmeterMetric(Metric):
       'ErrorsPerSecond': 'qps'
     }
     self.calculated_stats = {}
-    self.aggregation_granularity = 'minute'
+    self.aggregation_granularity = 'second'
     self.calculated_percentiles = {}
     self.summary_stats = defaultdict(dict)
     self.summary_html_content_enabled = True
