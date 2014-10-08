@@ -577,7 +577,7 @@ class Metric(object):
     stored in self.anomalies as well as written to .anomalies.csv file to be used by the client charting page. Anomaly
     detection uses the luminol library (http://pypi.python.org/pypi/luminol)
     """
-    if len(self.anomaly_detection_metrics) <= 0:
+    if not self.anomaly_detection_metrics or len(self.anomaly_detection_metrics) <= 0:
       return
     for submetric in self.anomaly_detection_metrics:
       csv_file = self.get_csv(submetric)
