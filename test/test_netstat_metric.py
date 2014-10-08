@@ -98,9 +98,10 @@ def test_netstatmetric():
   other_options = {'connections': 'host1.localdomain.com<->web1.remotedomain.com:https host1:48860<->email', 'processes': '/firefox'}
   ts_start = None
   ts_end = None
+  anomaly_detection_metrics = None
   important_sub_metrics =[]
 
-  cur_metric = NetstatMetric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, **other_options)
+  cur_metric = NetstatMetric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   cur_metric.infile_list =[os.path.join(tmp_dir, f) for f in cur_metric.infile_list]
 
   # create sub-directory of resource_path

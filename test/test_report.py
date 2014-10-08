@@ -36,15 +36,15 @@ def setup_module():
     TestFile1.write('2014-03-26 00:00:00, 1')
 
 def get_three_metrics(output_directory, resource_path, rules):
-  metrics = [Metric('MetricOne', 'TestOne.csv', 'HostnameOne', output_directory, resource_path, 'MetricOne', None, None, rules, None),
-                 Metric('MetricTwo', 'TestTwo.csv', 'HostnameOne', output_directory, resource_path, 'MetricTwo', None, None, rules, None),
-                 Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules, None)
+  metrics = [Metric('MetricOne', 'TestOne.csv', 'HostnameOne', output_directory, resource_path, 'MetricOne', None, None, rules, None, None),
+                 Metric('MetricTwo', 'TestTwo.csv', 'HostnameOne', output_directory, resource_path, 'MetricTwo', None, None, rules, None, None),
+                 Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules, None, None)
                  ]
   return metrics
 
 def get_two_metrics(output_directory, resource_path, rules):
-  metrics = [Metric('MetricOne', 'TestOne.csv', 'HostnameOne', output_directory, resource_path, 'MetricOne', None, None, rules, None),
-                 Metric('MetricTwo', 'TestTwo.csv', 'HostnameOne', output_directory, resource_path, 'MetricTwo', None, None, rules, None),
+  metrics = [Metric('MetricOne', 'TestOne.csv', 'HostnameOne', output_directory, resource_path, 'MetricOne', None, None, rules, None, None),
+                 Metric('MetricTwo', 'TestTwo.csv', 'HostnameOne', output_directory, resource_path, 'MetricTwo', None, None, rules, None, None),
                  ]
   return metrics
 
@@ -143,7 +143,7 @@ def test_metrics_with_summary_with_partial_error():
     metric.important_stats_files = files_list
     metric.percentiles_files = files_list
 
-  metrics.append(Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules, None))
+  metrics.append(Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules, None, None))
 
   aggregate_metrics = []
   correlated_plots = []
@@ -173,7 +173,7 @@ def test_metrics_without_summary_with_partial_error():
     metric.timeseries_csv_list = files_list
     metric.percentiles_files = files_list
 
-  metrics.append(Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules, None))
+  metrics.append(Metric('MetricThree', 'TestThree.csv', 'HostnameOne', output_directory, resource_path, 'MetricThree', None, None, rules, None, None))
 
   aggregate_metrics = []
   correlated_plots = []
