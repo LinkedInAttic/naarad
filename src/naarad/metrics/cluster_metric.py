@@ -35,7 +35,7 @@ class ClusterMetric(Metric):
                   
     #Metric arguments take 'infile' and 'hostname', for ClusterMetric, they are invalid, so just provide empty strings.
     Metric.__init__(self, section, '', '', output_directory, resource_path, label, ts_start, ts_end, rule_strings,
-                    important_sub_metrics)
+                    important_sub_metrics, anomaly_detection_metrics)
         
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
