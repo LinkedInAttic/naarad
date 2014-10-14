@@ -35,3 +35,10 @@ class Anomaly(object):
     :return tuple: a tuple representation of the anomaly period.
     """
     return self.start_timestamp, self.end_timestamp
+
+  def __str__(self):
+    """
+    return string representation of the anomaly
+    :return: string
+    """
+    return "Anomaly from {0} to {1} with score {2}".format(self.start_timestamp, self.end_timestamp, self.anomaly_score)

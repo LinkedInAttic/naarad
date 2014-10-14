@@ -24,8 +24,9 @@ from luminol.modules.time_series import TimeSeries
 
 class AnomalyDetector(object):
 
-  def __init__(self, time_series, baseline_time_series=None, score_only=False, score_threshold=None, score_percent_threshold=None, algorithm_name=None,
-    algorithm_params=None, refine_algorithm_name=None, refine_algorithm_params=None):
+  def __init__(self, time_series, baseline_time_series=None, score_only=False, score_threshold=None,
+               score_percent_threshold=None, algorithm_name=None, algorithm_params=None, refine_algorithm_name=None,
+               refine_algorithm_params=None):
     """
     Initializer
     :param time_series: a TimeSeries, a dictionary or a path to a csv file(str).
