@@ -50,7 +50,7 @@ class TimeSeries(object):
 
   def __str__(self):
     """
-    return string representation of the time series
+    :return string: Return string representation of time series
     """
     string_rep = ''
     for item in self.iteritems():
