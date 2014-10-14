@@ -48,11 +48,11 @@ class DiffPercentThreshold(AnomalyDetectorAlgorithm):
       if baseline_value > 0:
         diff_percent = 100 * (value - baseline_value) / baseline_value
       elif value > 0:
-        diff_percent = 100
+        diff_percent = 100.0
       else:
-        diff_percent = 0
+        diff_percent = 0.0
 
-      anom_scores[timestamp] = 0
+      anom_scores[timestamp] = 0.0
       if self.percent_threshold_upper and diff_percent > 0 and diff_percent > self.percent_threshold_upper:
         anom_scores[timestamp] = diff_percent
       if self.percent_threshold_lower and diff_percent < 0 and diff_percent < self.percent_threshold_lower:
