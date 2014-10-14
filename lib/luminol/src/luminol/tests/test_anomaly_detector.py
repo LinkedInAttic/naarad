@@ -39,10 +39,6 @@ class TestAnomalyDetector(unittest.TestCase):
     anomalies = detector.get_anomalies()
     self.assertTrue(anomalies is not None)
     self.assertTrue(len(anomalies) > 0)
-    print ';'.join(str(anomaly) for anomaly in anomalies)
-    print detector.get_all_scores()
-    print self.s1
-    print self.s2
 
   def test_absolute_threshold_algorithm(self):
     """
