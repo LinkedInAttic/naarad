@@ -39,16 +39,22 @@ class TestAnomalyDetector(unittest.TestCase):
     anomalies = detector.get_anomalies()
     self.assertTrue(anomalies is not None)
     self.assertTrue(len(anomalies) > 0)
+    self.assertRaises(exceptions.RequiredParametersNotPassed,
+                      lambda: AnomalyDetector(self.s1, baseline_time_series=self.s2,
+                                              algorithm_name='diff_percent_threshold'))
 
   def test_absolute_threshold_algorithm(self):
     """
-    Test "absolute threshold" algorithm with a threshold of 0.2
+    Test "absolute threshold" algorithm with a upper and lower threshold of 0.2
     """
     detector = AnomalyDetector(self.s1, algorithm_name='absolute_threshold',
-                               algorithm_params={'absolute_threshold_value': 0.2})
+                               algorithm_params={'absolute_threshold_value_upper': 0.2,
+                                                 'absolute_threshold_value_lower': 0.2})
     anomalies = detector.get_anomalies()
     self.assertTrue(anomalies is not None)
     self.assertTrue(len(anomalies) > 0)
+    self.assertRaises(exceptions.RequiredParametersNotPassed,
+                      lambda: AnomalyDetector(self.s1, algorithm_name='absolute_threshold'))
 
   def test_threshold(self):
     """

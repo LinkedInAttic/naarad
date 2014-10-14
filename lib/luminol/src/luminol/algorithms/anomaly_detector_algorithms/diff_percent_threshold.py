@@ -10,7 +10,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 
-from luminol import utils
+from luminol import utils, exceptions
 from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgorithm
 from luminol.constants import *
 from luminol.modules.time_series import TimeSeries
@@ -22,7 +22,7 @@ class DiffPercentThreshold(AnomalyDetectorAlgorithm):
    a) every timestamp that exists in time_series also exists in baseline_time_series
    b) lengths of both time series are same
   """
-  def __init__(self, time_series, baseline_time_series, percent_threshold_upper, percent_threshold_lower):
+  def __init__(self, time_series, baseline_time_series, percent_threshold_upper=None, percent_threshold_lower=None):
     """
     :param time_series: current time series
     :param baseline_time_series: baseline time series
@@ -34,6 +34,8 @@ class DiffPercentThreshold(AnomalyDetectorAlgorithm):
     super(DiffPercentThreshold, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
     self.percent_threshold_upper = percent_threshold_upper
     self.percent_threshold_lower = percent_threshold_lower
+    if not self.percent_threshold_upper and not self.percent_threshold_lower:
+      raise exceptions.RequiredParametersNotPassed('luminol.algorithms.anomaly_detector_algorithms.diff_percent_threshold: Either percent_threshold_upper or percent_threshold_lower needed')
 
   def _set_scores(self):
     """
