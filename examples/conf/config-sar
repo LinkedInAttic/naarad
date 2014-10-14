@@ -4,6 +4,7 @@ access=local
 infile=sar.device.out
 devices=sda sdb
 options=tps rd_sec/s %util
+anomaly_detection_metrics=sda.tps
 
 [SAR-cpuusage]
 #ignore=1

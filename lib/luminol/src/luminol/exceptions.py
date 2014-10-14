@@ -9,6 +9,7 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
+
 """
 Exception Classes
 """
@@ -18,6 +19,14 @@ class AlgorithmNotFound(Exception):
 
   """
   Raise when algorithm can not be found.
+  """
+  pass
+
+
+class RequiredParametersNotPassed(Exception):
+
+  """
+  Raise when algorithm can not be properly initialized because some required parameters are not passed in init.
   """
   pass
 

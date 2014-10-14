@@ -24,8 +24,9 @@ from luminol.modules.time_series import TimeSeries
 
 class AnomalyDetector(object):
 
-  def __init__(self, time_series, baseline_time_series=None, score_only=False, score_threshold=None, score_percent_threshold=None, algorithm_name=None,
-    algorithm_params=None, refine_algorithm_name=None, refine_algorithm_params=None):
+  def __init__(self, time_series, baseline_time_series=None, score_only=False, score_threshold=None,
+               score_percent_threshold=None, algorithm_name=None, algorithm_params=None, refine_algorithm_name=None,
+               refine_algorithm_params=None):
     """
     Initializer
     :param time_series: a TimeSeries, a dictionary or a path to a csv file(str).
@@ -88,17 +89,13 @@ class AnomalyDetector(object):
     Detect anomaly periods.
     :param bool score_only: if true, only anomaly scores are computed.
     """
-    if self.baseline_time_series:
-      # TODO(yaguo): implement algorithms to use baseline.
-      pass
-    else:
-      try:
-        algorithm = self.algorithm(**self.algorithm_params)
-        self.anom_scores = algorithm.run()
-      except exceptions.NotEnoughDataPoints:
-        algorithm = anomaly_detector_algorithms['default_detector'](self.time_series)
-        self.threshold = self.threshold or ANOMALY_THRESHOLD['default_detector']
-        self.anom_scores = algorithm.run()
+    try:
+      algorithm = self.algorithm(**self.algorithm_params)
+      self.anom_scores = algorithm.run()
+    except exceptions.NotEnoughDataPoints:
+      algorithm = anomaly_detector_algorithms['default_detector'](self.time_series)
+      self.threshold = self.threshold or ANOMALY_THRESHOLD['default_detector']
+      self.anom_scores = algorithm.run()
     if not score_only:
       self._detect_anomalies()
 

@@ -48,6 +48,15 @@ class TimeSeries(object):
   def __repr__(self):
     return 'TimeSeries<start={0}, end={1}>'.format(repr(self.start), repr(self.end))
 
+  def __str__(self):
+    """
+    :return string: Return string representation of time series
+    """
+    string_rep = ''
+    for item in self.iteritems():
+      string_rep += str(item)
+    return string_rep
+
   def __nonzero__(self):
     return len(self.timestamps) > 0
 
