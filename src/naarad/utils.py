@@ -853,7 +853,7 @@ def discover_by_name(input_directory, output_directory):
   log_files = os.listdir(input_directory)
   for log_file in log_files:
     if log_file in CONSTANTS.SUPPORTED_FILENAME_MAPPING.keys():
-      metric_list.append(initialize_metric(CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], [log_file], None, output_directory, CONSTANTS.RESOURCE_PATH, CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, {}, None, {}))
+      metric_list.append(initialize_metric(CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], [log_file], None, output_directory, CONSTANTS.RESOURCE_PATH, CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, {}, None, None, {}))
     else:
       logger.warning('Unable to determine metric type for file: %s', log_file)
   return metric_list
@@ -871,6 +871,7 @@ def initialize_metric(section, infile_list, hostname, output_directory, resource
   :param: ts_end: end time for analysis
   :param: rule_strings: list of slas
   :param: important_sub_metrics: list of important sub metrics
+  :param: anomaly_detection_metrics: list of metrics to use for anomaly detection.
   :param: other_options: kwargs
   :return: metric object
   """

@@ -15,7 +15,7 @@ important_sub_metrics_import = {
     'SAR-device': ('%util', 'await'),
     'JMETER': ('Overall_Summary.ResponseTime', 'Overall_Summary.DataThroughput', 'Overall_Summary.qps')
 }
-device_type_metrics = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-dev', 'SAR-edev')
+device_type_metrics = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-dev', 'SAR-edev', 'SAR-network')
 # Status CODES
 OK = 0
 SLA_FAILED = 1
@@ -112,6 +112,7 @@ SUPPORTED_FILENAME_MAPPING = {
   'sar.sock.out' : 'SAR-sock',
   'sar.swapping.out' : 'SAR-swapping',
   'sar.switching.out' : 'SAR-switching',
-  'sar.tcp.out' : 'SAR-tcp'
+  'sar.tcp.out' : 'SAR-tcp',
+  'top.out' : 'TOP'
 }
 

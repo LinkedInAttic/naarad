@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#set -x 
-
 PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin
 NOW=`date +%s`
 TODAY=`date +%Y-%m-%d`
@@ -37,8 +35,8 @@ sar -n EDEV $INTERVAL $COUNT >> $RESULT/sar.edev.out &
 sar -n TCP $INTERVAL $COUNT >> $RESULT/sar.tcp.out &
 sar -n ETCP $INTERVAL $COUNT >> $RESULT/sar.etcp.out &
 sar -n SOCK $INTERVAL $COUNT >> $RESULT/sar.sock.out &
-
-#sar -n NFS $INTERVAL $COUNT >> $RESULT/sar.nfs.out &
+sar -w $INTERVAL $COUNT >> $RESULT/sar.switching.out &
+sar -q $INTERVAL $COUNT >> $RESULT/sar.queue.out &
 
 #####################
 # EVERY 2 SECONDS (for now)
@@ -48,5 +46,3 @@ INTERVAL1=$INTERVAL
 for ((i=1; i<= $COUNT1; i++)); do cat /proc/meminfo | sed "s/^/$(date +%Y-%m-%d\ %H:%M:%S.%05N)\t/" >> $RESULT/proc.meminfo.out; sleep $INTERVAL1 ; done &
 for ((i=1; i<= $COUNT1; i++)); do cat /proc/vmstat | sed "s/^/$(date +%Y-%m-%d\ %H:%M:%S.%05N)\t/" >> $RESULT/proc.vmstat.out; sleep $INTERVAL1 ; done &
 for ((i=1; i<= $COUNT1; i++)); do cat /proc/zoneinfo | sed "s/^/$(date +%Y-%m-%d\ %H:%M:%S.%05N)\t/" >> $RESULT/proc.zoneinfo.out; sleep $INTERVAL1 ; done &
-
-

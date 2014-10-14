@@ -561,7 +561,7 @@ class Metric(object):
     return True
 
   def graph(self, graphing_library = 'matplotlib'):
-    """ 
+    """
     graph generates two types of graphs
     'time': generate a time-series plot for all submetrics (the x-axis is a time series)
     'cdf': generate a CDF plot for important submetrics (the x-axis shows percentiles)

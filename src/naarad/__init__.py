@@ -253,6 +253,7 @@ class Naarad(object):
     run_steps = defaultdict(list)
     discovery_mode = False
     graph_timezone = None
+    graphing_library = None
 
     if isinstance(analysis.config, str):
       if not naarad.utils.is_valid_file(analysis.config):
