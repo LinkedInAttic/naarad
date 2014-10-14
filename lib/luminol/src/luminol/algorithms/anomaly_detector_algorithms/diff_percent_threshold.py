@@ -26,9 +26,9 @@ class DiffPercentThreshold(AnomalyDetectorAlgorithm):
     """
     :param time_series: current time series
     :param baseline_time_series: baseline time series
-    :param percent_threshold_top_range: If time_series is larger than baseline_time_series by this percent, then its
+    :param percent_threshold_upper: If time_series is larger than baseline_time_series by this percent, then its
     an anomaly
-    :param percent_threshold_bottom_range: If time_series is smaller than baseline_time_series by this percent, then its
+    :param percent_threshold_lower: If time_series is smaller than baseline_time_series by this percent, then its
     an anomaly
     """
     super(DiffPercentThreshold, self).__init__(self.__class__.__name__, time_series, baseline_time_series)
