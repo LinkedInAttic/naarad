@@ -50,7 +50,7 @@ class TimeSeries(object):
 
   def __str__(self):
     """
-    return string representation of the anomaly
+    return string representation of the time series
     :return: string
     """
     string_rep = ''
