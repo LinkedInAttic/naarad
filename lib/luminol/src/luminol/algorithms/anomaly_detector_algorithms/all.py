@@ -16,5 +16,6 @@ anomaly_detector_algorithms = {
   'default_detector': default_detector.DefaultDetector,
   'derivative_detector': derivative_detector.DerivativeDetector,
   'exp_avg_detector': exp_avg_detector.ExpAvgDetector,
-  'absolute_threshold': absolute_threshold.AbsoluteThreshold
+  'absolute_threshold': absolute_threshold.AbsoluteThreshold,
+  'diff_percent_threshold': diff_percent_threshold.DiffPercentThreshold
 }

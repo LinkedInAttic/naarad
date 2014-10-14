@@ -2,6 +2,7 @@
 infile=perf-result.xml
 aggregation_granularity=minute
 Overall_Summary.ResponseTime.sla=mean<1000 p95<20000
+anomaly_detection_metrics=Overall_Summary.ResponseTime
 
 [GRAPH]
 graphing_library=matplotlib

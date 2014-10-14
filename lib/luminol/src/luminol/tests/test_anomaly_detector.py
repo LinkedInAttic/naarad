@@ -25,10 +25,24 @@ from luminol.modules.time_series import TimeSeries
 class TestAnomalyDetector(unittest.TestCase):
 
   def setUp(self):
-    self.s1 = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0.5, 5: 1, 6: 1, 7: 1, 8: 0}
-    self.s2 = {0: 0, 1: 0.5, 2: 1, 3: 1, 4: 1, 5: 0, 6: 0, 7: 0, 8: 0}
+    self.s1 = {0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 2, 6: 2, 7: 2, 8: 0}
+    self.s2 = {0: 0, 1: 1, 2: 2, 3: 2, 4: 2, 5: 0, 6: 0, 7: 0, 8: 0}
     self.detector1 = AnomalyDetector(self.s1)
     self.detector2 = AnomalyDetector(self.s2)
+
+  def test_diff_percent_threshold_algorithm(self):
+    """
+    Test "diff percent threshold" algorithm with a threshold of 20%
+    """
+    detector = AnomalyDetector(self.s1, baseline_time_series=self.s2, algorithm_name='diff_percent_threshold',
+                               algorithm_params={'percent_threshold_upper': 20, 'percent_threshold_lower': -20})
+    anomalies = detector.get_anomalies()
+    self.assertTrue(anomalies is not None)
+    self.assertTrue(len(anomalies) > 0)
+    print ';'.join(str(anomaly) for anomaly in anomalies)
+    print detector.get_all_scores()
+    print self.s1
+    print self.s2
 
   def test_absolute_threshold_algorithm(self):
     """
