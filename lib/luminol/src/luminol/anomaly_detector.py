@@ -26,7 +26,7 @@ class AnomalyDetector(object):
 
   def __init__(self, time_series, baseline_time_series=None, score_only=False, score_threshold=None,
                score_percent_threshold=None, algorithm_name=None, algorithm_params=None, refine_algorithm_name=None,
-               refine_algorithm_params=None):
+               refine_algorithm_params=None, algorithm_class=None):
     """
     Initializer
     :param time_series: a TimeSeries, a dictionary or a path to a csv file(str).
@@ -37,16 +37,19 @@ class AnomalyDetector(object):
     :param dict algorithm_params: additional params for the specific algorithm.
     :param str refine_algorithm_name: name of the refine algorithm to use(file name).
     :param dict refine_algorithm_params: additional params for the specific refine algorithm.
+    :param AnomalyDetectorAlgorithm algorithm_class: A AnomalyDetectorAlgorithm class that when passed to luminol will
+      be used to assign anomaly scores. This is useful when luminol user wants to use a custom algorithm.
     """
+
     self.time_series = self._load(time_series)
     self.baseline_time_series = self._load(baseline_time_series)
     self.score_percent_threshold = score_percent_threshold or DEFAULT_SCORE_PERCENT_THRESHOLD
 
     # Prepare algorithms.
     algorithm_name = algorithm_name or ANOMALY_DETECTOR_ALGORITHM
-    refine_algorithm_name = refine_algorithm_name or ANOMALY_DETECTOR_REFINE_ALGORITHM
-    self.algorithm = self._get_algorithm(algorithm_name)
+    self.algorithm = algorithm_class or self._get_algorithm(algorithm_name)
     self.threshold = score_threshold or ANOMALY_THRESHOLD.get(algorithm_name)
+    refine_algorithm_name = refine_algorithm_name or ANOMALY_DETECTOR_REFINE_ALGORITHM
     self.refine_algorithm = self._get_algorithm(refine_algorithm_name)
 
     # Prepare parameters.
