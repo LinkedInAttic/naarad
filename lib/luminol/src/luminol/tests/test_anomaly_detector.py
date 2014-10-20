@@ -41,9 +41,6 @@ class TestAnomalyDetector(unittest.TestCase):
     anomalies = detector.get_anomalies()
     self.assertTrue(anomalies is not None)
     self.assertTrue(len(anomalies) > 0)
-    self.assertRaises(exceptions.RequiredParametersNotPassed,
-                      lambda: AnomalyDetector(self.s1, baseline_time_series=self.s2,
-                                              algorithm_name='diff_percent_threshold'))
 
   def test_diff_percent_threshold_algorithm(self):
     """
