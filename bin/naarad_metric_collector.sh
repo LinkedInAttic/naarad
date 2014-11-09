@@ -10,10 +10,10 @@ export PATH
 t=`date +"%Y-%m-%d"`
 if [ -z "$1" ]
 then
-        echo "No argument supplied, using current directory as base output directory."
-        export RESULT="sar-results-$t"
+  echo "No argument supplied, using current directory as base output directory."
+  export RESULT="sar-results-$t"
 else
-        export RESULT="$1/sar-results-$t"
+  export RESULT="$1/sar-results-$t"
 fi
 
 mkdir -p $RESULT

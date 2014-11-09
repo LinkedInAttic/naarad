@@ -18,7 +18,7 @@ def setup_module():
   global diff_obj
   reports_list = []
   report_name = 'diff'
-  output_directory = '' 
+  output_directory = ''
   resource_directory = ''
   resource_path = 'resource_path'
   naarad_reports = [NaaradReport('/tmp', None), NaaradReport('/tmp', None)]

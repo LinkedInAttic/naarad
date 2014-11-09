@@ -25,8 +25,8 @@ import naarad.naarad_constants as CONSTANTS
 logger = logging.getLogger('naarad.metrics.linkedin_android_rum_metric')
 
 class LinkedInAndroidRumMetric(Metric):
-  """ 
-  Class for LinkedIn Android RUM logs, deriving from class Metric 
+  """
+  Class for LinkedIn Android RUM logs, deriving from class Metric
   Note that this is for LinkedIn only
   """
   clock_format = '%Y-%m-%d %H:%M:%S'
@@ -46,7 +46,7 @@ class LinkedInAndroidRumMetric(Metric):
     }
 
 
-  # get start time stamp, launch time duration, and nus update time duration 
+  # get start time stamp, launch time duration, and nus update time duration
   def get_times(self, native):
     """
     get start time stamp, launch time duration, and nus update time duration from JSON object native
@@ -75,7 +75,7 @@ class LinkedInAndroidRumMetric(Metric):
       launch_time = end_time - start_time
     return (time_stamp, launch_time, nus_update_time)
 
-    
+
   # parse Android RUM logs
   def parse(self):
     # check if outdir exists, if not, create it

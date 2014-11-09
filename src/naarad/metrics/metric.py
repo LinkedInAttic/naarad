@@ -2,7 +2,7 @@
 """
 © 2013 LinkedIn Corp. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
- 
+
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 from collections import defaultdict
@@ -45,7 +45,7 @@ class Metric(object):
     self.percentiles_files = []
     self.column_csv_map = {}
     self.csv_column_map = {}
-    self.sub_metric_description = defaultdict(lambda: 'None')  # the description of the submetrics. 
+    self.sub_metric_description = defaultdict(lambda: 'None')  # the description of the submetrics.
     self.sub_metric_unit = defaultdict(lambda: 'None')      # the unit of the submetrics.  The plot will have the Y-axis being: Metric name (Unit)
     self.important_sub_metrics = important_sub_metrics
     self.sla_list = []  # TODO : remove this once report has grading done in the metric tables
@@ -147,7 +147,7 @@ class Metric(object):
     self.csv_column_map[csv] = column
     self.column_csv_map[column] = csv
     return csv
-  
+
   def get_important_sub_metrics_csv(self):
     csv = os.path.join(self.resource_directory, self.label + '.important_sub_metrics.csv')
     return csv
@@ -345,7 +345,7 @@ class Metric(object):
     headers = CONSTANTS.SUBMETRIC_HEADER + ',mean,std,p50,p75,p90,p95,p99,min,max\n'  # TODO: This will be built from user input later on
     metric_stats_csv_file = self.get_stats_csv()
     imp_metric_stats_csv_file = self.get_important_sub_metrics_csv()
-    imp_metric_stats_present = False  
+    imp_metric_stats_present = False
     metric_stats_present = False
     logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
     with open(metric_stats_csv_file,'w') as FH:
@@ -475,7 +475,7 @@ class Metric(object):
 
   def plot_timeseries(self, graphing_library = 'matplotlib'):
     """
-    plot timeseries for sub-metrics 
+    plot timeseries for sub-metrics
     """
     if self.groupby:
       plot_data = {}
@@ -522,10 +522,10 @@ class Metric(object):
         if graphed:
           self.plot_files.append(div_file)
     return True
-  
+
   def check_important_sub_metrics(self, sub_metric):
     """
-    check whether the given sub metric is in important_sub_metrics list 
+    check whether the given sub metric is in important_sub_metrics list
     """
     if not self.important_sub_metrics:
       return False
@@ -538,7 +538,7 @@ class Metric(object):
 
   def plot_cdf(self, graphing_library = 'matplotlib'):
     """
-    plot CDF for important sub-metrics 
+    plot CDF for important sub-metrics
     """
     graphed = False
     for percentile_csv in self.percentiles_files:

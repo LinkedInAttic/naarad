@@ -2,7 +2,7 @@
 """
 © 2013 LinkedIn Corp. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
- 
+
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import numpy
@@ -135,7 +135,7 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   return True, os.path.join(output_directory, output_filename + '.div')
 
 def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path, output_filename):
-  """ 
+  """
   graph_data_on_the_same_graph: put a list of plots on the same graph: currently it supports CDF
   """
   maximum_yvalue = -float('inf')
@@ -145,10 +145,10 @@ def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path,
   if plot_count == 0:
     return False, None
   graph_height, graph_width, graph_title = get_graph_metadata(plots)
-  current_plot_count = 0 
+  current_plot_count = 0
   fig, axis = plt.subplots()
   fig.set_size_inches(graph_width, graph_height)
-  if plot_count < 2: 
+  if plot_count < 2:
     fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET)
   else:
     fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET - CONSTANTS.Y_AXIS_OFFSET * (plot_count - 2))
