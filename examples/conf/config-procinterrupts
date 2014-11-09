@@ -1,0 +1,7 @@
+[PROCINTERRUPTS]
+hostname=localhost
+infile=proc.interrupts.out
+CPUS=CPU0 CPU1 CPU2 CPU3 CPU4 CPU5
+
+[GRAPH]
+graphing_library=matplotlib
