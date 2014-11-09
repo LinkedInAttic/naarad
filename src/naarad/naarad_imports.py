@@ -27,6 +27,7 @@ metric_imports_dict = {
   'PROCVMSTAT' : 'naarad.metrics.procvmstat_metric.ProcVmstatMetric',
   'PROCMEMINFO' : 'naarad.metrics.procmeminfo_metric.ProcMeminfoMetric',
   'PROCZONEINFO' : 'naarad.metrics.proczoneinfo_metric.ProcZoneinfoMetric',
+  'PROCINTERRUPTS' : 'naarad.metrics.procinterrupts_metric.ProcInterruptsMetric',
   'SAR' : 'naarad.metrics.sar_metric.SARMetric',
   'TOP' : 'naarad.metrics.top_metric.TopMetric',
   'NETSTAT' : 'naarad.metrics.netstat_metric.NetstatMetric'

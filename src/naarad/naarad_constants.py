@@ -99,6 +99,7 @@ SUPPORTED_FILENAME_MAPPING = {
   'procmeminfo.out' : 'PROCMEMINFO',
   'proc.zoneinfo.out' : 'PROCZONEINFO',
   'proczoneinfo.out' : 'PROCZONEINFO',
+  'proc.interrupts.out' : 'PROCINTERRUPTS',
   'sar.cpuhz.out' : 'SAR-cpuhz',
   'sar.cpuusage.out' : 'SAR-cpuusage',
   'sar.device.out' : 'SAR-device',
