@@ -22,37 +22,37 @@ class ClusterMetric(Metric):
   """
   supporting the metric of Cluster, which aggregates the performance metrics of multiple hosts
   """
-  
-  metrics = []   # all other non-aggregate metrics;   
-  aggr_metrics = []  # metrics to be aggregated   
-  aggr_hosts = [] # hosts to be aggregated    
+
+  metrics = []   # all other non-aggregate metrics;
+  aggr_metrics = []  # metrics to be aggregated
+  aggr_hosts = [] # hosts to be aggregated
 
   def __init__ (self, section, aggregate_hosts, aggregate_metrics, metrics, output_directory, resource_path, label,
                 ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
     self.metrics = metrics
     self.aggr_metrics = aggregate_metrics.split()
     self.aggr_hosts = aggregate_hosts.split()
-                  
+
     #Metric arguments take 'infile' and 'hostname', for ClusterMetric, they are invalid, so just provide empty strings.
     Metric.__init__(self, section, '', '', output_directory, resource_path, label, ts_start, ts_end, rule_strings,
                     important_sub_metrics, anomaly_detection_metrics)
-        
+
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
-      
+
   def collect(self):
     """
-    Take a list of metrics, filter all metrics based on hostname, and metric_type 
-    For each metric, merge the corresponding csv files into one,update corresponding properties such as csv_column_map. 
+    Take a list of metrics, filter all metrics based on hostname, and metric_type
+    For each metric, merge the corresponding csv files into one,update corresponding properties such as csv_column_map.
     Users can specify functions: raw, count (qps), sum (aggregated value), avg (averaged value)
     The timestamp granularity of aggregated submetrics is in seconds (sub-second is not supported)
     """
-    
+
     for aggr_metric in self.aggr_metrics:   # e.g., SAR-device.sda.await:count,sum,avg
       functions_aggr = []
-      fields = aggr_metric.split(":")   
+      fields = aggr_metric.split(":")
       cur_metric_type = fields[0].split(".")[0]  # e.g. SAR-device
-      
+
       if len(fields) > 1:  # The user has to specify the aggregate functions (i.e., :raw,count,sum,avg)
         func_user = ''.join(fields[1].split())
         functions_aggr.extend(func_user.split(","))
@@ -60,16 +60,16 @@ class ClusterMetric(Metric):
         return True
 
       cur_column = '.'.join(fields[0].split('.')[1:])    #e.g. sda.await or all.percent-sys
-    
+
       #store data points of various aggregation functions
       aggr_data = {}
       aggr_data['raw'] = []   #store all the raw values
-      aggr_data['sum'] = defaultdict(float)   #store the sum values for each timestamp   
+      aggr_data['sum'] = defaultdict(float)   #store the sum values for each timestamp
       aggr_data['count'] = defaultdict(int) #store the count of each timestamp (i.e. qps)
-      
+
       for metric in self.metrics:   # loop the list to find from all metrics to merge
         if metric.hostname in self.aggr_hosts and \
-          cur_column in metric.csv_column_map.values():  
+          cur_column in metric.csv_column_map.values():
           file_csv = metric.get_csv(cur_column)
           timestamp_format = None
           with open(file_csv) as fh:
@@ -98,15 +98,15 @@ class ClusterMetric(Metric):
         with open(out_csv, 'w') as fh:
           for k,v in sorted(aggr_data['sum'].items()):
             fh.write(k + "," + str(v) + '\n')
-      
-      # "avg" csv file  
-      if 'avg' in functions_aggr: 
+
+      # "avg" csv file
+      if 'avg' in functions_aggr:
         out_csv = self.get_csv(cur_column, 'avg')
         self.csv_files.append(out_csv)
         with open(out_csv, 'w') as fh:
           for k,v in sorted(aggr_data['sum'].items()):
             fh.write(k + "," + str(v/aggr_data['count'][k]) + '\n')
-          
+
       # "count" csv file (qps)
       if 'count' in functions_aggr:
         out_csv = self.get_csv(cur_column, 'count')
@@ -114,18 +114,18 @@ class ClusterMetric(Metric):
         with open(out_csv, 'w') as fh:
           for k,v in sorted(aggr_data['count'].items()):
             fh.write(k + "," + str(v) + '\n')
-          
+
       gc.collect()
-    return True 
-  
+    return True
+
   def get_csv(self, column, func):
     csv_file = Metric.get_csv(self, column + '.' + func)
     return csv_file
-    
+
   def parse(self):
     """
     merge multiple hosts' csv into one csv file. This approach has the benefit of reusing calculate_stats(), but with the penalty of reading the single csv later for calculate_stats()
-    However, since file cache will cache the newly written csv files, reading the csv file will not likely be a IO bottleneck. 
+    However, since file cache will cache the newly written csv files, reading the csv file will not likely be a IO bottleneck.
     """
-    
+
     return True

@@ -27,7 +27,7 @@ class NetstatMetric(Metric):
   input_connections = []
   processes = ''
   input_processes = []
-  
+
   def __init__ (self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
     Metric.__init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
@@ -55,9 +55,9 @@ class NetstatMetric(Metric):
   def _extract_input_connections(self):
     """
     Given user input of interested connections, it will extract the info and output a list of tuples.
-    - input can be multiple values, separated by space;  
+    - input can be multiple values, separated by space;
     - either host or port is optional
-    - it may be just one end, 
+    - it may be just one end,
     - e.g., "host1<->host2 host3<->  host1:port1<->host2"
     :return: None
     """
@@ -66,11 +66,11 @@ class NetstatMetric(Metric):
       ends = filter(None, ends) #remove '' elements
       if len(ends) == 0:
         continue
-      if len(ends) > 0: 
+      if len(ends) > 0:
         host1, port1 = self._get_tuple(ends[0].split(':'))
       host2 = ''
       port2 = ''
-      if len(ends) > 1: 
+      if len(ends) > 1:
         host2, port2 = self._get_tuple(ends[1].split(':'))
       self.input_connections.append((host1,port1,host2,port2))
 
@@ -92,7 +92,7 @@ class NetstatMetric(Metric):
     Determine whether user-specified (host,port) matches current (cur_host, cur_port)
     :param host,port: The user input of (host,port)
     :param cur_host, cur_port: The current connection
-    :return: True or Not    
+    :return: True or Not
     """
     # if host is '', true;  if not '', it should prefix-match cur_host
     host_match = False
@@ -100,7 +100,7 @@ class NetstatMetric(Metric):
       host_match = True
     elif cur_host.startswith(host):  #allow for partial match
       host_match = True
-      
+
     # if port is '', true;  if not '', it should exactly match cur_port
     port_match = False
     if not port:
@@ -135,7 +135,7 @@ class NetstatMetric(Metric):
     return pid_match and name_match
 
   def _check_connection(self, local_end, remote_end, process):
-    """ 
+    """
     Check whether the connection is of interest or not
     :param local_end: Local connection end point, e.g., 'host1:port1'
     :param remote_end: Remote connection end point, e.g., 'host2:port2'

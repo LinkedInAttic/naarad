@@ -28,7 +28,7 @@ def test_naarad_apis():
   config_object.optionxform = str
   config_object.read(config_file)
   input_directory = os.path.join(examples_directory,'logs')
-  output_directory = 'test_api_temp' 
+  output_directory = 'test_api_temp'
   diff_output_directory = 'test_api_temp/diff_location'
   report1_location = 'test_api_temp/0'
   report2_location = 'test_api_temp/1'
