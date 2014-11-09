@@ -56,12 +56,16 @@ built to support this use-case.
 
 1. Check out Naarad code:
 
-    git clone https://github.com/linkedin/naarad.git
+```
+git clone https://github.com/linkedin/naarad.git
+```
 
 2. Make sure you have Python (2.6 or 2.7), [pip][pipinstall] and `awk`.
 3. Install the necessary Python libraries using PIP.
 
-    cd naarad; pip install -r requirements.txt
+```
+cd naarad; pip install -r requirements.txt
+```
 
 4. For problems in installation, check out our [troubleshooting wiki][trouble]
 
