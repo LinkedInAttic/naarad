@@ -2,7 +2,7 @@
 """
 © 2013 LinkedIn Corp. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
- 
+
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 """
 import datetime
@@ -17,7 +17,7 @@ logger = logging.getLogger('naarad.metrics.SARMetric')
 
 class SARMetric(Metric):
   """ Class for SAR cpuusage logs, deriving from class Metric """
-  supported_sar_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-memory', 'SAR-memutil', 'SAR-paging', 
+  supported_sar_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-memory', 'SAR-memutil', 'SAR-paging',
       'SAR-etcp', 'SAR-tcp', 'SAR-dev', 'SAR-edev', 'SAR-sock', 'SAR-swapping', 'SAR-network', 'SAR-queue', 'SAR-switching')
   def __init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                important_sub_metrics, anomaly_detection_metrics, **other_options):
@@ -34,7 +34,7 @@ class SARMetric(Metric):
 
   def extract_metric_name(self, metric_name):
     """
-    Method to extract SAR metric names from the section given in the config. The SARMetric class assumes that 
+    Method to extract SAR metric names from the section given in the config. The SARMetric class assumes that
     the section name will contain the SAR types listed in self.supported_sar_types tuple
 
     :param str metric_name: Section name from the config

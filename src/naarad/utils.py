@@ -158,7 +158,7 @@ def extract_diff_sla_from_config_file(obj, options_file):
   rule_strings = {}
   config_obj = ConfigParser.ConfigParser()
   config_obj.optionxform = str
-  config_obj.read(options_file) 
+  config_obj.read(options_file)
   for section in config_obj.sections():
     rule_strings, kwargs = get_rule_strings(config_obj, section)
     for (key, val) in rule_strings.iteritems():
@@ -190,7 +190,7 @@ def parse_basic_metric_options(config_obj, section):
     if config_obj.has_option(section, 'hostname'):
       hostname = config_obj.get(section, 'hostname')
       config_obj.remove_option(section, 'hostname')
-    
+
     #'infile' is not mandatory for aggregate metrics
     if config_obj.has_option(section,'infile'):
       infile = config_obj.get(section, 'infile').split()

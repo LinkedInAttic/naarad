@@ -265,7 +265,7 @@ class Diff(object):
       if graphed:
         self.plot_files.append(div_file)
     return True
- 
+
   def check_sla(self, sla, diff_metric):
     """
     Check whether the SLA has passed or failed
@@ -304,7 +304,7 @@ class Diff(object):
             report1_stats[row[CONSTANTS.SUBMETRIC_HEADER]] = row
           report1_stats['__headers__'] = report1._fieldnames
           common_stats = sorted(set(report0_stats['__headers__']) & set(report1_stats['__headers__']))
-          common_submetrics = sorted(set(report0_stats.keys()) & set(report1_stats.keys()))       
+          common_submetrics = sorted(set(report0_stats.keys()) & set(report1_stats.keys()))
           for submetric in common_submetrics:
             if submetric != '__headers__':
               for stat in common_stats:
@@ -319,7 +319,7 @@ class Diff(object):
                     else:
                       diff_metric['percent_diff'] = 'N/A'
                   else:
-                    diff_metric['percent_diff'] = naarad.utils.normalize_float_for_display((diff_metric[1] - diff_metric[0]) * 100 / diff_metric[0])                        
+                    diff_metric['percent_diff'] = naarad.utils.normalize_float_for_display((diff_metric[1] - diff_metric[0]) * 100 / diff_metric[0])
                   # check whether there is a SLA failure
                   if (metric_label in self.sla_map.keys()) and (submetric in self.sla_map[metric_label].keys()) and (stat in self.sla_map[metric_label][submetric].keys()):
                     self.check_sla(self.sla_map[metric_label][submetric][stat], diff_metric)
