@@ -73,6 +73,31 @@ class ProcInterruptsMetric(Metric):
       self.csv_column_map[outcsv] = cpu + '.' + device
     return outcsv
 
+  def find_header(self, infile):
+    """
+    Parses the file and tries to find the header line. The header line has format:
+
+      2014-10-29 00:28:42.15161        CPU0   CPU1   CPU2   CPU3  ...
+
+    So should always have CPU# for each core.
+    :param infile: The opened file in read mode to find the header.
+    :return cpus: A list of the core names so in this example ['CPU0', 'CPU1', ...]
+    """
+    cpus = []
+    for line in infile: # Pre-processing - Try to find header
+      if 'CPU' not in line:
+        continue
+      cpu_header = line.split()
+      for cpu_h in cpu_header[2:]: # Verify correct CPUs in header
+        if not cpu_h.startswith('CPU'):
+          cpus = [] # Bad header so reset to nothing
+          break
+        else:
+          cpus.append(cpu_h)
+      if len(cpus) > 0: # We found the header
+        break
+    return cpus
+
   def parse(self):
     """
     Processes the files for each IRQ and each CPU in terms of the differences.
@@ -101,18 +126,11 @@ class ProcInterruptsMetric(Metric):
       logger.info('Processing : %s', input_file)
       timestamp_format = None
       with open(input_file, 'r') as infile:
-        line = infile.readline()
-        # Pre-processing - assumes valid header may exist on first line
-        cpu_header = line.split()
-        cpus = []
-        for cpu_h in cpu_header[2:]:
-          if not cpu_h.startswith('CPU'):
-            # Bad header as needs to be all CPU#
-            logger.error("Header not found for file: %s", input_file)
-            logger.error("Line: %s", line)
-            return False
-          else:
-            cpus.append(cpu_h)
+        # Get the header for this file
+        cpus = self.find_header(infile)
+        if len(cpus) == 0: # Make sure we have header otherwise go to next file
+          logger.error("Header not found for file: %s", input_file)
+          continue
 
         # Parse the actual file after header
         prev_data = None    # Stores the previous interval's log data
