@@ -49,7 +49,7 @@ class ProcInterruptsMetric(Metric):
     """
     Returns the CSV file related to the given metric. The metric is determined by the cpu and device.
     The cpu is the CPU as in the interrupts file for example CPU12.
-    The metric is a combination of the CPU and device. The device consists of IRQ #, the irq device, and a more readable ASCII name.
+    The metric is a combination of the CPU and device. The device consists of IRQ #, the irq device ASCII name.
 
                                       CPU0   CPU1
     2014-10-29 00:27:42.15161    59:    29      2    IR-IO-APIC-edge    timer
@@ -57,10 +57,10 @@ class ProcInterruptsMetric(Metric):
                                   |      |      |          |              |
                                 IRQ#   Value  Value   IRQ Device       Ascii Name
 
-    This would produce a metric CPU0.59.IR-IO-APIC-edge.timer and CPU1.59.IR-IO-APIC-edge.timer so one per IRQ per CPU.
+    This would produce a metric CPU0.timer-IRQ59 and CPU1.timer-IRQ59 so one per IRQ per CPU.
 
     :param cpu: The name of the cpu given as CPU#.
-    :param device: The device name as given by the system. <IRQ#>.<IRQ Device>.<ASCII Name>
+    :param device: The device name as given by the system. <ASCII name>-IRQ<IRQ #>
     :return: The CSV file for the metric.
     """
     cpu = naarad.utils.sanitize_string(cpu)
@@ -167,10 +167,15 @@ class ProcInterruptsMetric(Metric):
           # Process data lines
           # Note that some IRQs such as ERR and MIS do not have device nor ascii name
           device = words[2].strip(':')  # Get IRQ Number/Name
-          if (3 + len(cpus)) < len(words):    # See if has device name
-            device += '.' + words[3 + len(cpus)]
-          if (4 + len(cpus)) < len(words):    # See if has ascii name
-            device += '.' + words[4 + len(cpus)]
+          if re.match("\d+", device):
+            # Devices with digits need ASCII name if exists
+            if (4 + len(cpus)) < len(words):
+              device = words[4 + len(cpus)] + "-IRQ" + device
+            else:
+              device = "IRQ" + device
+          else:
+            # For devices with IRQ # that aren't digits then has description
+            device = "-".join(words[(3 + len(cpus)):]) + "-IRQ" + device
 
           # Deal with each column worth of data
           for (cpu, datum) in zip(cpus, words[3:]):
