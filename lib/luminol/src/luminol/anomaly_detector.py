@@ -49,8 +49,7 @@ class AnomalyDetector(object):
     algorithm_name = algorithm_name or ANOMALY_DETECTOR_ALGORITHM
     self.algorithm = algorithm_class or self._get_algorithm(algorithm_name)
     self.threshold = score_threshold or ANOMALY_THRESHOLD.get(algorithm_name)
-    refine_algorithm_name = refine_algorithm_name or ANOMALY_DETECTOR_REFINE_ALGORITHM
-    self.refine_algorithm = self._get_algorithm(refine_algorithm_name)
+    self.refine_algorithm = self._get_algorithm(refine_algorithm_name or ANOMALY_DETECTOR_REFINE_ALGORITHM)
 
     # Prepare parameters.
     self.algorithm_params = {'time_series': self.time_series, 'baseline_time_series': self.baseline_time_series}
