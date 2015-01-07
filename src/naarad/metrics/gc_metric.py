@@ -73,7 +73,7 @@ class GCMetric(Metric):
       'gen0sys' : 'young gen collection time in cpu sys secs',
       'gen0real' : 'young gen collection time in elapsed secs',
       'gen1i' : 'train generation incremental collection',
-      'gen1t' : 'old generation collection/full GC',
+      'gen1t' : 'old generation collection or full GC',
       'cmsIM' : 'CMS initial mark pause',
       'cmsRM' : 'CMS remark pause',
       'cmsRS' : 'CMS resize pause',

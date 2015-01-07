@@ -1,5 +1,5 @@
 [GC]
 infile=gc.log
-sub_metrics=appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys cmsIM cmsRM cmsRS GCPause cmsCM cmsCP cmsCS cmsCR safept apptime
+sub_metrics=appstop alloc promo used0 used1 used commit0 commit1 commit gen0 gen0t gen0usr gen0sys gen1t cmsIM cmsRM cmsRS GCPause cmsCM cmsCP cmsCS cmsCR safept apptime
 
 [GRAPH]
