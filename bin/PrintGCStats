@@ -1254,8 +1254,9 @@ $0 ~ full_gc_re timestamp_re ".*\\[" fw_yng_gen_re ": " heap_report_re "\\] " he
 #[GC [DefNew: 2880K->63K(2944K), 0.4626167 secs] 16999K->16999K(26480K), 0.4627703 secs]
 #	or with time stamps
 # 0.431984: [GC 0.432051: [DefNew: 2112K->0K(2176K), 0.0911555 secs] 6204K->6201K(9000K), 0.0912899 secs]
+# 0.145: [GC (Allocation Failure) 0.145: [ParNew: 2743K->320K(3072K), 0.0081559 secs] 2743K->1046K(9920K), 0.0082548 secs]
 # /\[GC.*\[(DefNew|(AS)?ParNew): [0-9]+K->[0-9]+K\([0-9]+K\),.*secs\] [0-9]+K->[0-9]+K\([0-9]+K\),.*secs\]/ {
-$0 ~ "\\[GC " timestamp_re "\\[" fw_yng_gen_re ": " heap_report_re "\\] " heap_report_re "\\]" {
+$0 ~ "\\[GC (\\(Allocation Failure\\) )?" timestamp_re "\\[" fw_yng_gen_re ": " heap_report_re "\\] " heap_report_re "\\]" {
 
 # this matches ParNew of concurrent young gen
 # print "	>> cht 10. line ", FNR, $0;
