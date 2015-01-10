@@ -1168,8 +1168,8 @@ $0 ~ "\\[GC.*\\[" fw_yng_gen_re ": " heap_report_re "\\].*\\[" fw_old_gen_re ": 
 # [Full GC [Tenured: 43464K->43462K(43712K), 0.0614658 secs] 63777K->63775K(64896K), [Perm : 1460K->1459K(16384K)], 0.0615839 secs]
 # 
 # 0.502: [Full GC 0.502: [Tenured: 43464K->43462K(43712K), 0.0724391 secs] 63777K->63775K(64896K), [Perm : 1460K->1459K(16384K)], 0.0725792 secs]
-
-$0 ~ full_gc_re timestamp_re ".*\\[" fw_old_gen_re ": " heap_report_re "\\] " heap_size_status_re ", \\[((AS)?CMS )?Perm *: " heap_size_status_re "\\], " gc_time_secs_re "\\]" {
+# 1.882: [Full GC (Allocation Failure) 1.882: [CMS: 204797K->204797K(204800K), 0.0265487 secs] 296892K->235564K(297024K), [Metaspace: 2430K->2430K(1056768K)], 0.0266579 secs]
+$0 ~ full_gc_re timestamp_re ".*\\[" fw_old_gen_re ": " heap_report_re "\\] " heap_size_status_re ", \\[((AS)?CMS )?(Perm |Metaspace)*: " heap_size_status_re "\\], " gc_time_secs_re "\\]" {
 # print "	>> cht 6. line ", FNR, $0;
   tString = $0;
   tInt = sub(".*" heap_size_status_re "\\], ", "", tString);
