@@ -560,6 +560,8 @@ BEGIN {
   timestamp_re		= "(" gc_time_re ": *)?";
   timestamp_range_re	= "(" gc_time_re "-" gc_time_re ": *)?";
 
+  gc_timestamp_re      = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9]+";
+
   # Heap size status plus elapsed time:  8K->4K(96K), 0.0517089 secs
   heap_report_re	= heap_size_status_re ", " gc_time_secs_re;
 
@@ -677,7 +679,7 @@ function printPercent(name, tot, tot_units, period, period_units) {
 function getDateTimeStamp() {
 #2012-02-23T22:17:02.495
   gts_tmp_str = $0;
-  if (!match(gts_tmp_str,"^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9]+")) return -1.0;
+  if (!match(gts_tmp_str,"^" gc_timestamp_re)) return -1.0;
   gts_tmp = substr(gts_tmp_str, RSTART, RLENGTH);
   gsub(/T|-|:/, " ", gts_tmp);
   split(gts_tmp, tmp_ts, ".");
@@ -1109,13 +1111,17 @@ $0 ~ "\\[" cms_concurrent_phase_re ": " gc_time_re "/" gc_time_secs_re "\\]" {
   recordStats(tIdx, secs);
   printInterval(); # Must do this before the getline below.
 
-  if (match($0, "\\[(AS)?CMS" timestamp_re "\\[" cms_concurrent_phase_re)) {
+  if (match($0, "\\[(AS)?CMS(" gc_timestamp_re ".*: )?" timestamp_re "\\[" cms_concurrent_phase_re)) {
     # If CMS is in the middle of a concurrent phase when System.gc() is called
     # or concurrent mode failure causes a bail out to mark-sweep,
     # the output is split across 2 lines, e.g.:
     #
     # 164.092: [Full GC 164.093: [CMS164.341: [CMS-concurrent-mark: 0.302/0.304 secs]
     # : 26221K->24397K(43704K), 0.8347158 secs] 26285K->24397K(64952K), [CMS Perm : 2794K->2794K(16384K)], 0.8350998 secs]
+    # 9.563: [GC (Allocation Failure) 9.563: [ParNew (promotion failed): 3071K->3071K(3072K), 0.0169675 secs]9.580: [CMS2015-01-11T12:06:30.899+0100: 9.597: [CMS-concurrent-mark: 0.077/0.440 secs]
+    # (concurrent mode failure): 511643K->511999K(512000K), 0.4506954 secs] 513856K->512001K(515072K), [Metaspace: 2428K->2428K(1056768K)], 0.4681062 secs]
+    # 10.764: [Full GC (Allocation Failure) 10.764: [CMS2015-01-11T12:06:32.071+0100: 10.769: [CMS-concurrent-mark: 0.137/0.137 secs]
+    # (concurrent mode failure): 511999K->511999K(512000K), 0.3167690 secs] 742462K->640024K(742464K), [Metaspace: 2428K->2428K(1056768K)], 0.3168884 secs]
     #
     getline;
     tString = $0;
