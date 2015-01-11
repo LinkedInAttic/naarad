@@ -1139,9 +1139,33 @@ $0 ~ "\\[" cms_concurrent_phase_re ": " gc_time_re "/" gc_time_secs_re "\\]" {
 # /\[GC.*\[(DefNew|(AS)?ParNew): [0-9]+K->[0-9]+K\([0-9]+K\),.*secs\].*\[((AS)?CMS|Tenured): [0-9]+K->[0-9]+K\([0-9]+K\),.*secs\]/ {
 #
 # [GC [ParNew: 7812K->7812K(8128K), 0.0000310 secs][CMS (concurrent mode failure): 382515K->384858K(385024K), 0.0657172 secs] 390327K->390327K(393152K), 0.0658860 secs]
+# 10.218: [GC (Allocation Failure) 10.218: [ParNew (promotion failed): 3071K->3071K(3072K), 0.0142625 secs]10.233: [CMS (concurrent mode failure): 511673K->511998K(512000K), 0.4529602 secs] 513853K->511998K(515072K), [Metaspace: 2430K->2430K(1056768K)], 0.4676895 secs]
+# 10.792: [GC (Allocation Failure) 10.792: [ParNew: 204864K->204864K(230464K), 0.0000277 secs]10.792: [CMS: 511998K->511999K(512000K), 0.2917250 secs] 716862K->580271K(742464K), [Metaspace: 2430K->2430K(1056768K)], 0.2918860 secs]
 #
 $0 ~ "\\[GC.*\\[" fw_yng_gen_re ": " heap_report_re "\\].*\\[" fw_old_gen_re ": " heap_report_re "\\]" {
 # print "	>> cht 5. line ", FNR, $0;
+  # The first time on the line is for DefNew/ParNew gc work only.
+  match($0, gc_time_secs_re);
+  secs = substr($0, RSTART, RLENGTH - 5) + 0;
+  tString = substr($0, RSTART + RLENGTH);
+
+  if (available_plot_count == 0) {
+    # Skip the update of the totgc numbers, that will be handled below.
+    recordStatsInternal(gen0c_idx, secs);
+    recordStatsInternal(gen0c_idx + last_idx, secs);
+  } else if (gen0c_idx in plot_idx) {
+    recordStats(gen0c_idx, secs);
+  }
+
+  # The second time is the total time, which includes prologue, epilogue and
+  # safepoint time.
+  match(tString, gc_time_secs_re);
+  secs = substr(tString, RSTART, RLENGTH - 5) + 0;
+  recordStats(gen0t_idx, secs);
+
+  recordGen0Kb($0, 1);
+
+  # Old gen times
   tString = $0;
   tInt = sub(".*\\[" fw_old_gen_re ": " heap_size_status_re ", ", "", tString);
   tInt = sub(" secs.*", "", tString);
