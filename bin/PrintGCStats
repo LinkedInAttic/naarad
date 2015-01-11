@@ -807,6 +807,19 @@ function writePlotData(tstamp, value, widx) {
 }
 
 function recordStats(idx, value) {
+  rs_tstamp = -1;
+  if (available_plot_count != 0 && (idx in plot_idx || (totgc_idx in plot_idx && idx < totgc_idx))) {
+    # Plotting enabled, need to find timestamp on line
+    if (datestamps == 1) {
+      rs_tstamp = getDateTimeStamp();
+    } else {
+      rs_tstamp = getTimeStamp();
+    }
+  }
+  recordStatsTimestamp(idx, value, rs_tstamp);
+}
+
+function recordStatsTimestamp(idx, value, rs_tstamp) {
   if (verbose) print name_v[idx] ":" NR ":" value;
   if (available_plot_count == 0) {
     # Plotting disabled; record statistics.
@@ -815,11 +828,6 @@ function recordStats(idx, value) {
     if (idx < totgc_idx) recordStatsInternal(totgc_idx, value);
   } else if (idx in plot_idx || (totgc_idx in plot_idx && idx < totgc_idx)) {
     # Plotting enabled; skip statistics and just print a plot line.
-    if (datestamps == 1) {
-      rs_tstamp = getDateTimeStamp();
-    } else {
-      rs_tstamp = getTimeStamp();
-    }
     if (rs_tstamp != -1) {
       writePlotData(rs_tstamp, value, idx);
       if (totgc_idx in plot_idx && idx < totgc_idx && idx != gen0c_idx) {
@@ -1123,13 +1131,22 @@ $0 ~ "\\[" cms_concurrent_phase_re ": " gc_time_re "/" gc_time_secs_re "\\]" {
     # 10.764: [Full GC (Allocation Failure) 10.764: [CMS2015-01-11T12:06:32.071+0100: 10.769: [CMS-concurrent-mark: 0.137/0.137 secs]
     # (concurrent mode failure): 511999K->511999K(512000K), 0.3167690 secs] 742462K->640024K(742464K), [Metaspace: 2428K->2428K(1056768K)], 0.3168884 secs]
     #
+
+    # Get the timestamp from the current line
+    if (datestamps == 1) {
+      rs_tstamp = getDateTimeStamp();
+    } else {
+      rs_tstamp = getTimeStamp();
+    }
+    # Get the second line
     getline;
     tString = $0;
     tInt = sub(".*" heap_size_status_re "\\]?, ", "", tString);
     tInt += sub(" secs.*", "", tString);
     if (tInt == 2) {
       secs = tString + 0.0;
-      recordStats(gen1t_idx, secs);
+      # Record stats with timestamp from the previous line
+      recordStatsTimestamp(gen1t_idx, secs, rs_tstamp);
     }
   }
   next;
