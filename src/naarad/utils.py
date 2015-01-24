@@ -663,7 +663,7 @@ def get_standardized_timestamp(timestamp, ts_format):
       logger.error('Unable to determine timestamp format for : %s', timestamp)
       return -1
     elif ts_format == 'epoch':
-      ts = timestamp * 1000
+      ts = int(timestamp) * 1000
     elif ts_format == 'epoch_ms':
       ts = timestamp
     elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
