@@ -12,6 +12,12 @@ BEGIN {
 	# Find the millisecond part of the line timestamp
 	fraction=line_timestamp-int(line_timestamp)
 	milliseconds=substr(fraction,3);
+	if(length(milliseconds) == 1) {
+		milliseconds = milliseconds "00";
+	}
+	else if(length(milliseconds) == 2) {
+		milliseconds = milliseconds "0";
+	}
 	# The full datestamp for the line, including milliseconds and timezone
 	datestamp=strftime("%Y-%m-%dT%H:%M:%S",line_datestamp) "." sprintf("%3.3d", milliseconds + 0.0) strftime("%z",line_datestamp)
 	# The full line with datestamp at the start
