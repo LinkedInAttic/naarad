@@ -317,6 +317,7 @@ BEGIN {
   cmsCS_idx = ++i;	# CMS Concurrent Sweep
   cmsCR_idx = ++i;	# CMS Concurrent Reset
   MB_a_idx = ++i;	# MB allocated
+  MB_a_per_s_idx = ++i;	# MB allocated per second
   MB_p_idx = ++i;	# MB promoted
   MB_used0_idx = ++i;	# MB used in young gen
   MB_used1_idx = ++i;	# MB used in old gen
@@ -356,6 +357,9 @@ BEGIN {
 
   plot_cnt = -1;	# Used to identify plot lines if timestamps are not
   			# available.
+
+  # Previous timestamp for allocation
+  prev_alloc_timestamp = 0;
 
   # Init arrays.
   name_v[gen0c_idx]	= "gen0";
@@ -454,6 +458,7 @@ BEGIN {
   name_v[cmsCS_idx]	= "cmsCS";
   name_v[cmsCR_idx]	= "cmsCR";
   name_v[MB_a_idx]	= "alloc";
+  name_v[MB_a_per_s_idx]	= "allocPerSecond";
   name_v[MB_p_idx]	= "promo";
   name_v[MB_used0_idx]	= "used0";
   name_v[MB_used1_idx]	= "used1";
@@ -854,6 +859,22 @@ function parseHeapSizes(sizes, str) {
 function recordHeapKb(str) {
   if (parseHeapSizes(tmp_mb, str) < 0) return;
   recordStats(MB_a_idx, tmp_mb[0] - gen0_sizes[1]);
+  if(prev_alloc_timestamp > 0) {
+    if (datestamps == 1) {
+      curr_alloc_timestamp = getDateTimeStamp();
+    } else {
+      curr_alloc_timestamp = getTimeStamp();
+    }
+    recordStats(MB_a_per_s_idx, (tmp_mb[0] - gen0_sizes[1]) / ((curr_alloc_timestamp - prev_alloc_timestamp) / 1000));
+    prev_alloc_timestamp = curr_alloc_timestamp;
+  }
+  else {
+    if (datestamps == 1) {
+      prev_alloc_timestamp = getDateTimeStamp();
+    } else {
+      prev_alloc_timestamp = getTimeStamp();
+    }
+  }
   # Occupancy (the before gc value is used).
   recordStats(MB_usedh_idx, tmp_mb[0]);
   # Total heap committed size.
@@ -873,6 +894,23 @@ function recordGen0Kb(str, allow_3_sizes) {
   recordStats(MB_used0_idx, tmp_mb[0]);
   recordStats(MB_used0AfterGC_idx, tmp_mb[1]);
   recordStats(MB_a_idx, tmp_mb[0] - gen0_sizes[1]);
+  if(prev_alloc_timestamp > 0) {
+    if (datestamps == 1) {
+      curr_alloc_timestamp = getDateTimeStamp();
+    } else {
+      curr_alloc_timestamp = getTimeStamp();
+    }
+    recordStats(MB_a_per_s_idx, (tmp_mb[0] - gen0_sizes[1]) / ((curr_alloc_timestamp - prev_alloc_timestamp) / 1000));
+    prev_alloc_timestamp = curr_alloc_timestamp;
+  }
+  else {
+    if (datestamps == 1) {
+      prev_alloc_timestamp = getDateTimeStamp();
+    } else {
+      prev_alloc_timestamp = getTimeStamp();
+    }
+  }
+
   # Gen0 committed size.
   recordStats(MB_c0_idx, tmp_mb[2]);
 
