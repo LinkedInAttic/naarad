@@ -161,7 +161,7 @@ class GCMetric(Metric):
       'g1-eden-occupancy-before-gc' : 'G1 Eden Occupancy (MB) (Before GC)',
       'g1-eden-capacity-before-gc' : 'G1 Eden Capacity (MB) (Before GC)',
       'g1-eden-occupancy-after-gc' : 'G1 Eden Occupancy (MB) (After GC)',
-      'g1-eden-capacity-after-gc' : 'G1 Efen Capacity (MB) (After GC)',
+      'g1-eden-capacity-after-gc' : 'G1 Eden Capacity (MB) (After GC)',
       'g1-survivor-before-gc' : 'G1 Survivor Size (MB) (Before GC)',
       'g1-survivor-after-gc' : 'G1 Survivor Size (MB) (After GC)',
       'g1-heap-occupancy-before-gc' : 'G1 Heap Occupancy (MB) (Before GC)',
