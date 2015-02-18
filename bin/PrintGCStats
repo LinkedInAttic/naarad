@@ -507,7 +507,7 @@ BEGIN {
       }
     } 
 
-    if (available_plot_count == 0) {
+    if (available_plot_count == 0 && requested_plot_count > 0) {
       print "PrintGCStats:  unrecognized plot name plot=" plot ".";
       print usage_msg;
       exit(1);
