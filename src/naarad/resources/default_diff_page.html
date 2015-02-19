@@ -21,7 +21,7 @@
 <div class="container">
   <div class="content">
     <div class="row">
-      <div class="span12">
+      <div class="col-md-12">
         <div id="sla failure summary" style="overflow-x:auto;">
           <h2 class="content-title">
             <span class="text">SLA Failure Summary</span>
@@ -70,7 +70,7 @@
     {%- if diff_data %}
       {%- for metric in diff_data|sort %}
       <div class="row">
-        <div class="span12">
+        <div class="col-md-12">
          <div id="div-diff-{{ metric }}" style="overflow-x:auto;">
           <h2 class="content-title">
             <span class="text">{{ metric }}</span>
@@ -165,7 +165,7 @@
 
     {%- if plot_div_content %}
     <div id="diff-metric-plots" class="row">
-      <div id="diff-metric-plots-span" class="span12">
+      <div id="diff-metric-plots-span" class="col-md-12">
     <h3>Metrics Diff Plots</h3>
     <p>
         {{ plot_div_content }}
@@ -175,7 +175,7 @@
     {%- endif %}
 
     <div class="row">
-      <div class="span12">
+      <div class="col-md-12">
         <table class="table">
             <h2 class="content-title">
                 <span class="text">Source Files Locations</span>

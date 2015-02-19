@@ -52,7 +52,7 @@ function plotWithAnomalies(selector_id, reset_selector_id, div_id, colorset_id, 
   var chart_data_title = "" ;
   chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
   chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
-  document.getElementById(url_div).innerHTML = "<a href=\"javascript:convertCSVTimeStamp('" + chart_data_source + "');\">[csv]</a>"
+  document.getElementById(url_div).innerHTML = "<a href=\"javascript:convertCSVTimeStamp('" + chart_data_source + "');\" class=\"btn btn-primary btn-csv\" target=\"_blank\">Download CSV</a>"
   var div_width = document.getElementById(div_id).clientWidth;
   var div_height = document.getElementById(div_id).clientHeight;
   var blockRedraw = false;
@@ -131,7 +131,7 @@ function plotCdf(selector_id, reset_selector_id, div_id, colorset_id, advanced_s
   var chart_data_title = "" ;
   chart_data_source = chart_data_selector.options[chart_data_selector.selectedIndex].value;
   chart_data_title = chart_data_selector.options[chart_data_selector.selectedIndex].text;
-  document.getElementById(url_div).innerHTML = "<a href=" + chart_data_source + " target=\"_blank\">[csv]</a>"
+  document.getElementById(url_div).innerHTML = "<a href=" + chart_data_source + " class=\"btn btn-primary btn-csv\" target=\"_blank\">Download CSV</a>"
   var div_width = document.getElementById(div_id).clientWidth;
   var div_height = document.getElementById(div_id).clientHeight;
   chart_1 = new Dygraph(document.getElementById(div_id), chart_data_source,
@@ -177,15 +177,19 @@ function addChart(container_div)
 
   var labelsChartingDiv = document.createElement("div");
   labelsChartingDiv.setAttribute("id","labels-charting-div-" + chartIndex.toString());
+  labelsChartingDiv.setAttribute("class","chart-label");
   chartDiv.appendChild(labelsChartingDiv);
 
   var chartingDiv = document.createElement("div");
   chartingDiv.setAttribute("id","charting-div-" + chartIndex.toString());
+  chartingDiv.setAttribute("class","chart-area");
   chartDiv.appendChild(chartingDiv);
 
   var csvURLDiv = document.createElement("div");
   csvURLDiv.setAttribute("id","csv-url-div-" + chartIndex.toString());
+  csvURLDiv.setAttribute("class","chart-csv");
   chartDiv.appendChild(csvURLDiv);
+  chartDiv.appendChild(document.createElement("hr"));
 
   document.getElementById(container_div).appendChild(chartDiv);
   document.getElementById("button-div-" + chartIndex.toString()).appendChild(removeChartButton);
@@ -423,4 +427,14 @@ function download(content, filename, contentType)
 function makeTwoDigit(input)
 {
     return ("0" + input).slice(-2);
+}
+
+/**
+ * jumpTo
+ * This function given a target point allows for jumping to a given anchor location.
+ * It should not have the hash in the target name.
+ */
+function jumpTo(target)
+{
+  window.location.hash = target;
 }

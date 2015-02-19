@@ -100,6 +100,7 @@ class Report(object):
   def generate_client_charting_page(self, template_environment, timeseries_csv_list, percentiles_csv_list, summary_enabled, header_template_data):
     client_charting_html = template_environment.get_template(self.header_template).render(**header_template_data) + '\n'
     client_charting_html += template_environment.get_template(self.client_charting_template).render(metric_list=sorted(self.metric_list), timeseries_data=sorted(timeseries_csv_list), percentiles_data=sorted(percentiles_csv_list), summary_enabled=summary_enabled, resource_path=self.resource_path) + '\n'
+    client_charting_html += template_environment.get_template(self.footer_template).render()
     with open(os.path.join(self.resource_directory, CONSTANTS.PLOTS_CSV_LIST_FILE),'w') as FH:
       FH.write(','.join(sorted(timeseries_csv_list)))
     with open(os.path.join(self.resource_directory, CONSTANTS.CDF_PLOTS_CSV_LIST_FILE),'w') as FH:

@@ -1,25 +1,26 @@
 <div id="{{ metric.label }}-summary-table" class="row">
-<div id="{{ metric.label }}-summary-table-span" class="span12">
-<h3>{{ metric.label }} Summary</h3>
-<div style="overflow-x:auto;">
-<table class="table table-striped table-bordered sortable">
-<thead><tr>
-{%- for header in metric_stats[0] %}
-<th>{{ header }}</th>
-{%- endfor %}
-</tr>
-</thead>
-<tbody>
-{% for row in range(1,metric_stats|length) %}
-<tr>
-{%- for row_data in metric_stats[row] %}
-<td>{{ row_data }}</td>
-{%- endfor %}
-</tr>
-{%- endfor %}
-</tbody>
-<tfoot></tfoot>
-</table>
-</div>
-</div>
+  <div id="{{ metric.label }}-summary-table-span" class="col-md-12">
+    <h3>{{ metric.label }} Summary</h3>
+    <div style="overflow-x:auto;">
+      <table class="table table-striped table-bordered sortable">
+        <thead>
+          <tr>
+            {%- for header in metric_stats[0] %}
+            <th>{{ header }}</th>
+            {%- endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in range(1,metric_stats|length) %}
+          <tr>
+            {%- for row_data in metric_stats[row] %}
+            <td>{{ row_data }}</td>
+            {%- endfor %}
+          </tr>
+          {%- endfor %}
+        </tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+  </div>
 </div>
