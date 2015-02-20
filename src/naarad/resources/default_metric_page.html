@@ -156,7 +156,7 @@
           <tbody>
             {%- for sub_metric in metric.summary_stats.keys() %}
               <tr>
-                <td>{{ sub_metric }}</td>
+                <td><a href="#{{ metric.label }}.{{ sub_metric }}">{{ sub_metric }}</a></td>
                 {%- for stat in metric.summary_stats[sub_metric]|sort %}
                   {%- if sub_metric in metric.sla_map.keys() %}
                     {%- if stat in metric.sla_map[sub_metric].keys() %}
