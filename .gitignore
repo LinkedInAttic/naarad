@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+
+# Mac Files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary Files
+*.swp
+*.swo
+\#*\#
