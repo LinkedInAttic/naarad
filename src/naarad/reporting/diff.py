@@ -87,6 +87,7 @@ class Diff(object):
     template_environment = Environment(loader=template_loader)
     client_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path, report_title='naarad diff report') + '\n'
     client_html += template_environment.get_template(CONSTANTS.TEMPLATE_DIFF_CLIENT_CHARTING).render(data_series=data_sources, resource_path=self.resource_path) + '\n'
+    client_html += template_environment.get_template(CONSTANTS.TEMPLATE_FOOTER).render()
     return client_html
 
   def generate_diff_html(self):
@@ -103,6 +104,7 @@ class Diff(object):
         div_html += '\n' + div_file.read()
     template_loader = FileSystemLoader(self.get_resources_location())
     template_environment = Environment(loader=template_loader)
+    template_environment.filters['sanitize_string'] = naarad.utils.sanitize_string
     diff_html = template_environment.get_template(CONSTANTS.TEMPLATE_HEADER).render(custom_stylesheet_includes=CONSTANTS.STYLESHEET_INCLUDES, custom_javascript_includes=CONSTANTS.JAVASCRIPT_INCLUDES, resource_path=self.resource_path, report_title='naarad diff report') + '\n'
     diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_DIFF_PAGE).render(diff_data=self.diff_data, plot_div_content=div_html, reports=self.reports, sla_failure_list=self.sla_failure_list, sla_map=self.sla_map) + '\n'
     diff_html += template_environment.get_template(CONSTANTS.TEMPLATE_FOOTER).render()

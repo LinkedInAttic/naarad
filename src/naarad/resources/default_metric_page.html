@@ -158,7 +158,7 @@
               <tr>
                 <td>
                   {%- if plot_div_content %}
-                  <a href="#{{ metric.label }}.{{ sub_metric }}">{{ sub_metric }}</a>
+                  <a href="#{{ metric.label }}.{{ sub_metric | sanitize_string }}">{{ sub_metric }}</a>
                   {%- else %}
                   {{ sub_metric }}
                   {%- endif %}

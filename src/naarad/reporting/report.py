@@ -114,6 +114,7 @@ class Report(object):
     template_loader = FileSystemLoader(self.get_resources_location())
     self.copy_local_includes()
     template_environment = Environment(loader=template_loader)
+    template_environment.filters['sanitize_string'] = naarad.utils.sanitize_string
     header_template_data= { 'custom_stylesheet_includes' : CONSTANTS.STYLESHEET_INCLUDES,
                             'custom_javascript_includes' : CONSTANTS.JAVASCRIPT_INCLUDES,
                             'resource_path': self.resource_path }

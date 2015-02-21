@@ -7,8 +7,9 @@ footer {
 }
 
 .chart-area, .chart-label {
-  width: 90%;
-  margin: 0 auto;
+  width: 100%;
+  height: 50%;
+  margin: 0;
 }
 
 .chart-label {
@@ -18,8 +19,4 @@ footer {
 
 .chart-csv {
   text-align: right;
-}
-
-.btn-csv {
-  margin-right: 5%;
 }

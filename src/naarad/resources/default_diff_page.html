@@ -1,32 +1,32 @@
 <body data-spy="scroll" data-target=".topbar" data-offset="90">
-<div class="topbar navbar navbar-fixed-top navbar-inverse">
-  <div class="navbar-inner">
-   <div class="container">
-    <div class="topbar-content">
+<nav class="navbar navbar-default navbar-fixed-top topbar">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="https://github.com/linkedin/naarad">naarad</a>
+    </div>
+    <div id="navbar">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="diff_report.html" title="Summary"><span>Summary</span></a></li>
+        <li><a href="report.html"></span>Chart</span></a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">Back to Top</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
 
-    <a class="brand" href="https://github.com/linkedin/naarad">naarad</a>
-
-    <ul class="nav">
-        <li class="active">
-            <a href="diff_report.html" title="Summary">
-                <span>Summary</span>
-            </a>
-        </li>
-        <li><a href="report.html"><span>Chart</span></a></li>
-    </ul>
-    </div><!-- /topbar-content -->
-   </div><!-- /container -->
- </div><!-- /topbar-inner -->
-</div><!-- /topbar -->
-<div class="container">
+<!-- Container -->
+<div class="container-fluid">
   <div class="content">
+    {%- if sla_failure_list %}
+    <!-- SLA Failures -->
     <div class="row">
       <div class="col-md-12">
         <div id="sla failure summary" style="overflow-x:auto;">
           <h2 class="content-title">
             <span class="text">SLA Failure Summary</span>
           </h2>
-          {%- if sla_failure_list %}
           <table id="table-diff-sla-failure" class="table table-bordered table-striped sortable">
             <caption>Summary of SLA Failures</caption>
             <thead>
@@ -62,13 +62,30 @@
              {%- endfor %}
             </tbody>
           </table>
-          {%- endif %} 
        </div>
       </div>
     </div>
+    {%- endif %}
 
+    <!-- Diff Data -->
     {%- if diff_data %}
+      <!-- Jumps -->
+      <div class="dropdown">
+        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+          Quick Jump
+          <span class="caret"></span>
+        </button>
+
+        <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+          {%- for metric in diff_data|sort %}
+          <li role="presentation"><a role="menuitem" tabindex="-1" href="#{{ metric }}-jump">{{ metric }}</a></li>
+          {%- endfor %}
+        </ul>
+      </div>
+      
+      <!-- Metric Tables -->
       {%- for metric in diff_data|sort %}
+      <a name="{{ metric }}-jump"></a>
       <div class="row">
         <div class="col-md-12">
          <div id="div-diff-{{ metric }}" style="overflow-x:auto;">
@@ -90,7 +107,7 @@
             <tbody>
               {%- for sub_metric in diff_data[metric]|sort %}
                 <tr>
-                  <td>{{ sub_metric }}</td>
+                  <td><a href="#{{ metric }}.{{ sub_metric | sanitize_string }}">{{ sub_metric }}</a></td>
                   {%- for stats in diff_data[metric][sub_metric]|sort %}
                     {%- if sub_metric in sla_map[metric].keys() %}
                       {%- if stats in sla_map[metric][sub_metric].keys() %}
@@ -129,7 +146,7 @@
             <tbody>
               {%- for sub_metric in diff_data[metric]|sort %}
                 <tr>
-                  <td>{{ sub_metric }}</td>
+                  <td><a href="#{{ metric }}.{{ sub_metric | sanitize_string }}">{{ sub_metric }}</a></td>
                   {%- for stats in diff_data[metric][sub_metric]|sort %}
                     {%- if sub_metric in sla_map[metric].keys() %}
                       {%- if stats in sla_map[metric][sub_metric].keys() %}
@@ -163,28 +180,34 @@
       {%- endfor %}
     {%- endif %}
 
+    <!-- Plots -->
     {%- if plot_div_content %}
     <div id="diff-metric-plots" class="row">
       <div id="diff-metric-plots-span" class="col-md-12">
-    <h3>Metrics Diff Plots</h3>
-    <p>
-        {{ plot_div_content }}
-    </p>
-    </div>
+        <h3>Metrics Diff Plots</h3>
+        <p>{{ plot_div_content }}</p>
+      </div>
     </div>
     {%- endif %}
 
+    <!-- Locations -->
     <div class="row">
       <div class="col-md-12">
         <table class="table">
             <h2 class="content-title">
                 <span class="text">Source Files Locations</span>
             </h2>
-            <tr><td><a href={{ reports[0].location }}>Baseline Report: {{ reports[0].location }}</a></td></tr>
-            <tr><td><a href={{ reports[1].location }}>Current Report: {{ reports[1].location }}</a></td></tr>
+            <tr>
+              <td class="col-xs-2" style="text-align: right;">Baseline Report:</td>
+              <td><a href={{ reports[0].location }}>{{ reports[0].location }}</a></td>
+            </tr>
+            <tr>
+              <td class="col-xs-2" style="text-align: right;">Current Report:</td>
+              <td><a href={{ reports[1].location }}>{{ reports[1].location }}</a></td>
+            </tr>
+            <tr><td colspan="2"></td></tr>
         </table>
       </div>
     </div>
-
-  </div>
-</div>
+  </div><!-- /content -->
+</div><!-- /container -->

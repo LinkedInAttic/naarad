@@ -71,6 +71,22 @@
      </div>
    </div> <!-- /sla-failures -->
    {%- if summary_html_content %}
+    <!-- Jumps -->
+    <div class="dropdown">
+      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+        Quick Jump
+        <span class="caret"></span>
+      </button>
+
+      <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+        {%- for metric in metric_list %}
+          {%- if metric.summary_html_content_enabled and (metric.important_stats_files|length > 0) %}
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#{{ metric.label }}-summary-jump">{{ metric.label }}</a></li>
+          {%- endif %}
+        {%- endfor %}
+      </ul>
+    </div>
+
      {{ summary_html_content }}
    {%- endif %}
    {%- if overlaid_plot_content %}
