@@ -395,7 +395,7 @@ function convertCSVTimeStamp(csvURL)
             for(var i=0; i< lines.length; i++)
             {
                 var lineData = lines[i].split(",");
-                if(lineData[0] > syncRange[0] && lineData[0] < syncRange[1])
+                if(syncRange === undefined || (lineData[0] > syncRange[0] && lineData[0] < syncRange[1]))
                 {
                     var date = new Date(parseInt(lineData[0]));
                     var timestamp = makeTwoDigit(date.getMonth()+1) + "/" + makeTwoDigit(date.getDate()) + "/" + date.getFullYear() + " " + makeTwoDigit(date.getHours()) + ":" + makeTwoDigit(date.getMinutes()) + ":" + makeTwoDigit(date.getSeconds()) + "." + date.getMilliseconds();
