@@ -625,7 +625,7 @@ def detect_timestamp_format(timestamp):
   :param string timestamp: the timestamp string for which we need to determine format
   :return: best guess timestamp format
   """
-  time_formats = {'epoch': re.compile(r'^[0-9]{10}$'), 'epoch_ms': re.compile(r'^[0-9]{13}$'), 'epoch_fraction': re.compile(r'^[0-9]{10}\.[0-9]{3}$'),
+  time_formats = {'epoch': re.compile(r'^[0-9]{10}$'), 'epoch_ms': re.compile(r'^[0-9]{13}$'), 'epoch_fraction': re.compile(r'^[0-9]{10}\.[0-9]{3,6}$'),
                   '%Y-%m-%d %H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
                   '%Y-%m-%dT%H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
                   '%Y-%m-%d_%H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
