@@ -625,7 +625,7 @@ def detect_timestamp_format(timestamp):
   :param string timestamp: the timestamp string for which we need to determine format
   :return: best guess timestamp format
   """
-  time_formats = {'epoch': re.compile(r'^[0-9]{10}$'), 'epoch_ms': re.compile(r'^[0-9]{13}$'),
+  time_formats = {'epoch': re.compile(r'^[0-9]{10}$'), 'epoch_ms': re.compile(r'^[0-9]{13}$'), 'epoch_fraction': re.compile(r'^[0-9]{10}\.[0-9]{3}'),
                   '%Y-%m-%d %H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
                   '%Y-%m-%dT%H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
                   '%Y-%m-%d_%H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
@@ -666,6 +666,8 @@ def get_standardized_timestamp(timestamp, ts_format):
       ts = int(timestamp) * 1000
     elif ts_format == 'epoch_ms':
       ts = timestamp
+    elif ts_format == 'epoch_fraction':
+      ts = int(timestamp[:10]) * 1000 + int(timestamp[11:])
     elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
       date_today = str(datetime.date.today())
       dt_obj = datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format)
