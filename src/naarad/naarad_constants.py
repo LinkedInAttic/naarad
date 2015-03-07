@@ -29,8 +29,8 @@ INVALID_CONFIG = 7
 # Report Constants
 RESOURCE_PATH = 'resources'
 DEFAULT_REPORT_TITLE = 'naarad analysis report'
-STYLESHEET_INCLUDES = ['bootstrap.css', 'naarad.css']
-JAVASCRIPT_INCLUDES = ['jquery-1.11.2.min.js', 'dygraph-combined.js', 'bootstrap.js', 'sorttable.js', 'naarad.js']
+STYLESHEET_INCLUDES = ['bootstrap.min.css', 'naarad.css']
+JAVASCRIPT_INCLUDES = ['jquery-1.11.2.min.js', 'dygraph-combined.js', 'bootstrap.min.js', 'sorttable.js', 'naarad.js']
 PLOTS_CSV_LIST_FILE = 'list.txt'
 CDF_PLOTS_CSV_LIST_FILE = 'cdf_list.txt'
 STATS_CSV_LIST_FILE = 'stats.txt'
