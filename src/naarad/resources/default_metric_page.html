@@ -1,166 +1,205 @@
 <body data-spy="scroll" data-target=".topbar" data-offset="90">
-<div class="topbar navbar navbar-fixed-top navbar-inverse">
-  <div class="navbar-inner">
-   <div class="container">
-    <div class="topbar-content">
-
-    <a class="brand" href="https://github.com/linkedin/naarad">naarad</a>
-
-    <ul class="nav">
+<nav class="navbar navbar-default navbar-fixed-top topbar">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="https://github.com/linkedin/naarad">naarad</a>
+    </div>
+    <div id="navbar">
+      <ul class="nav navbar-nav">
         {% if summary_enabled %}
-        <li>
-            <a href="summary_report.html" title="Summary">
-                <span>Summary</span>
-            </a>
-        </li>
+        <li><a href="summary_report.html" title="Summary"><span>Summary</span></a></li>
         {% endif %}
         <li class="active dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                <span>Metrics</span>
-                <b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu">
-                {%- for metric_name in metric_list %}
-                <li>
-                    <a href="{{ metric_name.label }}_report.html">
-                        <span>{{ metric_name.label }}</span>
-                    </a>
-                </li>
-                {%- endfor %}
-            </ul>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+            <span>Metrics</span>
+            <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            {%- for metric_name in metric_list %}
+            <li>
+              <a href="{{ metric_name.label }}_report.html">
+                <span>{{ metric_name.label }}</span>
+              </a>
+            </li>
+            {%- endfor %}
+          </ul>
         </li>
-        <li><a href="report.html"><span>Chart</span></a></li>
-    </ul>
-    </div><!-- /topbar-content -->
-   </div><!-- /container -->
- </div><!-- /topbar-inner -->
-</div><!-- /topbar -->
-<div class="container">
+        <li><a href="report.html"></span>Chart</span></a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">Back to Top</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Container -->
+<div class="container-fluid">
   <div class="content">
+    <!-- Title -->
     <div id="{{ metric.label }}-header" class="row">
-        <div id="{{ metric.label }}-header-span" class="span12">
-            <h2 class="content-title">
-                <span class="text">{{ metric.label }}</span>
-            </h2>
-        </div>
+      <div id="{{ metric.label }}-header-span" class="col-md-12">
+        <h2 class="content-title">
+          <span class="text">{{ metric.label }}</span>
+        </h2>
+      </div>
     </div>
+    <div class="btn-group" role="group" aria-label="btn-group">
+      {%- if metric.anomalies|length > 0 %}
+      <button type="button" class="btn btn-default" onclick="jumpTo('anomalies')">
+        Anomalies
+      </button>
+      {%- endif %}
+
+      {%- if metric.sla_list|length > 0 %}
+      <button type="button" class="btn btn-default" onclick="jumpTo('sla')">
+        SLA Summary
+      </button>
+      {%- endif %}
+
+      {%- if metric.summary_stats|length %}
+      <button type="button" class="btn btn-default" onclick="jumpTo('metric-summary')">
+        Metric Summary
+      </button>
+      {%- endif %}
+
+      {%- if plot_div_content %}
+      <button type="button" class="btn btn-default" onclick="jumpTo('metric-plots')">
+       Metric Plots
+      </button>
+      {%- endif %}
+    </div>
+
+    <!-- Anomalies //TODO -->
     {%- if metric.anomalies|length > 0 %}
+    <a name="anomalies"></a>
     <div id="{{ metric.label }}-anomalies-table" class="row">
-        <div id="{{ metric.label }}-anomalies-table-span" class="span12">
-            <h3>Notes</h3>
-            <div style="overflow-x:auto;">
-                <p>Anomalous behavior was detected in
-                        {% set metrics_list = [] %}
-                        {%- for submetric in metric.anomalies.keys() %}
-                            <a href="report.html?charts=resources/{{ metric.label }}.{{ submetric }}.csv" target="_blank"><b>{{ submetric }}</b></a> (
-                            {%- for anomaly in metric.anomalies[submetric] %}
-                                <a href="report.html?charts=resources/{{ metric.label }}.{{ submetric }}.csv&range={{ anomaly.start_timestamp }},{{ anomaly.end_timestamp}}" target="_blank">#{{ loop.index }} </a>
-                            {%- endfor %}
-                            )
-                            {%- if loop.index < metric.anomalies|length %}
-                                ,
-                            {%- endif %}
-                            {%- if metrics_list.append('resources/' + metric.label + '.' + submetric + '.csv') %}
-                            {%- endif %}
-                        {%- endfor %}
-                        [<a href="report.html?charts={{ metrics_list|join(',')}}" target="_blank">View All</a>]
-                </p>
-            </div>
+      <div id="{{ metric.label }}-anomalies-table-span" class="col-md-12">
+        <h3>Notes</h3>
+        <div style="overflow-x:auto;">
+          <p>Anomalous behavior was detected in
+            {% set metrics_list = [] %}
+            {%- for submetric in metric.anomalies.keys() %}
+              <a href="report.html?charts=resources/{{ metric.label }}.{{ submetric }}.csv" target="_blank"><b>{{ submetric }}</b></a> (
+              {%- for anomaly in metric.anomalies[submetric] %}
+                  <a href="report.html?charts=resources/{{ metric.label }}.{{ submetric }}.csv&range={{ anomaly.start_timestamp }},{{ anomaly.end_timestamp}}" target="_blank">#{{ loop.index }} </a>
+              {%- endfor %}
+              )
+              {%- if loop.index < metric.anomalies|length %}
+                  ,
+              {%- endif %}
+              {%- if metrics_list.append('resources/' + metric.label + '.' + submetric + '.csv') %}
+              {%- endif %}
+            {%- endfor %}
+            [<a href="report.html?charts={{ metrics_list|join(',')}}" target="_blank">View All</a>]
+          </p>
         </div>
-    </div>
-    {%- endif %}
-    {%- if metric.sla_list|length > 0 %}
-    <div id="{{ metric.label }}-sla-table" class="row">
-        <div id="{{ metric.label }}-sla-table-span" class="span12">
-            <h3>SLA Summary</h3>
-            <div style="overflow-x:auto;">
-                <table class="table table-hover table-striped table-bordered sortable">
-                    <thead>
-                        <tr>
-                            <th>metric</th>
-                            <th>sub_metric</th>
-                            <th>sla rule</th>
-                            <th>value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {%- for sla in metric.sla_list %}
-                        {%- if sla.sla_passed == True %}
-                        <tr class="success">
-                        {%- elif sla.sla_passed == False %}
-                        <tr class="danger">
-                        {%- else %}
-                        <tr>
-                        {%- endif %}
-                            <td>{{ sla.metric }}</td>
-                            <td>{{ sla.sub_metric }}</td>
-                            <td>{{ sla.stat_name }} {{ sla.sla_type }} {{ sla.threshold}}</td>
-                            <td>{{ sla.stat_value }}</td>
-                        </tr>
-                        {%- endfor %}
-                    </tbody>
-                    <tfoot></tfoot>
-                </table>
-            </div>
-        </div>
+      </div>
     </div>
     {%- endif %}
 
+    <!-- Metrics SLA //TODO -->
+    {%- if metric.sla_list|length > 0 %}
+    <a name="sla"></a>
+    <div id="{{ metric.label }}-sla-table" class="row">
+      <div id="{{ metric.label }}-sla-table-span" class="col-md-12">
+        <h3>SLA Summary</h3>
+        <div style="overflow-x:auto;">
+          <table class="table table-hover table-striped table-bordered sortable">
+            <thead>
+              <tr>
+                <th>metric</th>
+                <th>sub_metric</th>
+                <th>sla rule</th>
+                <th>value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {%- for sla in metric.sla_list %}
+              {%- if sla.sla_passed == True %}
+              <tr class="success">
+              {%- elif sla.sla_passed == False %}
+              <tr class="danger">
+              {%- else %}
+              <tr>
+              {%- endif %}
+                <td>{{ sla.metric }}</td>
+                <td>{{ sla.sub_metric }}</td>
+                <td>{{ sla.stat_name }} {{ sla.sla_type }} {{ sla.threshold}}</td>
+                <td>{{ sla.stat_value }}</td>
+              </tr>
+              {%- endfor %}
+            </tbody>
+            <tfoot></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+    {%- endif %}
+
+    <!-- Metrics Summary -->
     {%- if metric.summary_stats|length %}
+    <a name="metric-summary"></a>
     <div id="{{ metric.label }}-summary-table" class="row">
-        <div id="{{ metric.label }}-summary-table-span" class="span12">
+      <div id="{{ metric.label }}-summary-table-span" class="col-md-12">
         <h3>Metric Summary</h3>
         <div style="overflow-x:auto;">
         <table class="table table-hover table-striped table-bordered sortable">
-            <thead>
-                <tr>
-                    <th>sub_metric</th>
-                    {%- for header in metric.summary_stats[metric.summary_stats.keys()[0]].keys()|sort %}
-                    <th>{{ header }}</th>
-                    {%- endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {%- for sub_metric in metric.summary_stats.keys() %}
-                    <tr>
-                        <td>{{ sub_metric }}</td>
-                    {%- for stat in metric.summary_stats[sub_metric]|sort %}
-                        {%- if sub_metric in metric.sla_map.keys() %}
-                            {%- if stat in metric.sla_map[sub_metric].keys() %}
-                                {%- if metric.sla_map[sub_metric][stat].sla_passed == True %}
-                                    <td class="success" title="{{ metric.sla_map[sub_metric][stat].stat_name }} {{ metric.sla_map[sub_metric][stat].sla_type }} {{ metric.sla_map[sub_metric][stat].threshold}}">{{ metric.summary_stats[sub_metric][stat] }}</td>
-                                {%- elif metric.sla_map[sub_metric][stat].sla_passed == False %}
-                                    <td class="danger" title="{{ metric.sla_map[sub_metric][stat].stat_name }} {{ metric.sla_map[sub_metric][stat].sla_type }} {{ metric.sla_map[sub_metric][stat].threshold}}">{{ metric.summary_stats[sub_metric][stat] }}</td>
-                                {%- else %}
-                                    <td>{{ metric.summary_stats[sub_metric][stat] }}</td>
-                                {%- endif %}
-                            {%- else %}
-                                <td>{{ metric.summary_stats[sub_metric][stat] }}</td>
-                            {%- endif %}
-                        {%- else %}
-                            <td>{{ metric.summary_stats[sub_metric][stat] }}</td>
-                        {%- endif %}
-                    {%- endfor %}
-                    </tr>
+          <thead>
+              <tr>
+                  <th>sub_metric</th>
+                  {%- for header in metric.summary_stats[metric.summary_stats.keys()[0]].keys()|sort %}
+                  <th>{{ header }}</th>
+                  {%- endfor %}
+              </tr>
+          </thead>
+          <tbody>
+            {%- for sub_metric in metric.summary_stats.keys() %}
+              <tr>
+                <td>
+                  {%- if plot_div_content %}
+                  <a href="#{{ metric.label }}.{{ sub_metric | sanitize_string }}">{{ sub_metric }}</a>
+                  {%- else %}
+                  {{ sub_metric }}
+                  {%- endif %}
+                </td>
+                {%- for stat in metric.summary_stats[sub_metric]|sort %}
+                  {%- if sub_metric in metric.sla_map.keys() %}
+                    {%- if stat in metric.sla_map[sub_metric].keys() %}
+                      {%- if metric.sla_map[sub_metric][stat].sla_passed == True %}
+                        <td class="success" title="{{ metric.sla_map[sub_metric][stat].stat_name }} {{ metric.sla_map[sub_metric][stat].sla_type }} {{ metric.sla_map[sub_metric][stat].threshold}}">{{ metric.summary_stats[sub_metric][stat] }}</td>
+                      {%- elif metric.sla_map[sub_metric][stat].sla_passed == False %}
+                        <td class="danger" title="{{ metric.sla_map[sub_metric][stat].stat_name }} {{ metric.sla_map[sub_metric][stat].sla_type }} {{ metric.sla_map[sub_metric][stat].threshold}}">{{ metric.summary_stats[sub_metric][stat] }}</td>
+                      {%- else %}
+                        <td>{{ metric.summary_stats[sub_metric][stat] }}</td>
+                      {%- endif %}
+                    {%- else %}
+                      <td>{{ metric.summary_stats[sub_metric][stat] }}</td>
+                    {%- endif %}
+                  {%- else %}
+                    <td>{{ metric.summary_stats[sub_metric][stat] }}</td>
+                  {%- endif %}
                 {%- endfor %}
-            </tbody>
-            <tfoot></tfoot>
+              </tr>
+            {%- endfor %}
+          </tbody>
+          <tfoot></tfoot>
         </table>
         </div>
       </div>
     </div>
     {%- endif %}
 
-    {%- if plot_div_content %}
-    <div id="{{ metric }}-metric-plots" class="row">
-      <div id="{{ metric }}-metric-plots-span" class="span12">
+<!-- Metric Plots -->
+{%- if plot_div_content %}
+<a name="metric-plots"></a>
+<div id="{{ metric }}-metric-plots" class="row">
+  <div id="{{ metric }}-metric-plots-span" class="col-md-12">
     <h3>Metric Plots</h3>
-    <p>
-        {{ plot_div_content }}
-    </p>
-    </div>
-    </div>
-    {%- endif %}
-
-    </div>
+    <p><strong>{{ plot_div_content }}</strong></p>
+  </div>
 </div>
+{%- endif %}
+
+</div><!-- /content -->
+</div><!-- /container -->

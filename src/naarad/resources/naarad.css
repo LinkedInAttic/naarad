@@ -1,0 +1,22 @@
+footer {
+	padding: 40px 0;
+	color: #999;
+	text-align: center;
+	background-color: #f9f9f9;
+	border-top: 1px solid #e5e5e5;
+}
+
+.chart-area, .chart-label {
+  width: 100%;
+  height: 50%;
+  margin: 0;
+}
+
+.chart-label {
+  padding: 10px 0;
+  text-align: center;
+}
+
+.chart-csv {
+  text-align: right;
+}

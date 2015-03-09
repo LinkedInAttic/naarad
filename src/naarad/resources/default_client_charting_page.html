@@ -1,84 +1,85 @@
 <body data-spy="scroll" data-target=".topbar" data-offset="90" onload="loadSavedChart()">
-<div class="topbar navbar navbar-fixed-top navbar-inverse">
-  <div class="navbar-inner">
-   <div class="container">
-    <div class="topbar-content">
-
-    <a class="brand" href="https://github.com/linkedin/naarad">naarad</a>
-
-    <ul class="nav">
+<nav class="navbar navbar-default navbar-fixed-top topbar">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="https://github.com/linkedin/naarad">naarad</a>
+    </div>
+    <div id="navbar">
+      <ul class="nav navbar-nav">
         {% if summary_enabled %}
-        <li>
-            <a href="summary_report.html" title="Summary">
-                <span>Summary</span>
-            </a>
-        </li>
+        <li><a href="summary_report.html" title="Summary"><span>Summary</span></a></li>
         {% endif %}
         <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                <span>Metrics</span>
-                <b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu">
-                {%- for metric_name in metric_list %}
-                <li>
-                    <a href="{{ metric_name.label }}_report.html">
-                        <span>{{ metric_name.label }}</span>
-                    </a>
-                </li>
-                {%- endfor %}
-            </ul>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+            <span>Metrics</span>
+            <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            {%- for metric_name in metric_list %}
+            <li>
+              <a href="{{ metric_name.label }}_report.html">
+                <span>{{ metric_name.label }}</span>
+              </a>
+            </li>
+            {%- endfor %}
+          </ul>
         </li>
-        <li class="active"><a href="report.html"><span>Chart</span></a></li>
-    </ul>
-    </div><!-- /topbar-content -->
-   </div><!-- /container -->
- </div><!-- /topbar-inner -->
-</div><!-- /topbar -->
-<div id="chart-parent-div" class="container">
+        <li class="active"><a href="report.html"></span>Chart</span></a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">Back to Top</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div id="chart-parent-div" class="container-fluid">
   <div id="chart-div-0" class="content">
     <div id="selection-div-0" class="row">
-      <div class="span3">
-        <label>
-            <select id="select-chart-0" onchange="plot('select-chart-0','select-percentiles-0','charting-div-0',0,false,'csv-url-div-0')">
-                <option selected disabled hidden value=''>View Timeseries</option>
-                {%- for data_series in timeseries_data %}
-                <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
-                {%- endfor %}
-            </select>
-        </label>
+      <div class="col-md-3">
+        <select id="select-chart-0" onchange="plot('select-chart-0','select-percentiles-0','charting-div-0',0,false,'csv-url-div-0')" class="form-control">
+            <option selected disabled hidden value=''>View Timeseries</option>
+            {%- for data_series in timeseries_data %}
+            <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
+            {%- endfor %}
+        </select>
       </div>
-      <div class="span3">
-        <label>
-            <select id="select-percentiles-0" onchange="plotCdf('select-percentiles-0','select-chart-0','charting-div-0',0,false,'csv-url-div-0')">
-                <option selected disabled hidden value=''>View CDF</option>
-                {%- for data_series in percentiles_data %}
-                <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
-                {%- endfor %}
-            </select>
-        </label>
+      <div class="col-md-3">
+        <select id="select-percentiles-0" onchange="plotCdf('select-percentiles-0','select-chart-0','charting-div-0',0,false,'csv-url-div-0')" class="form-control">
+            <option selected disabled hidden value=''>View CDF</option>
+            {%- for data_series in percentiles_data %}
+            <option value="{{ resource_path }}/{{ data_series }}.csv">{{ data_series }}</option>
+            {%- endfor %}
+        </select>
       </div>
-      <div class="input-append span4">
-        <input type="text" id="filter-text-0" class="span2 search-query">
-        <button type="button" class="btn" onclick="filter('select-chart-0','select-percentiles-0','filter-text-0')">Filter</button>
-        <button type="button" class="btn" onclick="resetFilter('select-chart-0','select-percentiles-0','filter-text-0')">Reset</button>
+      <div class="input-append col-md-5">
+        <div class="col-md-9">
+          <input type="text" id="filter-text-0" class="col-md-2 search-query form-control">
+        </div>
+        <button type="button" class="btn btn-primary" onclick="filter('select-chart-0','select-percentiles-0','filter-text-0')">Filter</button>
+        <button type="button" class="btn btn-danger" onclick="resetFilter('select-chart-0','select-percentiles-0','filter-text-0')">Reset</button>
       </div>
-      <div class="span2" id="button-div-0">
+      <div class="col-md-1" id="button-div-0">
         <button type="button" class="btn btn-primary" onclick="addChart('chart-parent-div')">+</button>
       </div> 
     </div>
-    <div id="labels-charting-div-0"></div>
-    <div id="charting-div-0" style="height:50%; width:100%;" class="row"></div>
-    <div id="csv-url-div-0"></div>
+    <div id="labels-charting-div-0" class="row chart-label"></div>
+    <div id="charting-div-0" class="row chart-area"></div>
+    <div id="csv-url-div-0" class="chart-csv"></div>
  </div>
+ <hr />
 </div>
-<div class="container">
-    <div class="content">
-        <div class="row">
-            <div class="span12">
-               <input id="text-share-report-url" class="span12" readonly="readonly" onclick="this.select()"/>
-            </div>
-        </div>
+
+<div class="container-fluid">
+  <hr />
+  <h2>Link to This Page</h2>
+  <div class="content">
+    <div class="row">
+      <div class="col-md-12">
+        <input id="text-share-report-url" class="col-md-12 form-control" readonly="readonly" onclick="this.select()"/>
+      </div>
     </div>
+  </div>
 </div>
-</body>
+<br />
+<br />

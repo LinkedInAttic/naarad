@@ -1,54 +1,50 @@
-<body data-spy="scroll" data-target=".topbar" data-offset="90">
-<div class="topbar navbar navbar-fixed-top navbar-inverse">
-  <div class="navbar-inner">
-   <div class="container">
-    <div class="topbar-content">
+<body data-spy="scroll" data-target=".topbar" data-offset="90" onload="loadSavedChart()">
+<nav class="navbar navbar-default navbar-fixed-top topbar">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="https://github.com/linkedin/naarad">naarad</a>
+    </div>
+    <div id="navbar">
+      <ul class="nav navbar-nav">
+        <li><a href="diff_report.html" title="Summary"><span>Summary</span></a></li>
+        <li class="active"><a href="report.html"></span>Chart</span></a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">Back to Top</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
 
-    <a class="brand" href="https://github.com/linkedin/naarad">naarad</a>
-
-    <ul class="nav">
-        <li>
-            <a href="diff_report.html" title="Summary">
-                <span>Summary</span>
-            </a>
-        </li>
-        <li class="active"><a href="report.html"><span>Chart</span></a></li>
-    </ul>
-    </div><!-- /topbar-content -->
-   </div><!-- /container -->
- </div><!-- /topbar-inner -->
-</div><!-- /topbar -->
-<div class="container">
+<!-- Container -->
+<div class="container-fluid">
   <div class="content">
     <div id="selection-div" class="row">
-      <div class="span3">
-        <label>
-            <select id="select-chart-1" onchange="plot('select-chart-1','charting-div-1',0,false,'csv-url-div-1')">
-                <option selected disabled hidden value=''>Report #1</option>
-                {%- for data_series_source in data_series %}
-                <option value="{{ resource_path }}/0/{{ data_series_source }}.csv">{{ data_series_source }}</option>
-                {%- endfor %}
-            </select>
-        </label>
-
+      <div class="col-md-3">
+        <select id="select-chart-1" onchange="plot('select-chart-1','select-chart-2','charting-div-1',0,false,'csv-url-div-1')" class="form-control">
+          <option selected disabled hidden value=''>Report #1</option>
+          {%- for data_series_source in data_series %}
+          <option value="{{ resource_path }}/0/{{ data_series_source }}.csv">{{ data_series_source }}</option>
+          {%- endfor %}
+        </select>
       </div>
-      <div class="span3">
-        <label>
-            <select id="select-chart-2" onchange="plot('select-chart-2','charting-div-2',1,false,'csv-url-div-2')">
-                <option selected disabled hidden value=''>Report #2</option>
-                {%- for data_series_source in data_series %}
-                <option value="{{ resource_path }}/1/{{ data_series_source }}.csv">{{ data_series_source }}</option>
-                {% endfor %}
-            </select>
-        </label>
+      <div class="col-md-3">
+        <select id="select-chart-2" onchange="plot('select-chart-2','select-chart-1','charting-div-2',1,false,'csv-url-div-2')" class="form-control">
+          <option selected disabled hidden value=''>Report #2</option>
+          {%- for data_series_source in data_series %}
+          <option value="{{ resource_path }}/1/{{ data_series_source }}.csv">{{ data_series_source }}</option>
+          {% endfor %}
+        </select>
      </div>
    </div>
-   <div id="labels-charting-div-1"></div>
-   <div id="charting-div-1" style="height:50%; width:100%;" class="row"></div>
-   <div id="csv-url-div-1"></div>
-   <div id="labels-charting-div-2"></div>
-   <div id="charting-div-2" style="height:50%; width:100%;" class="row"></div>
-   <div id="csv-url-div-2"></div>
+   <div id="labels-charting-div-1" class="row chart-label"></div>
+   <div id="charting-div-1" class="row chart-area"></div>
+   <div id="csv-url-div-1" class="chart-csv"></div>
+
+   <div id="labels-charting-div-2" class="row chart-label"></div>
+   <div id="charting-div-2" class="row chart-area"></div>
+   <div id="csv-url-div-2" class="chart-csv"></div>
   </div>
 </div>
-</body>
+
+<br /><br />
