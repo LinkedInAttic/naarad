@@ -430,6 +430,10 @@ class Naarad(object):
         else:
           new_metric = naarad.utils.parse_metric_section(config, section, metric_classes, metrics['metrics'],
                                                          aggregate_metric_classes, output_directory, resource_path)
+          if ts_start is not None:
+            new_metric.ts_start = ts_start
+          if ts_end is not None:
+            new_metric.ts_end = ts_end
           new_metric.bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.abspath(__file__)))),'bin'))
           metric_type = section.split('-')[0]
