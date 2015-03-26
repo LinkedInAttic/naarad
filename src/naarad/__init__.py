@@ -427,6 +427,10 @@ class Naarad(object):
             naarad.utils.parse_basic_metric_options(config, section)
           sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, hostname, output_directory, label, ts_start,
                                                          ts_end, None)
+          if ts_start is not None:
+            sar_metric.ts_start = ts_start
+          if ts_end is not None:
+            sar_metric.ts_end = ts_end
           metrics['metrics'].extend(sar_metrics)
         else:
           new_metric = naarad.utils.parse_metric_section(config, section, metric_classes, metrics['metrics'],
