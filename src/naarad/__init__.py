@@ -429,7 +429,7 @@ class Naarad(object):
                                                          ts_end, None)
           if sar_metric.ts_start is None and (sar_metric.ts_end is None or sar_metric.ts_end > ts_start):
             sar_metric.ts_start = ts_start
-          if sar_metric.ts_end is None and (sar_metric.ts_start is None or ts_end >  sar_metric.ts_start):
+          if sar_metric.ts_end is None and (sar_metric.ts_start is None or ts_end > sar_metric.ts_start):
             sar_metric.ts_end = ts_end
 
           metrics['metrics'].extend(sar_metrics)
