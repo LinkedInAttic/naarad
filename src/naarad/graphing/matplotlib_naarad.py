@@ -21,7 +21,6 @@ logger = logging.getLogger('naarad.graphing.matplotlib')
 
 
 def convert_to_mdate(date_str):
-  #mdate = mdates.epoch2num(int(date_str)/1000)
   dt_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d_%H:%M:%S')
   mdate = mdates.date2num(dt_obj)
   return mdate
