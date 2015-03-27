@@ -14,13 +14,16 @@ import matplotlib.dates as mdates
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
 import logging
+import datetime
 import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.graphing.matplotlib')
 
 
 def convert_to_mdate(date_str):
-  mdate = mdates.epoch2num(int(date_str)/1000)
+  #mdate = mdates.epoch2num(int(date_str)/1000)
+  dt_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d_%H:%M:%S')
+  mdate = mdates.date2num(dt_obj)
   return mdate
 
 # MPL-WA-07

@@ -675,6 +675,7 @@ def get_standardized_timestamp(timestamp, ts_format):
     else:
       dt_obj = datetime.datetime.strptime(timestamp, ts_format)
       ts = calendar.timegm(dt_obj.utctimetuple())*1000 + dt_obj.microsecond/1000
+    ts = timestamp.replace(' ','_')
   except ValueError:
     return -1
   return str(ts)
