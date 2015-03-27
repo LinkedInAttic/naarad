@@ -385,6 +385,7 @@ class Naarad(object):
     crossplots = []
     report_args = {}
     graphing_library = None
+    ts_start,ts_end = None,None
 
     if config.has_section('GLOBAL'):
       ts_start, ts_end = naarad.utils.parse_global_section(config, 'GLOBAL')
@@ -426,10 +427,20 @@ class Naarad(object):
             naarad.utils.parse_basic_metric_options(config, section)
           sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, hostname, output_directory, label, ts_start,
                                                          ts_end, None)
+          if sar_metric.ts_start is None and (sar_metric.ts_end is None or sar_metric.ts_end > ts_start):
+            sar_metric.ts_start = ts_start
+          if sar_metric.ts_end is None and (sar_metric.ts_start is None or ts_end >  sar_metric.ts_start):
+            sar_metric.ts_end = ts_end
+
           metrics['metrics'].extend(sar_metrics)
         else:
           new_metric = naarad.utils.parse_metric_section(config, section, metric_classes, metrics['metrics'],
                                                          aggregate_metric_classes, output_directory, resource_path)
+          if new_metric.ts_start is None and (new_metric.ts_end is None or new_metric.ts_end > ts_start):
+            new_metric.ts_start = ts_start
+          if new_metric.ts_end is None and (new_metric.ts_start is None or ts_end > new_metric.ts_start):
+            new_metric.ts_end = ts_end
+
           new_metric.bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.abspath(__file__)))),'bin'))
           metric_type = section.split('-')[0]
