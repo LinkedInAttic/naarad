@@ -179,10 +179,8 @@ def write_standardized_timestamp(ts_format, timestamp):
     return int(timestamp)
   else:
     ts_format = '%Y-%m-%d %H:%M:%S'  # Set as a standard full output datetime
-  #print "here"
-  #print timestamp
-  ts1 = datetime.datetime.utcfromtimestamp(float(timestamp)/1000.0).strftime(ts_format)
-  return ts1
+  return datetime.datetime.utcfromtimestamp(float(timestamp)/1000.0).strftime(ts_format)
+
 
 def parse_basic_metric_options(config_obj, section):
   """
