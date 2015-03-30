@@ -41,6 +41,7 @@ class Metric(object):
     self.csv_files = []
     self.plot_files = []
     self.stats_files = []
+    self.ts_format = None
     self.important_stats_files = []
     self.percentiles_files = []
     self.column_csv_map = {}
@@ -236,14 +237,14 @@ class Metric(object):
         for time_stamp, column_data in sorted(time_store.items()):
           if column in ['qps']:
             if self.groupby:
-              data[self.get_csv(column, group)].append(','.join([str(time_stamp), str(column_data/float(averaging_factor))]))
+              data[self.get_csv(column, group)].append(','.join([naarad.utils.write_standardized_timestamp(self.ts_format,time_stamp), str(column_data/float(averaging_factor))]))
             else:
-              data[self.get_csv(column)].append(','.join([str(time_stamp), str(column_data/float(averaging_factor))]))
+              data[self.get_csv(column)].append(','.join([naarad.utils.write_standardized_timestamp(self.ts_format,time_stamp), str(column_data/float(averaging_factor))]))
           else:
             if self.groupby:
-              data[self.get_csv(column, group)].append(','.join([str(time_stamp), str(sum(map(float, column_data))/float(len(column_data)))]))
+              data[self.get_csv(column, group)].append(','.join([naarad.utils.write_standardized_timestamp(self.ts_format,time_stamp), str(sum(map(float, column_data))/float(len(column_data)))]))
             else:
-              data[self.get_csv(column)].append(','.join([str(time_stamp), str(sum(map(float, column_data))/float(len(column_data)))]))
+              data[self.get_csv(column)].append(','.join([naarad.utils.write_standardized_timestamp(self.ts_format,time_stamp), str(sum(map(float, column_data))/float(len(column_data)))]))
     return None
 
   def parse(self):
@@ -502,6 +503,11 @@ class Metric(object):
     else:
       graphed = False
       for out_csv in self.csv_files:
+        """
+        f = open(out_csv,'r')
+        for line in f:
+          print line
+        """
         csv_filename = os.path.basename(out_csv)
         transaction_name = ".".join(csv_filename.split('.')[1:-1])
         if transaction_name in self.anomalies.keys():

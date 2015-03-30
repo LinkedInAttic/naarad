@@ -99,7 +99,7 @@ class ProcInterruptsMetric(Metric):
     """
     cpus = []
     for line in infile: # Pre-processing - Try to find header
-      if not is_header_line(line):
+      if not self.is_header_line(line):
         continue
       # Verifying correctness of the header
       cpu_header = line.split()
@@ -152,7 +152,7 @@ class ProcInterruptsMetric(Metric):
         curr_data = {}      # Stores the current interval's log data
         eth_data = {}
         for line in infile:
-          if is_header_line(line): # New section so save old and aggregate ETH
+          if self.is_header_line(line): # New section so save old and aggregate ETH
             prev_data = curr_data
             curr_data = {}
             # New section so store the collected Ethernet data
@@ -161,7 +161,7 @@ class ProcInterruptsMetric(Metric):
               outcsv = self.get_csv('AGGREGATE', eth)
               if outcsv not in data:
                 data[outcsv] = []
-              data[outcsv].append(ts + ',' + str(eth_data[eth]))
+              data[outcsv].append(naarad.utils.write_standardized_timestamp(self.ts_format,ts) + ',' + str(eth_data[eth]))
             eth_data = {}
             continue
 
@@ -204,7 +204,7 @@ class ProcInterruptsMetric(Metric):
               data[outcsv] = []
               datum = 0  # First data point is set to 0
             # Store data point
-            data[outcsv].append(ts + ',' + str(datum))
+            data[outcsv].append(naarad.utils.write_standardized_timestamp(self.ts_format,ts) + ',' + str(datum))
 
             # Deal with accumulating aggregate data for Ethernet
             m = re.search("(?P<eth>eth\d)", device)
