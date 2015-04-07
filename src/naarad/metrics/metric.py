@@ -503,11 +503,6 @@ class Metric(object):
     else:
       graphed = False
       for out_csv in self.csv_files:
-        """
-        f = open(out_csv,'r')
-        for line in f:
-          print line
-        """
         csv_filename = os.path.basename(out_csv)
         transaction_name = ".".join(csv_filename.split('.')[1:-1])
         if transaction_name in self.anomalies.keys():
