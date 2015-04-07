@@ -243,7 +243,6 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
     new_metric = initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options)
   else:
     new_metric = initialize_metric(section, infile , hostname, aggr_metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options)
-  print config_obj
   if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
     new_metric.ignore = True
   if config_obj.has_option(section, 'calc_metrics'):
