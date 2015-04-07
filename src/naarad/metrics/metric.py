@@ -22,7 +22,7 @@ logger = logging.getLogger('naarad.metrics.metric')
 
 class Metric(object):
 
-  def __init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
+  def __init__(self, metric_type, infile_list, hostname,aggr_metrics, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
     self.metric_type = metric_type
     self.infile_list = infile_list
@@ -61,7 +61,7 @@ class Metric(object):
     self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
     self.groupby = None
     self.summary_charts = []
-    self.aggregation_granularity = 'second'
+    self.aggregation_granularity = aggr_metrics   #default is none
     # Leave the flag here for the future use to control summary page
     self.summary_html_content_enabled = True
     self.anomaly_detection_metrics = anomaly_detection_metrics
@@ -171,7 +171,7 @@ class Metric(object):
       else:
         self.summary_stats[column][stat] = naarad.utils.normalize_float_for_display(self.calculated_stats[column][stat])
 
-  def get_aggregation_timestamp(self, timestamp, granularity='second'):
+  def get_aggregation_timestamp(self, timestamp, granularity=None):
     """
     Return a timestamp from the raw epoch time based on the granularity preferences passed in.
 
@@ -179,7 +179,9 @@ class Metric(object):
     :param string granularity: aggregation granularity used for plots.
     :return: string aggregate_timestamp: timestamp used for metrics aggregation in all functions
     """
-    if granularity == 'hour':
+    if granularity == None:
+      return int(timestamp),1
+    elif granularity == 'hour':
       return (int(timestamp)/(3600*1000)) * 3600 * 1000, 3600
     elif granularity == 'minute':
       return (int(timestamp)/(60*1000)) * 60 * 1000, 60

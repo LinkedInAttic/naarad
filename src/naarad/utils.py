@@ -220,7 +220,7 @@ def parse_basic_metric_options(config_obj, section):
   except ConfigParser.NoOptionError:
     logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
     sys.exit()
-  return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
+  return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, aggr_metrics, other_options, rule_strings, \
          important_sub_metrics, anomaly_detection_metrics
 
 def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregate_metric_classes, outdir_default, resource_path):
@@ -235,16 +235,15 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
   :param resource_path: Default resource directory
   :return: An initialized Metric object
   """
-  hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
+  hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, aggr_metrics, other_options, rule_strings, \
     important_sub_metrics, anomaly_detection_metrics = parse_basic_metric_options(config_obj, section)
-
   #TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
   if metric_type in aggregate_metric_classes:
     new_metric = initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options)
   else:
-    new_metric = initialize_metric(section, infile , hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options)
-
+    new_metric = initialize_metric(section, infile , hostname, aggr_metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options)
+  print config_obj
   if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
     new_metric.ignore = True
   if config_obj.has_option(section, 'calc_metrics'):
@@ -860,7 +859,7 @@ def discover_by_name(input_directory, output_directory):
       logger.warning('Unable to determine metric type for file: %s', log_file)
   return metric_list
 
-def initialize_metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options):
+def initialize_metric(section, infile_list, hostname, aggr_metrics, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options):
   """
   Initialize appropriate metric based on type of metric.
   :param: section: config section name or auto discovered metric type
@@ -882,11 +881,11 @@ def initialize_metric(section, infile_list, hostname, output_directory, resource
   metric_type = section.split('-')[0]
   if metric_type in metric_classes:
     if 'SAR' in metric_type:
-      metric = metric_classes['SAR'](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
+      metric = metric_classes['SAR'](section, infile_list, hostname,aggr_metrics, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
     else:
-      metric = metric_classes[metric_type](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
+      metric = metric_classes[metric_type](section, infile_list, hostname,aggr_metrics, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   else:
-    metric = Metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
+    metric = Metric(section, infile_list, hostname,aggr_metrics, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   metric.bin_path = bin_path
   return metric
 
