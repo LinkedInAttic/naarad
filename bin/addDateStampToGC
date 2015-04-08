@@ -1,0 +1,28 @@
+#! /usr/bin/awk -f
+BEGIN {
+	if(ts_start == "") ts_start = "2015-01-01T00:00:00"
+	"date -d \""ts_start"\" '+%s'" | getline file_start;
+	FS=":";
+	OFS=": ";
+}
+{
+	# Calculate the line datestamp
+	line_timestamp=$1
+	line_datestamp=file_start+int(line_timestamp);
+	# Find the millisecond part of the line timestamp
+	fraction=line_timestamp-int(line_timestamp)
+	milliseconds=substr(fraction,3);
+	if(length(milliseconds) == 1) {
+		milliseconds = milliseconds "00";
+	}
+	else if(length(milliseconds) == 2) {
+		milliseconds = milliseconds "0";
+	}
+	# The full datestamp for the line, including milliseconds and timezone
+	datestamp=strftime("%Y-%m-%dT%H:%M:%S",line_datestamp) "." sprintf("%3.3d", milliseconds + 0.0) strftime("%z",line_datestamp)
+	# The full line with datestamp at the start
+	print datestamp, $0;
+}
+END {
+}
+
