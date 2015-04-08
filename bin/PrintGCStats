@@ -1,8 +1,10 @@
-#! /usr/local/bin/gawk -f
+#! /usr/bin/gawk -f
 
 # Note:  /bin/nawk on Solaris 9 seems to have a bug; the RSTART and RLENGTH
 # vars are not set correctly during the last call to match() in
 # recordGCPauseEVM.
+
+# For mac user, please install gawk locally. 
 
 # PrintGCStats - summarize statistics about garbage collection, in particular gc
 # pause time totals, averages, maximum and standard deviations.
