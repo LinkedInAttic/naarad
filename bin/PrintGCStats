@@ -560,6 +560,8 @@ BEGIN {
   timestamp_re		= "(" gc_time_re ": *)?";
   timestamp_range_re	= "(" gc_time_re "-" gc_time_re ": *)?";
 
+  gc_timestamp_re      = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9]+";
+
   # Heap size status plus elapsed time:  8K->4K(96K), 0.0517089 secs
   heap_report_re	= heap_size_status_re ", " gc_time_secs_re;
 
@@ -677,7 +679,7 @@ function printPercent(name, tot, tot_units, period, period_units) {
 function getDateTimeStamp() {
 #2012-02-23T22:17:02.495
   gts_tmp_str = $0;
-  if (!match(gts_tmp_str,"^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9]+")) return -1.0;
+  if (!match(gts_tmp_str,"^" gc_timestamp_re)) return -1.0;
   gts_tmp = substr(gts_tmp_str, RSTART, RLENGTH);
   gsub(/T|-|:/, " ", gts_tmp);
   split(gts_tmp, tmp_ts, ".");
@@ -805,6 +807,19 @@ function writePlotData(tstamp, value, widx) {
 }
 
 function recordStats(idx, value) {
+  rs_tstamp = -1;
+  if (available_plot_count != 0 && (idx in plot_idx || (totgc_idx in plot_idx && idx < totgc_idx))) {
+    # Plotting enabled, need to find timestamp on line
+    if (datestamps == 1) {
+      rs_tstamp = getDateTimeStamp();
+    } else {
+      rs_tstamp = getTimeStamp();
+    }
+  }
+  recordStatsTimestamp(idx, value, rs_tstamp);
+}
+
+function recordStatsTimestamp(idx, value, rs_tstamp) {
   if (verbose) print name_v[idx] ":" NR ":" value;
   if (available_plot_count == 0) {
     # Plotting disabled; record statistics.
@@ -813,11 +828,6 @@ function recordStats(idx, value) {
     if (idx < totgc_idx) recordStatsInternal(totgc_idx, value);
   } else if (idx in plot_idx || (totgc_idx in plot_idx && idx < totgc_idx)) {
     # Plotting enabled; skip statistics and just print a plot line.
-    if (datestamps == 1) {
-      rs_tstamp = getDateTimeStamp();
-    } else {
-      rs_tstamp = getTimeStamp();
-    }
     if (rs_tstamp != -1) {
       writePlotData(rs_tstamp, value, idx);
       if (totgc_idx in plot_idx && idx < totgc_idx && idx != gen0c_idx) {
@@ -1109,21 +1119,34 @@ $0 ~ "\\[" cms_concurrent_phase_re ": " gc_time_re "/" gc_time_secs_re "\\]" {
   recordStats(tIdx, secs);
   printInterval(); # Must do this before the getline below.
 
-  if (match($0, "\\[(AS)?CMS" timestamp_re "\\[" cms_concurrent_phase_re)) {
+  if (match($0, "\\[(AS)?CMS(" gc_timestamp_re ".*: )?" timestamp_re "\\[" cms_concurrent_phase_re)) {
     # If CMS is in the middle of a concurrent phase when System.gc() is called
     # or concurrent mode failure causes a bail out to mark-sweep,
     # the output is split across 2 lines, e.g.:
     #
     # 164.092: [Full GC 164.093: [CMS164.341: [CMS-concurrent-mark: 0.302/0.304 secs]
     # : 26221K->24397K(43704K), 0.8347158 secs] 26285K->24397K(64952K), [CMS Perm : 2794K->2794K(16384K)], 0.8350998 secs]
+    # 9.563: [GC (Allocation Failure) 9.563: [ParNew (promotion failed): 3071K->3071K(3072K), 0.0169675 secs]9.580: [CMS2015-01-11T12:06:30.899+0100: 9.597: [CMS-concurrent-mark: 0.077/0.440 secs]
+    # (concurrent mode failure): 511643K->511999K(512000K), 0.4506954 secs] 513856K->512001K(515072K), [Metaspace: 2428K->2428K(1056768K)], 0.4681062 secs]
+    # 10.764: [Full GC (Allocation Failure) 10.764: [CMS2015-01-11T12:06:32.071+0100: 10.769: [CMS-concurrent-mark: 0.137/0.137 secs]
+    # (concurrent mode failure): 511999K->511999K(512000K), 0.3167690 secs] 742462K->640024K(742464K), [Metaspace: 2428K->2428K(1056768K)], 0.3168884 secs]
     #
+
+    # Get the timestamp from the current line
+    if (datestamps == 1) {
+      rs_tstamp = getDateTimeStamp();
+    } else {
+      rs_tstamp = getTimeStamp();
+    }
+    # Get the second line
     getline;
     tString = $0;
     tInt = sub(".*" heap_size_status_re "\\]?, ", "", tString);
     tInt += sub(" secs.*", "", tString);
     if (tInt == 2) {
       secs = tString + 0.0;
-      recordStats(gen1t_idx, secs);
+      # Record stats with timestamp from the previous line
+      recordStatsTimestamp(gen1t_idx, secs, rs_tstamp);
     }
   }
   next;
@@ -1139,9 +1162,33 @@ $0 ~ "\\[" cms_concurrent_phase_re ": " gc_time_re "/" gc_time_secs_re "\\]" {
 # /\[GC.*\[(DefNew|(AS)?ParNew): [0-9]+K->[0-9]+K\([0-9]+K\),.*secs\].*\[((AS)?CMS|Tenured): [0-9]+K->[0-9]+K\([0-9]+K\),.*secs\]/ {
 #
 # [GC [ParNew: 7812K->7812K(8128K), 0.0000310 secs][CMS (concurrent mode failure): 382515K->384858K(385024K), 0.0657172 secs] 390327K->390327K(393152K), 0.0658860 secs]
+# 10.218: [GC (Allocation Failure) 10.218: [ParNew (promotion failed): 3071K->3071K(3072K), 0.0142625 secs]10.233: [CMS (concurrent mode failure): 511673K->511998K(512000K), 0.4529602 secs] 513853K->511998K(515072K), [Metaspace: 2430K->2430K(1056768K)], 0.4676895 secs]
+# 10.792: [GC (Allocation Failure) 10.792: [ParNew: 204864K->204864K(230464K), 0.0000277 secs]10.792: [CMS: 511998K->511999K(512000K), 0.2917250 secs] 716862K->580271K(742464K), [Metaspace: 2430K->2430K(1056768K)], 0.2918860 secs]
 #
 $0 ~ "\\[GC.*\\[" fw_yng_gen_re ": " heap_report_re "\\].*\\[" fw_old_gen_re ": " heap_report_re "\\]" {
 # print "	>> cht 5. line ", FNR, $0;
+  # The first time on the line is for DefNew/ParNew gc work only.
+  match($0, gc_time_secs_re);
+  secs = substr($0, RSTART, RLENGTH - 5) + 0;
+  tString = substr($0, RSTART + RLENGTH);
+
+  if (available_plot_count == 0) {
+    # Skip the update of the totgc numbers, that will be handled below.
+    recordStatsInternal(gen0c_idx, secs);
+    recordStatsInternal(gen0c_idx + last_idx, secs);
+  } else if (gen0c_idx in plot_idx) {
+    recordStats(gen0c_idx, secs);
+  }
+
+  # The second time is the total time, which includes prologue, epilogue and
+  # safepoint time.
+  match(tString, gc_time_secs_re);
+  secs = substr(tString, RSTART, RLENGTH - 5) + 0;
+  recordStats(gen0t_idx, secs);
+
+  recordGen0Kb($0, 1);
+
+  # Old gen times
   tString = $0;
   tInt = sub(".*\\[" fw_old_gen_re ": " heap_size_status_re ", ", "", tString);
   tInt = sub(" secs.*", "", tString);
@@ -1168,8 +1215,8 @@ $0 ~ "\\[GC.*\\[" fw_yng_gen_re ": " heap_report_re "\\].*\\[" fw_old_gen_re ": 
 # [Full GC [Tenured: 43464K->43462K(43712K), 0.0614658 secs] 63777K->63775K(64896K), [Perm : 1460K->1459K(16384K)], 0.0615839 secs]
 # 
 # 0.502: [Full GC 0.502: [Tenured: 43464K->43462K(43712K), 0.0724391 secs] 63777K->63775K(64896K), [Perm : 1460K->1459K(16384K)], 0.0725792 secs]
-
-$0 ~ full_gc_re timestamp_re ".*\\[" fw_old_gen_re ": " heap_report_re "\\] " heap_size_status_re ", \\[((AS)?CMS )?Perm *: " heap_size_status_re "\\], " gc_time_secs_re "\\]" {
+# 1.882: [Full GC (Allocation Failure) 1.882: [CMS: 204797K->204797K(204800K), 0.0265487 secs] 296892K->235564K(297024K), [Metaspace: 2430K->2430K(1056768K)], 0.0266579 secs]
+$0 ~ full_gc_re timestamp_re ".*\\[" fw_old_gen_re ": " heap_report_re "\\] " heap_size_status_re ", \\[((AS)?CMS )?(Perm |Metaspace)*: " heap_size_status_re "\\], " gc_time_secs_re "\\]" {
 # print "	>> cht 6. line ", FNR, $0;
   tString = $0;
   tInt = sub(".*" heap_size_status_re "\\], ", "", tString);
@@ -1254,8 +1301,9 @@ $0 ~ full_gc_re timestamp_re ".*\\[" fw_yng_gen_re ": " heap_report_re "\\] " he
 #[GC [DefNew: 2880K->63K(2944K), 0.4626167 secs] 16999K->16999K(26480K), 0.4627703 secs]
 #	or with time stamps
 # 0.431984: [GC 0.432051: [DefNew: 2112K->0K(2176K), 0.0911555 secs] 6204K->6201K(9000K), 0.0912899 secs]
+# 0.145: [GC (Allocation Failure) 0.145: [ParNew: 2743K->320K(3072K), 0.0081559 secs] 2743K->1046K(9920K), 0.0082548 secs]
 # /\[GC.*\[(DefNew|(AS)?ParNew): [0-9]+K->[0-9]+K\([0-9]+K\),.*secs\] [0-9]+K->[0-9]+K\([0-9]+K\),.*secs\]/ {
-$0 ~ "\\[GC " timestamp_re "\\[" fw_yng_gen_re ": " heap_report_re "\\] " heap_report_re "\\]" {
+$0 ~ "\\[GC (\\(Allocation Failure\\) )?" timestamp_re "\\[" fw_yng_gen_re ": " heap_report_re "\\] " heap_report_re "\\]" {
 
 # this matches ParNew of concurrent young gen
 # print "	>> cht 10. line ", FNR, $0;
