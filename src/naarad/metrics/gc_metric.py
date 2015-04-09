@@ -52,7 +52,7 @@ class GCMetric(Metric):
       'g1-survivor-after-gc', 'g1-heap-occupancy-before-gc', 'g1-heap-capacity-before-gc', 'g1-heap-occupancy-after-gc', 'g1-heap-capacity-after-gc',
       'g1-young-cpu.sys', 'g1-young-cpu.usr', 'g1-young-cpu.real', 'g1-mixed-cpu.usr', 'g1-mixed-cpu.sys', 'g1-mixed-cpu.real')
 
-  def __init__ (self, metric_type, infile_list, hostname,aggr_metrics, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+  def __init__ (self, metric_type, infile_list, hostname, aggr_metrics, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                 important_sub_metrics, anomaly_detection_metrics, **other_options):
     Metric.__init__(self, metric_type, infile_list, hostname,aggr_metrics, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                     important_sub_metrics, anomaly_detection_metrics)

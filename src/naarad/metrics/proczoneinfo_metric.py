@@ -30,7 +30,7 @@ class ProcZoneinfoMetric(Metric):
 
   zones = None   # Users can specify which zones to process/plot, e.g. zones= Node.0.zone.DMA
 
-  def __init__ (self, metric_type, infile_list, hostname, aggr_metrics,output_directory, resource_path, label, ts_start, ts_end,
+  def __init__ (self, metric_type, infile_list, hostname, aggr_metrics, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
     Metric.__init__(self, metric_type, infile_list, hostname,aggr_metrics, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings, important_sub_metrics, anomaly_detection_metrics)

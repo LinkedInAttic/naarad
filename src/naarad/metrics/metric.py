@@ -22,7 +22,7 @@ logger = logging.getLogger('naarad.metrics.metric')
 
 class Metric(object):
 
-  def __init__(self, metric_type, infile_list, hostname,aggr_metrics, output_directory, resource_path, label, ts_start, ts_end,
+  def __init__(self, metric_type, infile_list, hostname, aggr_metrics, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
     self.metric_type = metric_type
     self.infile_list = infile_list
@@ -171,7 +171,7 @@ class Metric(object):
       else:
         self.summary_stats[column][stat] = naarad.utils.normalize_float_for_display(self.calculated_stats[column][stat])
 
-  def get_aggregation_timestamp(self, timestamp, granularity=None):
+  def get_aggregation_timestamp(self, timestamp, granularity='second'):
     """
     Return a timestamp from the raw epoch time based on the granularity preferences passed in.
 
@@ -179,7 +179,7 @@ class Metric(object):
     :param string granularity: aggregation granularity used for plots.
     :return: string aggregate_timestamp: timestamp used for metrics aggregation in all functions
     """
-    if granularity == None:
+    if granularity == 'none':
       return int(timestamp),1
     elif granularity == 'hour':
       return (int(timestamp)/(3600*1000)) * 3600 * 1000, 3600

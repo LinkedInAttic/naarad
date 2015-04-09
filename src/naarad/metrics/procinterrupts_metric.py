@@ -33,7 +33,7 @@ class ProcInterruptsMetric(Metric):
 
   You can of course use the other general metric settings such as ts_start, infile, etc.
   """
-  def __init__(self, metric_type, infile_list, hostname,aggr_metrics, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+  def __init__(self, metric_type, infile_list, hostname, aggr_metrics, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                important_sub_metrics, anomaly_detection_metrics, **other_options):
     Metric.__init__(self, metric_type, infile_list,  hostname,aggr_metrics, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                     important_sub_metrics, anomaly_detection_metrics)
