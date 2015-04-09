@@ -22,7 +22,7 @@ class SARMetric(Metric):
   def __init__(self, metric_type, infile_list, hostname, aggr_metrics, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                important_sub_metrics, anomaly_detection_metrics, **other_options):
     metric_type = self.extract_metric_name(metric_type)
-    Metric.__init__(self, metric_type, infile_list,  hostname, aggr_metrics,outdir, resource_path, label, ts_start, ts_end, rule_strings,
+    Metric.__init__(self, metric_type, infile_list,  hostname, aggr_metrics, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                     important_sub_metrics, anomaly_detection_metrics)
     if not self.important_sub_metrics and self.metric_type in important_sub_metrics_import.keys():
       self.important_sub_metrics = important_sub_metrics_import[self.metric_type]

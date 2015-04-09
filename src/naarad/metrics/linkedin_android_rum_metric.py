@@ -35,7 +35,7 @@ class LinkedInAndroidRumMetric(Metric):
 
   def __init__ (self, metric_type, infile_list, hostname, aggr_metrics, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                 important_sub_metrics, anomaly_detection_metrics, **other_options):
-    Metric.__init__(self, metric_type, infile_list, hostname,aggr_metrics, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+    Metric.__init__(self, metric_type, infile_list, hostname, aggr_metrics, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                     important_sub_metrics, anomaly_detection_metrics)
     self.sub_metrics = self.val_types
     if not self.important_sub_metrics:

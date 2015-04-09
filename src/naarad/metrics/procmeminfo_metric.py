@@ -28,7 +28,7 @@ class ProcMeminfoMetric(Metric):
 
   def __init__ (self, metric_type, infile_list, hostname, aggr_metrics, output_directory, resource_path, label, ts_start, ts_end,
                 rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
-    Metric.__init__(self, metric_type, infile_list, hostname,aggr_metrics, output_directory, resource_path, label, ts_start, ts_end,
+    Metric.__init__(self, metric_type, infile_list, hostname, aggr_metrics, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings, important_sub_metrics, anomaly_detection_metrics)
 
     # in particular, Section can specify a subset of all rows (default has 43 rows):  "sub_metrics=nr_free_pages nr_inactive_anon"
