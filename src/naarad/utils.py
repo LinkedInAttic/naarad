@@ -884,7 +884,7 @@ def initialize_metric(section, infile_list, hostname, aggr_metrics, output_direc
     else:
       metric = metric_classes[metric_type](section, infile_list, hostname,aggr_metrics, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   else:
-    metric = Metric(section, infile_list, hostname,aggr_metrics, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
+    metric = Metric(section, infile_list, hostname, aggr_metrics, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   metric.bin_path = bin_path
   return metric
 
