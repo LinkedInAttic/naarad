@@ -66,7 +66,7 @@ class INNOMetric(Metric):
             outfilehandlers[command][columns[i]] = open(self.get_csv_C(command, columns[i]), 'w')
             self.csv_files.append(self.get_csv_C(command, columns[i]))
           ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
-          outfilehandlers[command][columns[i]].write(ts+',')
+          outfilehandlers[command][columns[i]].write(naarad.utils.write_standardized_timestamp(self.ts_format,ts)+',')
           outfilehandlers[command][columns[i]].write(words[i])
           outfilehandlers[command][columns[i]].write('\n')
       for command in outfilehandlers:
@@ -153,9 +153,9 @@ class INNOMetric(Metric):
                 log_seq_no = int(words[i])
               elif column == "log_flushed_to":
                 check_pt_age = log_seq_no -  int(words[i])
-                tup = [ts, str(check_pt_age)]
+                tup = [naarad.utils.write_standardized_timestamp(self.ts_format,ts), str(check_pt_age)]
                 data["check_pt_age"].append(tup)
-            tup = [ts, words[i]]
+            tup = [naarad.utils.write_standardized_timestamp(self.ts_format,ts), words[i]]
             data[column].append(tup)
     # Post Proc, writing the different out files
     for column in data:
@@ -240,7 +240,7 @@ class INNOMetric(Metric):
             outfilehandlers[command][columns[i]] = open(self.get_csv_C(command, columns[i]),  'w')
             self.csv_files.append(self.get_csv_C(command, columns[i]))
           ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
-          outfilehandlers[command][columns[i]].write(ts+',')
+          outfilehandlers[command][columns[i]].write(naarad.utils.write_standardized_timestamp(self.ts_format,ts)+',')
           outfilehandlers[command][columns[i]].write(words[i])
           outfilehandlers[command][columns[i]].write('\n')
       for command in outfilehandlers:

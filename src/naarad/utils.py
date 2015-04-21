@@ -164,6 +164,24 @@ def extract_diff_sla_from_config_file(obj, options_file):
     for (key, val) in rule_strings.iteritems():
       set_sla(obj, section, key, val)
 
+def write_standardized_timestamp(ts_format, timestamp):
+  """
+  Given a timestamp format and a standardized timestamp will return a string of the timestamp in
+  the given timestamp format. This is for standardizing written log timestamps for CSV files.
+  Assumes valid epoch ms timestamp or a None timestamp.
+  """
+  # TODO: Remove commas from timestamps as it screws up CSVs
+  if not timestamp:
+    return None
+  if ts_format == 'epoch':
+    return float(timestamp) / 1000.0
+  elif ts_format == 'epoch_ms':
+    return int(timestamp)
+  else:
+    ts_format = '%Y-%m-%d %H:%M:%S'  # Set as a standard full output datetime
+  return datetime.datetime.utcfromtimestamp(float(timestamp)/1000.0).strftime(ts_format)
+
+
 def parse_basic_metric_options(config_obj, section):
   """
   Parse basic options from metric sections of the config

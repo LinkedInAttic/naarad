@@ -133,12 +133,12 @@ class JmeterMetric(Metric):
       for transaction, time_store in transaction_store.items():
         for time_stamp, metric_data in sorted(time_store.items()):
           if metric in ['t', 'by']:
-            data[self.get_csv(transaction, metric)].append(','.join([str(time_stamp), str(sum(map(float,metric_data))/float(len(metric_data)))]))
+            data[self.get_csv(transaction, metric)].append(','.join([naarad.utils.write_standardized_timestamp(self.ts_format,time_stamp), str(sum(map(float,metric_data))/float(len(metric_data)))]))
             if metric == 'by':
               metric_store['thr'][transaction][time_stamp] = sum(map(float,metric_data))/float(averaging_factor * 1024 * 1024 / 8.0)
-              data[self.get_csv(transaction, 'thr')].append(','.join([str(time_stamp), str(metric_store['thr'][transaction][time_stamp])]))
+              data[self.get_csv(transaction, 'thr')].append(','.join([naarad.utils.write_standardized_timestamp(self.ts_format,time_stamp), str(metric_store['thr'][transaction][time_stamp])]))
           elif metric in ['qps', 'eqps']:
-            data[self.get_csv(transaction, metric)].append(','.join([str(time_stamp), str(metric_data/float(averaging_factor))]))
+            data[self.get_csv(transaction, metric)].append(','.join([naarad.utils.write_standardized_timestamp(self.ts_format,time_stamp), str(metric_data/float(averaging_factor))]))
     return None
 
   def calculate_key_stats(self, metric_store):

@@ -179,7 +179,7 @@ class NetstatMetric(Metric):
     else:
       out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
       data[out_csv] = []
-    data[out_csv].append(ts + "," + value)
+    data[out_csv].append(naarad.utils.write_standardized_timestamp(self.ts_format,ts) + "," + value)
 
   def parse(self):
     """

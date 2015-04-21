@@ -82,7 +82,7 @@ class ProcVmstatMetric(Metric):
           else:
             out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
             data[out_csv] = []
-          data[out_csv].append(ts + "," + words[3])
+          data[out_csv].append(naarad.utils.write_standardized_timestamp(self.ts_format,ts) + "," + words[3])
     #post processing, putting data in csv files;
     for csv in data.keys():
       self.csv_files.append(csv)

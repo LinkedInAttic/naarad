@@ -85,7 +85,7 @@ class TopMetric(Metric):
       else:
         out_csv = self.get_csv(col)   # column_csv_map[] is assigned in get_csv()
         self.data[out_csv] = []
-      self.data[out_csv].append(self.ts + "," + value)
+      self.data[out_csv].append(naarad.utils.write_standardized_timestamp(self.ts_format, self.ts) + "," + value)
 
   def process_top_line(self, words):
     """

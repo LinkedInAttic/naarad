@@ -139,10 +139,10 @@ class SARMetric(Metric):
               continue
             outcsv = self.get_csv(columns[i], device)
             if outcsv in data:
-              data[outcsv].append(datetimestamp + ',' + words[i])
+              data[outcsv].append(naarad.utils.write_standardized_timestamp(self.ts_format, datetimestamp) + ',' + words[i])
             else:
               data[outcsv] = []
-              data[outcsv].append( datetimestamp + ',' + words[i] )
+              data[outcsv].append(naarad.utils.write_standardized_timestamp(self.ts_format, datetimestamp) + ',' + words[i] )
     # Post processing, putting data in csv files
     for csv in data.keys():
       self.csv_files.append(csv)

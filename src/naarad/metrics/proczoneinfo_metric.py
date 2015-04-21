@@ -110,7 +110,7 @@ class ProcZoneinfoMetric(Metric):
           else:
             out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
             data[out_csv] = []
-          data[out_csv].append(ts + "," + cur_value)
+          data[out_csv].append(naarad.utils.write_standardized_timestamp(self.ts_format,ts) + "," + cur_value)
     #post processing, putting data in csv files;
     for csv in data.keys():
       self.csv_files.append(csv)
