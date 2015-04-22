@@ -1,10 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 import datetime
 import logging
 import os
@@ -15,14 +25,16 @@ from naarad.naarad_constants import important_sub_metrics_import
 
 logger = logging.getLogger('naarad.metrics.SARMetric')
 
+
 class SARMetric(Metric):
   """ Class for SAR cpuusage logs, deriving from class Metric """
   supported_sar_types = ('SAR-cpuusage', 'SAR-cpuhz', 'SAR-device', 'SAR-memory', 'SAR-memutil', 'SAR-paging',
       'SAR-etcp', 'SAR-tcp', 'SAR-dev', 'SAR-edev', 'SAR-sock', 'SAR-swapping', 'SAR-network', 'SAR-queue', 'SAR-switching')
+
   def __init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                important_sub_metrics, anomaly_detection_metrics, **other_options):
     metric_type = self.extract_metric_name(metric_type)
-    Metric.__init__(self, metric_type, infile_list,  hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+    Metric.__init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                     important_sub_metrics, anomaly_detection_metrics)
     if not self.important_sub_metrics and self.metric_type in important_sub_metrics_import.keys():
       self.important_sub_metrics = important_sub_metrics_import[self.metric_type]
@@ -30,7 +42,6 @@ class SARMetric(Metric):
     self.devices = None
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
-
 
   def extract_metric_name(self, metric_name):
     """
@@ -58,7 +69,7 @@ class SARMetric(Metric):
     return outcsv
 
   def parse(self):
-  # Multiple day span not supported. Assumes time is between 0:00 AM to 11:59 PM, or 0:00 to 23:59
+    # Multiple day span not supported. Assumes time is between 0:00 AM to 11:59 PM, or 0:00 to 23:59
     if not os.path.isdir(self.outdir):
       os.makedirs(self.outdir)
     if not os.path.isdir(self.resource_directory):
@@ -80,7 +91,7 @@ class SARMetric(Metric):
           logger.error("line: %s", line)
           return False
         date = datesar[2] + '-' + datesar[0] + '-' + datesar[1]
-        infile.readline()   #skip blank line
+        infile.readline()   # skip blank line
         line = infile.readline()
         columns = line.split()
         if columns[1] in ('AM', 'PM'):
@@ -105,7 +116,7 @@ class SARMetric(Metric):
           words = line.split()
           if len(words) <= columnstart:
             continue
-          ts = naarad.utils.convert_to_24hr_format( ' '.join(words[0:ts_end_index]) )
+          ts = naarad.utils.convert_to_24hr_format(' '.join(words[0:ts_end_index]))
           if last_ts:
             if last_ts.startswith("23:") and ts.startswith("00:"):
               logger.info("Date rolling over")
@@ -123,14 +134,14 @@ class SARMetric(Metric):
             continue
           if self.metric_type in self.device_types:
             # Skipping headers that appear in the middle of the file
-            if not naarad.utils.is_number( words[ts_end_index + 1] ):
+            if not naarad.utils.is_number(words[ts_end_index + 1]):
               continue
             if self.devices and words[ts_end_index] not in self.devices:
               continue
             device = words[ts_end_index]
           else:
             # Skipping headers that appear in the middle of the file
-            if not naarad.utils.is_number( words[ts_end_index] ):
+            if not naarad.utils.is_number(words[ts_end_index]):
               continue
             device = None
           datetimestamp = naarad.utils.reconcile_timezones(datetimestamp, self.timezone, self.graph_timezone)
@@ -142,11 +153,10 @@ class SARMetric(Metric):
               data[outcsv].append(datetimestamp + ',' + words[i])
             else:
               data[outcsv] = []
-              data[outcsv].append( datetimestamp + ',' + words[i] )
+              data[outcsv].append(datetimestamp + ',' + words[i])
     # Post processing, putting data in csv files
     for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as csvf:
         csvf.write('\n'.join(sorted(data[csv])))
     return True
-

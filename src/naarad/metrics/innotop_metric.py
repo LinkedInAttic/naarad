@@ -1,10 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 import naarad.utils
 import logging
 import os
@@ -13,11 +23,15 @@ from naarad.metrics.metric import Metric
 
 logger = logging.getLogger('naarad.metrics.INNOMetric')
 
+
 class INNOMetric(Metric):
   C_MAX_COMMANDS = 10
   graph_lib = None
-  def __init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
-    Metric.__init__(self, metric_type, infile,  hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics)
+
+  def __init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics,
+               anomaly_detection_metrics, **other_options):
+    Metric.__init__(self, metric_type, infile, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics,
+                    anomaly_detection_metrics)
     for (key, val) in other_options.iteritems():
       setattr(self, key, val.split())
 
@@ -66,7 +80,7 @@ class INNOMetric(Metric):
             outfilehandlers[command][columns[i]] = open(self.get_csv_C(command, columns[i]), 'w')
             self.csv_files.append(self.get_csv_C(command, columns[i]))
           ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
-          outfilehandlers[command][columns[i]].write(ts+',')
+          outfilehandlers[command][columns[i]].write(ts + ',')
           outfilehandlers[command][columns[i]].write(words[i])
           outfilehandlers[command][columns[i]].write('\n')
       for command in outfilehandlers:
@@ -111,7 +125,7 @@ class INNOMetric(Metric):
           max_row_quot += 1
         else:
           break
-      #infh.seek(0)
+      # infh.seek(0)
       # Real Processing
       for line in infh:
         l = line.strip().split(' ', 1)
@@ -152,7 +166,7 @@ class INNOMetric(Metric):
               if column == "log_seq_no":
                 log_seq_no = int(words[i])
               elif column == "log_flushed_to":
-                check_pt_age = log_seq_no -  int(words[i])
+                check_pt_age = log_seq_no - int(words[i])
                 tup = [ts, str(check_pt_age)]
                 data["check_pt_age"].append(tup)
             tup = [ts, words[i]]
@@ -177,7 +191,7 @@ class INNOMetric(Metric):
       data = {}
       last_ts = None
       while True:
-        # 2012-05-11T00:00:02 master_host slave_sql_running       time_behind_master      slave_catchup_rate      slave_open_temp_tables  relay_log_pos   last_error
+        # 2012-05-11T00:00:02 master_host slave_sql_running  time_behind_master  slave_catchup_rate  slave_open_temp_tables  relay_log_pos   last_error
         line1 = infh.readline()
         words = line1.split()
         # Skip next line
@@ -187,7 +201,7 @@ class INNOMetric(Metric):
           if naarad.utils.is_number(word):
             last_ts = words[0].strip().replace('T', ' ')
             is_header = False
-            break # from this loop
+            break  # from this loop
         if len(words) > 2 and is_header:
           thisrowcolumns[max_row_quot] = words[2:]
           for column in thisrowcolumns[max_row_quot]:
@@ -237,10 +251,10 @@ class INNOMetric(Metric):
           if self.options and columns[i] not in self.options:
             continue
           if columns[i] not in outfilehandlers[command]:
-            outfilehandlers[command][columns[i]] = open(self.get_csv_C(command, columns[i]),  'w')
+            outfilehandlers[command][columns[i]] = open(self.get_csv_C(command, columns[i]), 'w')
             self.csv_files.append(self.get_csv_C(command, columns[i]))
           ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
-          outfilehandlers[command][columns[i]].write(ts+',')
+          outfilehandlers[command][columns[i]].write(ts + ',')
           outfilehandlers[command][columns[i]].write(words[i])
           outfilehandlers[command][columns[i]].write('\n')
       for command in outfilehandlers:
