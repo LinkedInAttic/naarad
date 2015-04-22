@@ -79,7 +79,8 @@ class RCA(object):
         # Correlate with other metrics
         for entry in self.related_metrices:
           try:
-            entry_correlation_result = Correlator(self.metrix, entry, time_period=(extended_start_t, extended_end_t), use_anomaly_score=True).get_correlation_result()
+            entry_correlation_result = Correlator(self.metrix, entry, time_period=(extended_start_t, extended_end_t),
+                                                  use_anomaly_score=True).get_correlation_result()
             record = extended_start_t, extended_end_t, entry_correlation_result.__dict__, entry
             record_by_name = extended_start_t, extended_end_t, entry_correlation_result.__dict__
             output[t].append(record)

@@ -50,8 +50,8 @@ DEFAULT_EMA_WINDOW_SIZE_PCT = 0.2
 DEFAULT_DERI_SMOOTHING_FACTOR = 0.2
 
 ANOMALY_THRESHOLD = {
-  'exp_avg_detector': 3,
-  'default_detector': 3
+    'exp_avg_detector': 3,
+    'default_detector': 3
 }
 
 # Percentage threshold on anomaly score below which is considered noises.
@@ -80,18 +80,18 @@ DEFAULT_CORRELATE_THRESHOLD = 0.7
 DEFAULT_SHIFT_IMPACT = 0.05
 
 TIMESTAMP_STR_FORMATS = [
-  '%Y%m%d_%H:%M:%S',
-  '%Y-%m-%d %H:%M:%S.%f',
-  '%Y%m%d %H:%M:%S',
-  '%Y-%m-%d_%H:%M:%S',
-  '%Y-%m-%dT%H:%M:%S.%f',
-  '%H:%M:%S.%f',
-  '%Y-%m-%dT%H:%M:%S.%f%z',
-  '%Y%m%dT%H:%M:%S',
-  '%Y-%m-%d_%H:%M:%S.%f',
-  '%Y%m%d_%H:%M:%S.%f',
-  '%Y-%m-%dT%H:%M:%S',
-  '%Y-%m-%d %H:%M:%S',
-  '%Y%m%dT%H:%M:%S.%f',
-  '%H:%M:%S',
-  '%Y%m%d %H:%M:%S.%f']
+    '%Y%m%d_%H:%M:%S',
+    '%Y-%m-%d %H:%M:%S.%f',
+    '%Y%m%d %H:%M:%S',
+    '%Y-%m-%d_%H:%M:%S',
+    '%Y-%m-%dT%H:%M:%S.%f',
+    '%H:%M:%S.%f',
+    '%Y-%m-%dT%H:%M:%S.%f%z',
+    '%Y%m%dT%H:%M:%S',
+    '%Y-%m-%d_%H:%M:%S.%f',
+    '%Y%m%d_%H:%M:%S.%f',
+    '%Y-%m-%dT%H:%M:%S',
+    '%Y-%m-%d %H:%M:%S',
+    '%Y%m%dT%H:%M:%S.%f',
+    '%H:%M:%S',
+    '%Y%m%d %H:%M:%S.%f']
