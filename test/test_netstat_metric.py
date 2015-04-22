@@ -1,10 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 import os
 import sys
 import uuid
@@ -15,8 +25,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(
 import naarad.utils
 from naarad.metrics.netstat_metric import NetstatMetric
 
-#the temporary directory for testing, will remove it after done.
+# the temporary directory for testing, will remove it after done.
 tmp_dir = ''
+
 
 def prepare_data():
   """
@@ -53,12 +64,15 @@ def prepare_data():
   with open(os.path.join(tmp_dir, 'netstat.tcp.out'), 'w') as fh:
     fh.write('\n'.join(log))
 
+
 def setup():
   create_tmp_dir()
   prepare_data()
 
+
 def teardown():
   delete_tmp_dir()
+
 
 def create_tmp_dir():
   """
@@ -68,12 +82,13 @@ def create_tmp_dir():
   :return:
   """
   global tmp_dir
-  tmp_dir = os.path.join('./', 'tmp' + '.' + str(uuid.uuid4()))   #./tmp.'randomstring'
+  tmp_dir = os.path.join('./', 'tmp' + '.' + str(uuid.uuid4()))   # ./tmp.'randomstring'
   if not os.path.exists(tmp_dir):
     os.makedirs(tmp_dir)
   else:
     print "the path of %s already exists, please try again." % tmp_dir
     return
+
 
 def delete_tmp_dir():
   """
@@ -82,27 +97,29 @@ def delete_tmp_dir():
   """
   shutil.rmtree(tmp_dir)
 
+
 def test_netstatmetric():
   """
   First construct a NetstatMetric, then call the parse(), finally check whether the output files are there
   :return:
   """
-  #construct a NetstatMetric
+  # construct a NetstatMetric
   section = 'NETSTAT-host1'
   label = 'NETSTAT-host1'
   hostname = 'localhost'
   resource_path = 'resources'
   rule_strings = {}
   output_directory = tmp_dir
-  infile_list=['netstat.tcp.out']
+  infile_list = ['netstat.tcp.out']
   other_options = {'connections': 'host1.localdomain.com<->web1.remotedomain.com:https host1:48860<->email', 'processes': '/firefox'}
   ts_start = None
   ts_end = None
   anomaly_detection_metrics = None
-  important_sub_metrics =[]
+  important_sub_metrics = []
 
-  cur_metric = NetstatMetric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
-  cur_metric.infile_list =[os.path.join(tmp_dir, f) for f in cur_metric.infile_list]
+  cur_metric = NetstatMetric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics,
+                             anomaly_detection_metrics, **other_options)
+  cur_metric.infile_list = [os.path.join(tmp_dir, f) for f in cur_metric.infile_list]
 
   # create sub-directory of resource_path
   sub_dir = os.path.join(output_directory, resource_path)
@@ -111,7 +128,7 @@ def test_netstatmetric():
 
   cur_metric.parse()
 
-  #check the existance of the output files
+  # check the existance of the output files
   output_files = ['NETSTAT-host1.host1.localdomain.com_43214.web1.remotedomain.com_https.RecvQ.csv',
                   'NETSTAT-host1.host1.localdomain.com_43214.web1.remotedomain.com_https.SendQ.csv',
                   'NETSTAT-host1.host1.localdomain.com_48860.email.localdomain.com_https.RecvQ.csv',
