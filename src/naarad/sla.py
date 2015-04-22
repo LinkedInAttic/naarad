@@ -1,14 +1,24 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import logging
 
 logger = logging.getLogger('naarad.sla')
+
 
 class SLA(object):
 
@@ -35,7 +45,8 @@ class SLA(object):
     self.stat_value = None
 
   def __str__(self):
-    return "{0} of {1}, threshold: {2}, sla_type: {3}, sla_passed: {4}, display: {5}".format(self.stat_name, self.sub_metric, self.threshold, self.sla_type, self.sla_passed, self.display)
+    return "{0} of {1}, threshold: {2}, sla_type: {3}, sla_passed: {4}, display: {5}".format(self.stat_name, self.sub_metric, self.threshold, self.sla_type,
+                                                                                             self.sla_passed, self.display)
 
   def get_csv_repr(self):
     return "{0},{1},{2},{3},{4},{5}".format(self.sub_metric, self.stat_name, self.threshold, self.sla_type, self.stat_value, self.sla_passed)
