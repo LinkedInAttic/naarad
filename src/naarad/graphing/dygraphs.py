@@ -1,15 +1,26 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 import os
 import random
 import logging
 
 logger = logging.getLogger('naarad.graphing.dygraphs')
+
 
 def graph_csv(output_directory, resource_path, csv_file, plot_title, output_filename, y_label=None, precision=None, graph_height="600", graph_width="1500"):
   """ Single metric graphing function """
@@ -21,7 +32,7 @@ def graph_csv(output_directory, resource_path, csv_file, plot_title, output_file
   script_string = """<script type=\"text/javascript\">
         g2 = new Dygraph(
           document.getElementById(\"""" + div_id + """"),
-            \"""" + resource_path + '/' + os.path.basename(csv_file) +  """",
+            \"""" + resource_path + '/' + os.path.basename(csv_file) + """",
             {
                         xValueFormatter: Dygraph.dateString_,
                         xValueParser: function(x) {
@@ -44,18 +55,22 @@ def graph_csv(output_directory, resource_path, csv_file, plot_title, output_file
 
   with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
     div_file.write(div_string + script_string)
-  #Ritesh: TODO Also generate PNGs if someone needs them separately
+  # TODO(ritesh): Also generate PNGs if someone needs them separately
   return True, os.path.join(output_directory, output_filename + '.div')
+
 
 def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   if len(list_of_plots) > 0:
     plot = list_of_plots[0]
-    success, div_file = graph_csv(output_directory=output_directory, resource_path=resource_path, csv_file=plot.input_csv, plot_title=plot.graph_title, output_filename=output_filename, y_label=plot.y_label, precision=None, graph_height=plot.graph_height, graph_width=plot.graph_width)
+    success, div_file = graph_csv(output_directory=output_directory, resource_path=resource_path, csv_file=plot.input_csv, plot_title=plot.graph_title,
+                                  output_filename=output_filename, y_label=plot.y_label, precision=None, graph_height=plot.graph_height,
+                                  graph_width=plot.graph_width)
     if len(list_of_plots) > 1:
       logger.warning('dygraph module currently does not support co-relation of multiple plots. Only plotting %s', plot.graph_title)
     return success, div_file
   else:
     return False, None
+
 
 def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path, output_filename):
   """

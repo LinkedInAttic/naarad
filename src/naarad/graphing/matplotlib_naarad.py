@@ -1,10 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 import numpy
 import os
 import matplotlib as mpl
@@ -20,8 +30,9 @@ logger = logging.getLogger('naarad.graphing.matplotlib')
 
 
 def convert_to_mdate(date_str):
-  mdate = mdates.epoch2num(int(date_str)/1000)
+  mdate = mdates.epoch2num(int(date_str) / 1000)
   return mdate
+
 
 # MPL-WA-07
 # matplotlib does not rotate colors correctly when using multiple y axes. This method fills in that gap.
@@ -42,7 +53,7 @@ def get_graph_metadata(plots):
       title = plot.graph_title
     elif title != plot.graph_title:
       title = title + ',' + plot.graph_title
-  return height/80, width/80, title
+  return height / 80, width / 80, title
 
 
 def curate_plot_list(plots):
@@ -71,6 +82,7 @@ def highlight_region(plt, start_x, end_x):
   end_x = convert_to_mdate(end_x)
   plt.axvspan(start_x, end_x, color=CONSTANTS.HIGHLIGHT_COLOR, alpha=CONSTANTS.HIGHLIGHT_ALPHA)
 
+
 def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   plots = curate_plot_list(list_of_plots)
   plot_count = len(plots)
@@ -83,7 +95,8 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   if plot_count < 2:
     fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET)
   else:
-    fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET - CONSTANTS.Y_AXIS_OFFSET * (plot_count - 2))
+    fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET,
+                        right=CONSTANTS.SUBPLOT_RIGHT_OFFSET - CONSTANTS.Y_AXIS_OFFSET * (plot_count - 2))
   current_axis = axis
   for plot in plots:
     current_plot_count += 1
@@ -97,10 +110,10 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
     if current_plot_count > 1:
       current_axis = axis.twinx()
       current_axis.yaxis.grid(False)
-      #Set right y-axis for additional plots
+      # Set right y-axis for additional plots
       current_axis.yaxis.set_ticks_position('right')
-      #Offset the right y axis to avoid overlap
-      current_axis.spines['right'].set_position(('axes', 1 + CONSTANTS.Y_AXIS_OFFSET * (current_plot_count-2)))
+      # Offset the right y axis to avoid overlap
+      current_axis.spines['right'].set_position(('axes', 1 + CONSTANTS.Y_AXIS_OFFSET * (current_plot_count - 2)))
       current_axis.spines['right'].set_smart_bounds(False)
       current_axis.spines['right'].set_color(get_current_color(current_plot_count))
       current_axis.set_frame_on(True)
@@ -129,10 +142,14 @@ def graph_data(list_of_plots, output_directory, resource_path, output_filename):
   plot_file_name = os.path.join(output_directory, output_filename + ".png")
   fig.savefig(plot_file_name)
   plt.close()
-  #Create html fragment to be used for creation of the report
+  # Create html fragment to be used for creation of the report
   with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
-    div_file.write('<a name="' + os.path.basename(plot_file_name).replace(".png", "").replace(".diff", "") + '"></a><div class="col-md-12"><img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/></div><div class="col-md-12"><p align="center"><strong>' + os.path.basename(plot_file_name) + '</strong></p></div><hr />')
+    div_file.write('<a name="' + os.path.basename(plot_file_name).replace(".png", "").replace(".diff", "") + '"></a><div class="col-md-12"><img src="' +
+                   resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) +
+                   '" width="100%" height="auto"/></div><div class="col-md-12"><p align="center"><strong>' + os.path.basename(plot_file_name) +
+                   '</strong></p></div><hr />')
   return True, os.path.join(output_directory, output_filename + '.div')
+
 
 def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path, output_filename):
   """
@@ -151,8 +168,9 @@ def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path,
   if plot_count < 2:
     fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET)
   else:
-    fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET, right=CONSTANTS.SUBPLOT_RIGHT_OFFSET - CONSTANTS.Y_AXIS_OFFSET * (plot_count - 2))
-  # generate each plot on the graph
+    fig.subplots_adjust(left=CONSTANTS.SUBPLOT_LEFT_OFFSET, bottom=CONSTANTS.SUBPLOT_BOTTOM_OFFSET,
+                        right=CONSTANTS.SUBPLOT_RIGHT_OFFSET - CONSTANTS.Y_AXIS_OFFSET * (plot_count - 2))
+  # Generate each plot on the graph
   for plot in plots:
     current_plot_count += 1
     logger.info('Processing: ' + plot.input_csv + ' [ ' + output_filename + ' ]')
@@ -161,7 +179,7 @@ def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path,
     axis.legend()
     maximum_yvalue = max(maximum_yvalue, numpy.amax(yval) * (1.0 + CONSTANTS.ZOOM_FACTOR * current_plot_count))
     minimum_yvalue = min(minimum_yvalue, numpy.amin(yval) * (1.0 - CONSTANTS.ZOOM_FACTOR * current_plot_count))
-  # set properties of the plots
+  # Set properties of the plots
   axis.yaxis.set_ticks_position('left')
   axis.set_xlabel(plots[0].x_label)
   axis.set_ylabel(plots[0].y_label, fontsize=CONSTANTS.Y_LABEL_FONTSIZE)
@@ -174,5 +192,7 @@ def graph_data_on_the_same_graph(list_of_plots, output_directory, resource_path,
   plt.close()
   # Create html fragment to be used for creation of the report
   with open(os.path.join(output_directory, output_filename + '.div'), 'w') as div_file:
-    div_file.write('<a name="' + os.path.basename(plot_file_name).replace(".png", "").replace(".diff", "") + '"></a><div class="col-md-12"><img src="' + resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) + '" width="100%" height="auto"/></div><div class="col-md-12"><p align=center>' + os.path.basename(plot_file_name) + '<br/></p></div>')
+    div_file.write('<a name="' + os.path.basename(plot_file_name).replace(".png", "").replace(".diff", "") + '"></a><div class="col-md-12"><img src="' +
+                   resource_path + '/' + os.path.basename(plot_file_name) + '" id="' + os.path.basename(plot_file_name) +
+                   '" width="100%" height="auto"/></div><div class="col-md-12"><p align=center>' + os.path.basename(plot_file_name) + '<br/></p></div>')
   return True, os.path.join(output_directory, output_filename + '.div')
