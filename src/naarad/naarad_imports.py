@@ -1,10 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 
 def import_modules(modules_dict, is_class_type=True):
   return_dict = {}
@@ -21,30 +31,30 @@ def import_modules(modules_dict, is_class_type=True):
   return return_dict
 
 metric_imports_dict = {
-  'GC' : 'naarad.metrics.gc_metric.GCMetric',
-  'INNOTOP' : 'naarad.metrics.innotop_metric.INNOMetric',
-  'JMETER' : 'naarad.metrics.jmeter_metric.JmeterMetric',
-  'LINKEDINANDROIDRUM' : 'naarad.metrics.linkedin_android_rum_metric.LinkedInAndroidRumMetric',
-  'PROCVMSTAT' : 'naarad.metrics.procvmstat_metric.ProcVmstatMetric',
-  'PROCMEMINFO' : 'naarad.metrics.procmeminfo_metric.ProcMeminfoMetric',
-  'PROCZONEINFO' : 'naarad.metrics.proczoneinfo_metric.ProcZoneinfoMetric',
-  'PROCINTERRUPTS' : 'naarad.metrics.procinterrupts_metric.ProcInterruptsMetric',
-  'SAR' : 'naarad.metrics.sar_metric.SARMetric',
-  'TOP' : 'naarad.metrics.top_metric.TopMetric',
-  'NETSTAT' : 'naarad.metrics.netstat_metric.NetstatMetric'
+    'GC': 'naarad.metrics.gc_metric.GCMetric',
+    'INNOTOP': 'naarad.metrics.innotop_metric.INNOMetric',
+    'JMETER': 'naarad.metrics.jmeter_metric.JmeterMetric',
+    'LINKEDINANDROIDRUM': 'naarad.metrics.linkedin_android_rum_metric.LinkedInAndroidRumMetric',
+    'PROCVMSTAT': 'naarad.metrics.procvmstat_metric.ProcVmstatMetric',
+    'PROCMEMINFO': 'naarad.metrics.procmeminfo_metric.ProcMeminfoMetric',
+    'PROCZONEINFO': 'naarad.metrics.proczoneinfo_metric.ProcZoneinfoMetric',
+    'PROCINTERRUPTS': 'naarad.metrics.procinterrupts_metric.ProcInterruptsMetric',
+    'SAR': 'naarad.metrics.sar_metric.SARMetric',
+    'TOP': 'naarad.metrics.top_metric.TopMetric',
+    'NETSTAT': 'naarad.metrics.netstat_metric.NetstatMetric'
 }
 
 graphing_imports_dict = {
-  'matplotlib':'naarad.graphing.matplotlib_naarad',
-  'svg':'naarad.graphing.pygal_naarad'
+    'matplotlib': 'naarad.graphing.matplotlib_naarad',
+    'svg': 'naarad.graphing.pygal_naarad'
 }
 
 aggregate_metric_imports_dict = {
-  'CLUSTER': 'naarad.metrics.cluster_metric.ClusterMetric'
+    'CLUSTER': 'naarad.metrics.cluster_metric.ClusterMetric'
 }
 
 reporting_imports_dict = {
-  'report' : 'naarad.reporting.report.Report'
+    'report': 'naarad.reporting.report.Report'
 }
 
 metric_classes = import_modules(metric_imports_dict)

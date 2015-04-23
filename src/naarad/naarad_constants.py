@@ -1,9 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Copyright 2013 LinkedIn Corp. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 NAARAD_LOG = 'naarad.log'
 
 # Metric Constants
@@ -88,32 +99,31 @@ POST_ANALYSIS_RUN = 'post'
 RUN_TYPE_WORKLOAD = 'workload'
 SECONDS_TO_KILL_AFTER_SIGTERM = 5
 
-#Auto Discover Metrics
+# Auto Discover Metrics
 SUPPORTED_FILENAME_MAPPING = {
-  'gc.log' : 'GC',
-  'perf-results.xml' : 'JMETER',
-  'perf-result.xml' : 'JMETER',
-  'proc.vmstat.out' : 'PROCVMSTAT',
-  'procvmstat.out' : 'PROCVMSTAT',
-  'proc.meminfo.out' : 'PROCMEMINFO',
-  'procmeminfo.out' : 'PROCMEMINFO',
-  'proc.zoneinfo.out' : 'PROCZONEINFO',
-  'proczoneinfo.out' : 'PROCZONEINFO',
-  'proc.interrupts.out' : 'PROCINTERRUPTS',
-  'sar.cpuhz.out' : 'SAR-cpuhz',
-  'sar.cpuusage.out' : 'SAR-cpuusage',
-  'sar.device.out' : 'SAR-device',
-  'sar.edev.out' : 'SAR-edev',
-  'sar.etcp.out' : 'SAR-etcp',
-  'sar.memory.out' : 'SAR-memory',
-  'sar.memutil.out' : 'SAR-memutil',
-  'sar.network.out' : 'SAR-network',
-  'sar.paging.out' : 'SAR-paging',
-  'sar.queue.out' : 'SAR-queue',
-  'sar.sock.out' : 'SAR-sock',
-  'sar.swapping.out' : 'SAR-swapping',
-  'sar.switching.out' : 'SAR-switching',
-  'sar.tcp.out' : 'SAR-tcp',
-  'top.out' : 'TOP'
+    'gc.log': 'GC',
+    'perf-results.xml': 'JMETER',
+    'perf-result.xml': 'JMETER',
+    'proc.vmstat.out': 'PROCVMSTAT',
+    'procvmstat.out': 'PROCVMSTAT',
+    'proc.meminfo.out': 'PROCMEMINFO',
+    'procmeminfo.out': 'PROCMEMINFO',
+    'proc.zoneinfo.out': 'PROCZONEINFO',
+    'proczoneinfo.out': 'PROCZONEINFO',
+    'proc.interrupts.out': 'PROCINTERRUPTS',
+    'sar.cpuhz.out': 'SAR-cpuhz',
+    'sar.cpuusage.out': 'SAR-cpuusage',
+    'sar.device.out': 'SAR-device',
+    'sar.edev.out': 'SAR-edev',
+    'sar.etcp.out': 'SAR-etcp',
+    'sar.memory.out': 'SAR-memory',
+    'sar.memutil.out': 'SAR-memutil',
+    'sar.network.out': 'SAR-network',
+    'sar.paging.out': 'SAR-paging',
+    'sar.queue.out': 'SAR-queue',
+    'sar.sock.out': 'SAR-sock',
+    'sar.swapping.out': 'SAR-swapping',
+    'sar.switching.out': 'SAR-switching',
+    'sar.tcp.out': 'SAR-tcp',
+    'top.out': 'TOP'
 }
-

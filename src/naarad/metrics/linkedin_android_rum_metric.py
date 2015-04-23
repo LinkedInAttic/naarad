@@ -1,14 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
+Copyright 2013 LinkedIn Corp. All rights reserved.
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 import datetime
 import logging
 import os
@@ -24,6 +30,7 @@ import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.metrics.linkedin_android_rum_metric')
 
+
 class LinkedInAndroidRumMetric(Metric):
   """
   Class for LinkedIn Android RUM logs, deriving from class Metric
@@ -32,19 +39,17 @@ class LinkedInAndroidRumMetric(Metric):
   clock_format = '%Y-%m-%d %H:%M:%S'
   val_types = ('launch_time', 'nus_update_time')
 
-
-  def __init__ (self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
-                important_sub_metrics, anomaly_detection_metrics, **other_options):
+  def __init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+               important_sub_metrics, anomaly_detection_metrics, **other_options):
     Metric.__init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                     important_sub_metrics, anomaly_detection_metrics)
     self.sub_metrics = self.val_types
     if not self.important_sub_metrics:
       self.important_sub_metrics = CONSTANTS.important_sub_metrics_import['LINKEDINANDROIDRUM']
     self.sub_metric_description = {
-      "launch_time" :"the time taken to launch the client application",
-      "nus_update_time" :"the time taken to update NUS list after launch"
+        "launch_time": "the time taken to launch the client application",
+        "nus_update_time": "the time taken to update NUS list after launch"
     }
-
 
   # get start time stamp, launch time duration, and nus update time duration
   def get_times(self, native):
@@ -74,7 +79,6 @@ class LinkedInAndroidRumMetric(Metric):
       time_stamp = start_time
       launch_time = end_time - start_time
     return (time_stamp, launch_time, nus_update_time)
-
 
   # parse Android RUM logs
   def parse(self):
@@ -107,9 +111,8 @@ class LinkedInAndroidRumMetric(Metric):
     with open(launch_time_file, 'w') as launchtimef:
       with open(nus_update_time_file, 'w') as nusupdatetimef:
         for ts in sorted(results.iterkeys()):
-          launchtimef.write( naarad.utils.get_standardized_timestamp(ts, 'epoch_ms') + ',' + results[ts][0] + '\n' )
-          nusupdatetimef.write( naarad.utils.get_standardized_timestamp(ts, 'epoch_ms') + ',' + results[ts][1] + '\n' )
+          launchtimef.write(naarad.utils.get_standardized_timestamp(ts, 'epoch_ms') + ',' + results[ts][0] + '\n')
+          nusupdatetimef.write(naarad.utils.get_standardized_timestamp(ts, 'epoch_ms') + ',' + results[ts][1] + '\n')
     self.csv_files.append(launch_time_file)
     self.csv_files.append(nus_update_time_file)
     return True
-

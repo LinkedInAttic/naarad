@@ -1,10 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 import logging
 import os
 import glob
@@ -17,6 +27,7 @@ import naarad.graphing.matplotlib_naarad as mpl_n
 from naarad.graphing.plot_data import PlotData as PlotData
 logger = logging.getLogger('naarad')
 
+
 def validate(filename):
   if os.path.exists(filename):
     if not os.path.getsize(filename):
@@ -26,9 +37,11 @@ def validate(filename):
   else:
     return False
 
+
 def plot(list_of_plots, output_file, scenario_name, validation):
   mpl_n.graph_data(list_of_plots, '.', output_file)
   assert validate(output_file + '.png') == validation
+
 
 def init_logging(log_level):
   log_file = 'test_matplotlib.log'
@@ -49,6 +62,7 @@ def init_logging(log_level):
   logger.addHandler(fh)
   logger.addHandler(ch)
 
+
 def setup_matplotlib_tests():
   init_logging('INFO')
   png_list = glob.glob('test*.png')
@@ -56,10 +70,11 @@ def setup_matplotlib_tests():
     os.remove(png)
     logger.info('Deleting : %s', png)
 
-#Test Cases
+
+# Test Cases
 @with_setup(setup_matplotlib_tests())
 def test_generator():
-  #Test Data
+  # Test Data
   plot1 = PlotData('test1.csv', 1, 'GC Commit', 'MB', None, 600, 1200, 'line')
   plot2 = PlotData('test2.csv', 1, 'GC CMS Pause', 'seconds', None, 600, 1200, 'line')
   plot3 = PlotData('test3.csv', 1, 'GC Promo', 'bps', None, 600, 1200, 'line')

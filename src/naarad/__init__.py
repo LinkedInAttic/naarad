@@ -1,10 +1,18 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License");?you may not use this file except in compliance with the
-License.?You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software?distributed under the License is distributed on an
-"AS IS" BASIS,?WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Copyright 2013 LinkedIn Corp. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from collections import defaultdict
@@ -24,6 +32,7 @@ from naarad.reporting.diff import NaaradReport
 
 logger = logging.getLogger('naarad')
 
+
 class _Analysis(object):
   """
   Class that saves state for analysis to be conducted
@@ -41,6 +50,7 @@ class _Analysis(object):
     self.sla_data = {}
     self.stats_data = {}
     self.variables = None
+
 
 class Naarad(object):
   """
@@ -280,7 +290,7 @@ class Naarad(object):
     if graphing_library is None:
       graphing_library = CONSTANTS.DEFAULT_GRAPHING_LIBRARY
     # If graphing libraries are not installed, skip static images
-    if not graphing_library in self.available_graphing_modules.keys():
+    if graphing_library not in self.available_graphing_modules.keys():
       logger.error("Naarad cannot import graphing library %s on your system. Will not generate static charts", graphing_library)
       self.skip_plots = True
 
@@ -291,13 +301,15 @@ class Naarad(object):
         metric.ts_start = analysis.ts_start
       if analysis.ts_end:
         metric.ts_end = analysis.ts_end
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone, analysis.output_directory, analysis.input_directory, graphing_library, self.skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics,
+                                args=(metric, graph_timezone, analysis.output_directory, analysis.input_directory, graphing_library, self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
       t.join()
     for metric in metrics['aggregate_metrics']:
-      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics, args=(metric, graph_timezone, analysis.output_directory, analysis.input_directory, graphing_library, self.skip_plots))
+      thread = threading.Thread(target=naarad.utils.parse_and_plot_single_metrics,
+                                args=(metric, graph_timezone, analysis.output_directory, analysis.input_directory, graphing_library, self.skip_plots))
       thread.start()
       threads.append(thread)
     for t in threads:
@@ -310,7 +322,8 @@ class Naarad(object):
                                                     analysis.resource_path, graphing_library)
     else:
       correlated_plots = []
-    rpt = reporting_modules['report'](None, analysis.output_directory, os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path, metrics['metrics'] + metrics['aggregate_metrics'], correlated_plots=correlated_plots, **report_args)
+    rpt = reporting_modules['report'](None, analysis.output_directory, os.path.join(analysis.output_directory, analysis.resource_path), analysis.resource_path,
+                                      metrics['metrics'] + metrics['aggregate_metrics'], correlated_plots=correlated_plots, **report_args)
     rpt.generate()
     if not is_api_call:
       self._run_post(run_steps['post'])
@@ -330,7 +343,7 @@ class Naarad(object):
     :param: config file for diff (optional)
     :param: **kwargs: keyword arguments
     """
-    output_directory = os.path.join(self._output_directory,'diff_' + str(test_id_1) + '_' + str(test_id_2))
+    output_directory = os.path.join(self._output_directory, 'diff_' + str(test_id_1) + '_' + str(test_id_2))
     if kwargs:
       if 'output_directory' in kwargs.keys():
         output_directory = kwargs['output_directory']
@@ -370,7 +383,6 @@ class Naarad(object):
       return CONSTANTS.ERROR
     return CONSTANTS.OK
 
-
   def _process_naarad_config(self, config, analysis):
     """
     Process the config file associated with a particular analysis and return metrics, run_steps and crossplots.
@@ -385,7 +397,7 @@ class Naarad(object):
     crossplots = []
     report_args = {}
     graphing_library = None
-    ts_start,ts_end = None,None
+    ts_start, ts_end = None, None
 
     if config.has_section('GLOBAL'):
       ts_start, ts_end = naarad.utils.parse_global_section(config, 'GLOBAL')
@@ -401,7 +413,7 @@ class Naarad(object):
       # GRAPH section is optional
       if section == 'GRAPH':
         graphing_library, crossplots, outdir_default, indir_default, graph_timezone = \
-          naarad.utils.parse_graph_section(config, section, output_directory, indir_default)
+            naarad.utils.parse_graph_section(config, section, output_directory, indir_default)
       elif section.startswith('RUN-STEP'):
         run_step = naarad.utils.parse_run_step_section(config, section)
         if not run_step:
@@ -424,7 +436,7 @@ class Naarad(object):
           return CONSTANTS.CRITICAL_FAILURE
         if section == 'SAR-*':
           hostname, infile, label, ts_start, ts_end, precision, kwargs, rule_strings = \
-            naarad.utils.parse_basic_metric_options(config, section)
+              naarad.utils.parse_basic_metric_options(config, section)
           sar_metrics = naarad.utils.get_all_sar_objects(metrics, infile, hostname, output_directory, label, ts_start,
                                                          ts_end, None)
           for sar_metric in sar_metrics:
@@ -441,7 +453,7 @@ class Naarad(object):
           if new_metric.ts_end is None and (new_metric.ts_start is None or ts_end > new_metric.ts_start):
             new_metric.ts_end = ts_end
           new_metric.bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__)))),'bin'))
+              os.path.dirname(os.path.abspath(__file__)))), 'bin'))
           metric_type = section.split('-')[0]
           if metric_type in aggregate_metric_classes:
             metrics['aggregate_metrics'].append(new_metric)

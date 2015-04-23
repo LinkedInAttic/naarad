@@ -17,9 +17,11 @@ app = Flask(__name__)
 DATA_PATH = 'static/data/'
 SCORE_FILE_PATH = 'static/'
 
+
 @app.route('/')
 def index():
   return render_template('index.html')
+
 
 @app.route('/get_selection')
 def get_selection():
@@ -28,6 +30,7 @@ def get_selection():
     if f.endswith('.csv'):
       fs.append(f)
   return jsonify(selection=fs)
+
 
 @app.route('/detect')
 def luminoldetect():
@@ -50,7 +53,8 @@ def luminoldetect():
     for key in anom_dict:
       entry.append(anom_dict[key])
     result.append(entry)
-  return jsonify(anom = result, anom_score = anom_scores)
+  return jsonify(anom=result, anom_score=anom_scores)
+
 
 @app.route('/correlate')
 def luminolanalyze():
@@ -64,13 +68,14 @@ def luminolanalyze():
   result = myluminol.output_by_name
   return jsonify(anom=result)
 
+
 @app.route('/find_correlation_list')
 def findCorrelationListPerAnomaly():
   ts = urllib.unquote(request.args.get('ts')[1:])
   all_ts = os.listdir(DATA_PATH)
   matrices = list()
   for t in all_ts:
-    t = DATA_PATH+t
+    t = DATA_PATH + t
     if t.endswith('.csv') and t != ts:
       matrices.append(t)
   myluminol = RCA(ts, matrices)
@@ -80,15 +85,17 @@ def findCorrelationListPerAnomaly():
     l = result[t]
     data = list()
     for entry in l:
-      data.append([entry[3]]+entry[2].values())
+      data.append([entry[3]] + entry[2].values())
     data_sorted = sorted(data, key=lambda k: (-k[1], k[2], -k[3]))
     r.append([t, data_sorted])
   return jsonify(anom=r)
+
 
 def write_csv(rows, name):
   with open(SCORE_FILE_PATH + name, 'w+') as fp:
     writer = csv.writer(fp)
     writer.writerows(rows)
+
 
 def to_epoch(anom):
   r = list()

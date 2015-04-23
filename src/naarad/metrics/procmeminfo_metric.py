@@ -1,10 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 from collections import defaultdict
 import datetime
 import gc
@@ -17,6 +27,7 @@ import naarad.utils
 
 logger = logging.getLogger('naarad.metrics.ProcMeminfoMetric')
 
+
 class ProcMeminfoMetric(Metric):
   """
   logs of /proc/vmstat
@@ -26,8 +37,8 @@ class ProcMeminfoMetric(Metric):
 
   sub_metrics = None
 
-  def __init__ (self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
+  def __init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
+               rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
     Metric.__init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings, important_sub_metrics, anomaly_detection_metrics)
 
@@ -36,12 +47,11 @@ class ProcMeminfoMetric(Metric):
       setattr(self, key, val.split())
 
     self.sub_metric_description = {
-      'MemTotal': 'Total memory in KB',
-      'MemFree': 'Total free memory in KB',
-      'Buffers': 'Size of buffers in KB',
-      'Cached': 'Size of page cache in KB',
-     }
-
+        'MemTotal': 'Total memory in KB',
+        'MemFree': 'Total free memory in KB',
+        'Buffers': 'Size of buffers in KB',
+        'Cached': 'Size of page cache in KB',
+    }
 
   def parse(self):
     """
@@ -56,7 +66,7 @@ class ProcMeminfoMetric(Metric):
     status = True
     data = {}  # stores the data of each column
     for input_file in self.infile_list:
-      logger.info('Processing : %s',input_file)
+      logger.info('Processing : %s', input_file)
       timestamp_format = None
       with open(input_file) as fh:
         for line in fh:
@@ -85,10 +95,10 @@ class ProcMeminfoMetric(Metric):
           if col in self.column_csv_map:
             out_csv = self.column_csv_map[col]
           else:
-            out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
+            out_csv = self.get_csv(col)   # column_csv_map[] is assigned in get_csv()
             data[out_csv] = []
           data[out_csv].append(ts + "," + words[3])
-    #post processing, putting data in csv files;
+    # post processing, putting data in csv files;
     for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:

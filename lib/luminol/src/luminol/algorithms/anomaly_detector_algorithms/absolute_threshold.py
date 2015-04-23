@@ -15,6 +15,7 @@ from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgori
 from luminol.constants import *
 from luminol.modules.time_series import TimeSeries
 
+
 class AbsoluteThreshold(AnomalyDetectorAlgorithm):
   """
   Anomalies are those data points that are above a pre-specified threshold value.
@@ -52,4 +53,3 @@ class AbsoluteThreshold(AnomalyDetectorAlgorithm):
       if self.absolute_threshold_value_lower and value < self.absolute_threshold_value_lower:
         anom_scores[timestamp] = self.absolute_threshold_value_lower - value
     self.anom_scores = TimeSeries(self._denoise_scores(anom_scores))
-

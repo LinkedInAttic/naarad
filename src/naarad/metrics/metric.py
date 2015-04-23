@@ -1,10 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 from collections import defaultdict
 import glob
 import logging
@@ -20,10 +30,11 @@ from luminol import anomaly_detector, correlator
 
 logger = logging.getLogger('naarad.metrics.metric')
 
+
 class Metric(object):
 
   def __init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
+               rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
     self.metric_type = metric_type
     self.infile_list = infile_list
     self.hostname = hostname
@@ -49,7 +60,7 @@ class Metric(object):
     self.sub_metric_unit = defaultdict(lambda: 'None')      # the unit of the submetrics.  The plot will have the Y-axis being: Metric name (Unit)
     self.important_sub_metrics = important_sub_metrics
     self.sla_list = []  # TODO : remove this once report has grading done in the metric tables
-    self.sla_map = defaultdict(lambda :defaultdict(lambda: defaultdict(None)))
+    self.sla_map = defaultdict(lambda: defaultdict(lambda: defaultdict(None)))
     self.calculated_stats = {}
     self.calculated_percentiles = {}
     self.summary_stats_list = CONSTANTS.DEFAULT_SUMMARY_STATS
@@ -58,7 +69,7 @@ class Metric(object):
     self.ignore = False
     self.timezone = "PDT"
     self.options = None
-    self.sub_metrics = None   #users can specify what sub_metrics to process/plot;
+    self.sub_metrics = None   # users can specify what sub_metrics to process/plot;
     self.groupby = None
     self.summary_charts = []
     self.aggregation_granularity = 'second'
@@ -85,7 +96,7 @@ class Metric(object):
     index = None
     for i in range(len(self.columns)):
       if name == self.columns[i]:
-        index = i+1
+        index = i + 1
     return index
 
   def get_groupby_indexes(self, groupby):
@@ -180,11 +191,11 @@ class Metric(object):
     :return: string aggregate_timestamp: timestamp used for metrics aggregation in all functions
     """
     if granularity == 'hour':
-      return (int(timestamp)/(3600*1000)) * 3600 * 1000, 3600
+      return (int(timestamp) / (3600 * 1000)) * 3600 * 1000, 3600
     elif granularity == 'minute':
-      return (int(timestamp)/(60*1000)) * 60 * 1000, 60
+      return (int(timestamp) / (60 * 1000)) * 60 * 1000, 60
     else:
-      return (int(timestamp)/1000) * 1000, 1
+      return (int(timestamp) / 1000) * 1000, 1
 
   def aggregate_count_over_time(self, metric_store, groupby_name, aggregate_timestamp):
     """
@@ -236,18 +247,18 @@ class Metric(object):
         for time_stamp, column_data in sorted(time_store.items()):
           if column in ['qps']:
             if self.groupby:
-              data[self.get_csv(column, group)].append(','.join([str(time_stamp), str(column_data/float(averaging_factor))]))
+              data[self.get_csv(column, group)].append(','.join([str(time_stamp), str(column_data / float(averaging_factor))]))
             else:
-              data[self.get_csv(column)].append(','.join([str(time_stamp), str(column_data/float(averaging_factor))]))
+              data[self.get_csv(column)].append(','.join([str(time_stamp), str(column_data / float(averaging_factor))]))
           else:
             if self.groupby:
-              data[self.get_csv(column, group)].append(','.join([str(time_stamp), str(sum(map(float, column_data))/float(len(column_data)))]))
+              data[self.get_csv(column, group)].append(','.join([str(time_stamp), str(sum(map(float, column_data)) / float(len(column_data)))]))
             else:
-              data[self.get_csv(column)].append(','.join([str(time_stamp), str(sum(map(float, column_data))/float(len(column_data)))]))
+              data[self.get_csv(column)].append(','.join([str(time_stamp), str(sum(map(float, column_data)) / float(len(column_data)))]))
     return None
 
   def parse(self):
-    processed_data = defaultdict(lambda : defaultdict(lambda : defaultdict(list)))
+    processed_data = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
     data = defaultdict(list)
     groupby_idxes = None
     averaging_factor = None
@@ -264,7 +275,7 @@ class Metric(object):
             words = line.strip().split(self.sep)
           if len(words) == 0:
             continue
-          if len(words) <= len(self.columns): #NOTE: len(self.columns) is always one less than len(words) since we assume the very first column is timestamp
+          if len(words) <= len(self.columns):  # NOTE: len(self.columns) is always one less than len(words) since we assume the very first column is timestamp
             logger.warning("WARNING: Number of columns given in config is more than number of columns present in line {0}\n", line)
             continue
           if not timestamp_format or timestamp_format == 'unknown':
@@ -287,16 +298,16 @@ class Metric(object):
             aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(ts, self.aggregation_granularity)
             self.aggregate_count_over_time(processed_data, groupby_names, aggregate_timestamp)
             for i in range(len(self.columns)):
-              if i+1 in groupby_idxes:
+              if i + 1 in groupby_idxes:
                 continue
               else:
-                self.aggregate_values_over_time(processed_data, words[i+1], groupby_names, self.columns[i], aggregate_timestamp)
+                self.aggregate_values_over_time(processed_data, words[i + 1], groupby_names, self.columns[i], aggregate_timestamp)
           else:
             groupby_names = 'DEFAULT'
             aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(ts, self.aggregation_granularity)
             self.aggregate_count_over_time(processed_data, groupby_names, aggregate_timestamp)
             for i in range(len(self.columns)):
-              self.aggregate_values_over_time(processed_data, words[i+1], groupby_names, self.columns[i], aggregate_timestamp)
+              self.aggregate_values_over_time(processed_data, words[i + 1], groupby_names, self.columns[i], aggregate_timestamp)
     # Post processing, putting data in csv files
     self.average_values_for_plot(processed_data, data, averaging_factor)
     for csv in data.keys():
@@ -323,7 +334,8 @@ class Metric(object):
         if column.startswith('qps'):
           self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
         else:
-          self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(list(heapq.merge(*data)), stats_to_calculate, percentiles_to_calculate)
+          self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(list(heapq.merge(*data)), stats_to_calculate,
+                                                                                                            percentiles_to_calculate)
         self.update_summary_stats(column)
 
   def calculate_stats(self):
@@ -348,7 +360,7 @@ class Metric(object):
     imp_metric_stats_present = False
     metric_stats_present = False
     logger.info("Calculating stats for important sub-metrics in %s and all sub-metrics in %s", imp_metric_stats_csv_file, metric_stats_csv_file)
-    with open(metric_stats_csv_file,'w') as FH:
+    with open(metric_stats_csv_file, 'w') as FH:
       with open(imp_metric_stats_csv_file, 'w') as FH_IMP:
         FH.write(headers)
         FH_IMP.write(headers)
@@ -369,9 +381,9 @@ class Metric(object):
       csv_file = self.column_csv_map[column]
       percentiles_csv_file = self.get_percentiles_csv_from_data_csv(csv_file)
       percentile_data = self.calculated_percentiles[column]
-      with open(percentiles_csv_file,'w') as FH:
+      with open(percentiles_csv_file, 'w') as FH:
         for percentile in sorted(percentile_data):
-          FH.write(str(percentile) + ',' + str(round(percentile_data[percentile],2)) + '\n')
+          FH.write(str(percentile) + ',' + str(round(percentile_data[percentile], 2)) + '\n')
         self.percentiles_files.append(percentiles_csv_file)
 
   def calculate_other_metric_stats(self):
@@ -408,7 +420,9 @@ class Metric(object):
               FH_P.write("%d, %f\n" % (percentile, self.calculated_percentiles[column][percentile]))
           self.percentiles_files.append(percentile_csv_file)
           self.update_summary_stats(column)
-          to_write = [column, self.calculated_stats[column]['mean'], self.calculated_stats[column]['std'], self.calculated_percentiles[column][50], self.calculated_percentiles[column][75], self.calculated_percentiles[column][90], self.calculated_percentiles[column][95], self.calculated_percentiles[column][99], self.calculated_stats[column]['min'], self.calculated_stats[column]['max']]
+          to_write = [column, self.calculated_stats[column]['mean'], self.calculated_stats[column]['std'], self.calculated_percentiles[column][50],
+                      self.calculated_percentiles[column][75], self.calculated_percentiles[column][90], self.calculated_percentiles[column][95],
+                      self.calculated_percentiles[column][99], self.calculated_stats[column]['min'], self.calculated_stats[column]['max']]
           to_write = map(lambda x: naarad.utils.normalize_float_for_display(x), to_write)
           if not metric_stats_present:
             metric_stats_present = True
@@ -439,7 +453,7 @@ class Metric(object):
       calc_type = p.match(expr).group(1)
       old_metric = p.match(expr).group(2)
       logger.debug('In calc() : %s %s %s %s', newmetric, expr, old_metric, calc_type)
-      if not calc_type in ('rate', 'diff'):
+      if calc_type not in ('rate', 'diff'):
         logger.error("ERROR: Invalid calc_metric type {0} defined in config".format(calc_type))
         continue
       old_metric_csv = self.get_csv(old_metric)
@@ -457,9 +471,9 @@ class Metric(object):
               old_val = val
               continue
             if calc_type == 'rate':
-              #Multiply rate by 1000 since timestamp is in ms
+              # Multiply rate by 1000 since timestamp is in ms
               ts_diff = naarad.utils.convert_to_unixts(ts) - naarad.utils.convert_to_unixts(old_ts)
-              if ts_diff != 0 :
+              if ts_diff != 0:
                 new_metric_val = 1000 * (float(val) - float(old_val)) / ts_diff
               else:
                 new_metric_val = 0
@@ -473,7 +487,7 @@ class Metric(object):
             NEW_FH.write(str(new_metric_val))
             NEW_FH.write('\n')
 
-  def plot_timeseries(self, graphing_library = 'matplotlib'):
+  def plot_timeseries(self, graphing_library='matplotlib'):
     """
     plot timeseries for sub-metrics
     """
@@ -490,13 +504,16 @@ class Metric(object):
         # The last element is .csv, don't need that in the name of the chart
         column = csv_filename.split('.')[-2]
         transaction_name = ' '.join(csv_filename.split('.')[1:-2])
-        plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name + '.' + column, y_label=column + ' (' + self.sub_metric_description[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line', highlight_regions=highlight_regions)
+        plot = PD(input_csv=out_csv, csv_column=1, series_name=transaction_name + '.' + column,
+                  y_label=column + ' (' + self.sub_metric_description[column] + ')', precision=None, graph_height=500, graph_width=1200, graph_type='line',
+                  highlight_regions=highlight_regions)
         if transaction_name in plot_data:
           plot_data[transaction_name].append(plot)
         else:
           plot_data[transaction_name] = [plot]
       for transaction in plot_data:
-        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.resource_directory, self.resource_path, self.label + '.' + transaction )
+        graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data[transaction], self.resource_directory, self.resource_path,
+                                                                                 self.label + '.' + transaction)
         if graphed:
           self.plot_files.append(div_file)
     else:
@@ -513,11 +530,13 @@ class Metric(object):
         column = naarad.utils.sanitize_string(column)
         graph_title = '.'.join(csv_filename.split('.')[0:-1])
         if self.sub_metric_description and column in self.sub_metric_description.keys():
-          graph_title += ' ('+self.sub_metric_description[column]+')'
+          graph_title += ' (' + self.sub_metric_description[column] + ')'
         if self.sub_metric_unit and column in self.sub_metric_unit.keys():
-          plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column +' ('+ self.sub_metric_unit[column]+')', precision=None, graph_height=600, graph_width=1200, graph_type='line', highlight_regions=highlight_regions)]
+          plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column + ' (' + self.sub_metric_unit[column] + ')',
+                          precision=None, graph_height=600, graph_width=1200, graph_type='line', highlight_regions=highlight_regions)]
         else:
-          plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line', highlight_regions=highlight_regions)]
+          plot_data = [PD(input_csv=out_csv, csv_column=1, series_name=graph_title, y_label=column, precision=None, graph_height=600, graph_width=1200,
+                          graph_type='line', highlight_regions=highlight_regions)]
         graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, self.resource_directory, self.resource_path, graph_title)
         if graphed:
           self.plot_files.append(div_file)
@@ -536,7 +555,7 @@ class Metric(object):
       return True
     return False
 
-  def plot_cdf(self, graphing_library = 'matplotlib'):
+  def plot_cdf(self, graphing_library='matplotlib'):
     """
     plot CDF for important sub-metrics
     """
@@ -550,17 +569,20 @@ class Metric(object):
       column = naarad.utils.sanitize_string(column)
       graph_title = '.'.join(csv_filename.split('.')[0:-1])
       if self.sub_metric_description and column in self.sub_metric_description.keys():
-        graph_title += ' ('+self.sub_metric_description[column]+')'
+        graph_title += ' (' + self.sub_metric_description[column] + ')'
       if self.sub_metric_unit and column in self.sub_metric_unit.keys():
-        plot_data = [PD(input_csv=percentile_csv, csv_column=1, series_name=graph_title, x_label='Percentiles', y_label=column +' ('+ self.sub_metric_unit[column]+')', precision=None, graph_height=600, graph_width=1200, graph_type='line')]
+        plot_data = [PD(input_csv=percentile_csv, csv_column=1, series_name=graph_title, x_label='Percentiles',
+                        y_label=column + ' (' + self.sub_metric_unit[column] + ')', precision=None, graph_height=600, graph_width=1200, graph_type='line')]
       else:
-        plot_data = [PD(input_csv=percentile_csv, csv_column=1, series_name=graph_title, x_label='Percentiles', y_label=column, precision=None, graph_height=600, graph_width=1200, graph_type='line')]
-      graphed, div_file = Metric.graphing_modules[graphing_library].graph_data_on_the_same_graph(plot_data, self.resource_directory, self.resource_path, graph_title)
+        plot_data = [PD(input_csv=percentile_csv, csv_column=1, series_name=graph_title, x_label='Percentiles', y_label=column, precision=None,
+                        graph_height=600, graph_width=1200, graph_type='line')]
+      graphed, div_file = Metric.graphing_modules[graphing_library].graph_data_on_the_same_graph(plot_data, self.resource_directory,
+                                                                                                 self.resource_path, graph_title)
       if graphed:
         self.plot_files.append(div_file)
     return True
 
-  def graph(self, graphing_library = 'matplotlib'):
+  def graph(self, graphing_library='matplotlib'):
     """
     graph generates two types of graphs
     'time': generate a time-series plot for all submetrics (the x-axis is a time series)

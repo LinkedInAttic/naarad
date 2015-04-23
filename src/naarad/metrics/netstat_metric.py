@@ -1,16 +1,27 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 from collections import defaultdict
 import logging
 from naarad.metrics.metric import Metric
 import naarad.utils
 
 logger = logging.getLogger('naarad.metrics.NetstatMetric')
+
 
 class NetstatMetric(Metric):
   """
@@ -28,8 +39,8 @@ class NetstatMetric(Metric):
   processes = ''
   input_processes = []
 
-  def __init__ (self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
+  def __init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
+               rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
     Metric.__init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings, important_sub_metrics, anomaly_detection_metrics)
     self.sub_metrics = None
@@ -63,7 +74,7 @@ class NetstatMetric(Metric):
     """
     for con in self.connections:
       ends = con.strip().split('<->')  # [host1:port1->host2]
-      ends = filter(None, ends) #remove '' elements
+      ends = filter(None, ends)  # Remove '' elements
       if len(ends) == 0:
         continue
       if len(ends) > 0:
@@ -72,7 +83,7 @@ class NetstatMetric(Metric):
       port2 = ''
       if len(ends) > 1:
         host2, port2 = self._get_tuple(ends[1].split(':'))
-      self.input_connections.append((host1,port1,host2,port2))
+      self.input_connections.append((host1, port1, host2, port2))
 
   def _extract_input_processes(self):
     """
@@ -85,7 +96,7 @@ class NetstatMetric(Metric):
     for proc in self.processes:
       ends = proc.split('/')
       pid, name = self._get_tuple(ends)
-      self.input_processes.append((pid,name))
+      self.input_processes.append((pid, name))
 
   def _match_host_port(self, host, port, cur_host, cur_port):
     """
@@ -98,7 +109,7 @@ class NetstatMetric(Metric):
     host_match = False
     if not host:
       host_match = True
-    elif cur_host.startswith(host):  #allow for partial match
+    elif cur_host.startswith(host):  # allow for partial match
       host_match = True
 
     # if port is '', true;  if not '', it should exactly match cur_port
@@ -146,9 +157,9 @@ class NetstatMetric(Metric):
     cur_host1, cur_port1 = self._get_tuple(local_end.split(':'))
     cur_host2, cur_port2 = self._get_tuple(remote_end.split(':'))
 
-    #check whether the connection is interested or not by checking user input
+    # check whether the connection is interested or not by checking user input
     host_port_is_interested = False
-    for host1,port1,host2,port2 in self.input_connections:
+    for (host1, port1, host2, port2) in self.input_connections:
       if self._match_host_port(host1, port1, cur_host1, cur_port1) and self._match_host_port(host2, port2, cur_host2, cur_port2):
         host_port_is_interested = True
         break
@@ -177,7 +188,7 @@ class NetstatMetric(Metric):
     if col in self.column_csv_map:
       out_csv = self.column_csv_map[col]
     else:
-      out_csv = self.get_csv(col)   #  column_csv_map[] is assigned in get_csv()
+      out_csv = self.get_csv(col)   # column_csv_map[] is assigned in get_csv()
       data[out_csv] = []
     data[out_csv].append(ts + "," + value)
 
@@ -186,10 +197,10 @@ class NetstatMetric(Metric):
     Parse the netstat output file
     :return: status of the metric parse
     """
-    #sample netstat output: 2014-04-02 15:44:02.86612	tcp     9600      0 host1.localdomain.com.:21567 remote.remotedomain.com:51168 ESTABLISH pid/process
+    # sample netstat output: 2014-04-02 15:44:02.86612	tcp     9600      0 host1.localdomain.com.:21567 remote.remotedomain.com:51168 ESTABLISH pid/process
     data = {}  # stores the data of each sub-metric
     for infile in self.infile_list:
-      logger.info('Processing : %s',infile)
+      logger.info('Processing : %s', infile)
       timestamp_format = None
       with open(infile) as fh:
         for line in fh:
@@ -211,7 +222,7 @@ class NetstatMetric(Metric):
           if interested:
             self._add_data_line(data, local_end + '.' + remote_end + '.RecvQ', words[3], ts)
             self._add_data_line(data, local_end + '.' + remote_end + '.SendQ', words[4], ts)
-    #post processing, putting data in csv files;
+    # post processing, putting data in csv files;
     for csv in data.keys():
       self.csv_files.append(csv)
       with open(csv, 'w') as fh:

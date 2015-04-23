@@ -137,7 +137,7 @@ class BitmapDetector(AnomalyDetectorAlgorithm):
 
       else:
         # Just enter valid range.
-        if lag_dicts[i-1] is None:
+        if lag_dicts[i - 1] is None:
           lag_dict = self._construct_SAX_chunk_dict(self.sax[i - lws: i])
           lag_dicts[i] = lag_dict
           lw_leave_chunk = self.sax[0:chunk_size]
@@ -150,12 +150,12 @@ class BitmapDetector(AnomalyDetectorAlgorithm):
 
         else:
           # Update dicts according to leave_chunks and enter_chunks.
-          lag_dict = copy(lag_dicts[i-1])
+          lag_dict = copy(lag_dicts[i - 1])
           lag_dict[lw_leave_chunk] -= 1
-          lag_dict[lw_enter_chunk] +=1
+          lag_dict[lw_enter_chunk] += 1
           lag_dicts[i] = lag_dict
 
-          fut_dict = copy(fut_dicts[i-1])
+          fut_dict = copy(fut_dicts[i - 1])
           fut_dict[fw_leave_chunk] -= 1
           fut_dict[fw_enter_chunk] += 1
           fut_dicts[i] = fut_dict

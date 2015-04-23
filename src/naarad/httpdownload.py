@@ -1,10 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 import os
 import sys
 import re
@@ -26,7 +36,7 @@ def handle_single_url(url, outdir, outfile=None):
   :return: the local full path name of downloaded url
   """
   if not url or type(url) != str \
-    or not outdir or type(outdir) != str :
+     or not outdir or type(outdir) != str:
       logger.error('passed in parameters %s %s are incorrect.' % (url, outdir))
       return
 
@@ -79,14 +89,14 @@ class HTMLLinkExtractor(HTMLParser):
     HTMLParser.__init__(self)
     self.flag = 0
     self.links = []
-    self.title=""
-    self.img=""
-    self.content=""
+    self.title = ""
+    self.img = ""
+    self.content = ""
 
   def handle_starttag(self, tag, attrs):
     if tag == "a":
       if len(attrs) != 0:
-        for (variable, value)  in attrs:
+        for (variable, value) in attrs:
           if variable == "href":
             self.links.append(value)
 
@@ -106,9 +116,9 @@ def get_urls_from_seed(url):
   # Extract the host info of "http://host:port/" in case of href urls are elative urls (e.g., /path/gc.log)
   # Then join (host info and relative urls) to form the complete urls
   base_index = url.find('/', len("https://"))   # get the first "/" after http://" or "https://"; handling both cases.
-  base_url = url[:base_index]      #base_url = "http://host:port" or https://host:port" or http://host" (where no port is given)
+  base_url = url[:base_index]      # base_url = "http://host:port" or https://host:port" or http://host" (where no port is given)
 
-  #extract the "href" denoted urls
+  # Extract the "href" denoted urls
   urls = []
   try:
     response = urllib2.urlopen(url)
@@ -120,7 +130,7 @@ def get_urls_from_seed(url):
     logger.error("Got HTTPError when opening the url of %s" % url)
     return urls
 
-  # check whether the url is relative or complete
+  # Check whether the url is relative or complete
   for i in range(len(urls)):
     if not urls[i].startswith("http://") and not urls[i].startswith("https://"):    # a relative url ?
       urls[i] = base_url + urls[i]
@@ -128,7 +138,7 @@ def get_urls_from_seed(url):
   return urls
 
 
-def download_url_single(inputs, outdir, outfile = None):
+def download_url_single(inputs, outdir, outfile=None):
   """
   Downloads a http(s) url to a local file
   :param str inputs:  the absolute url
@@ -149,7 +159,7 @@ def download_url_single(inputs, outdir, outfile = None):
   return output_file
 
 
-def download_url_regex(inputs, outdir, regex = ".*"):
+def download_url_regex(inputs, outdir, regex=".*"):
   """
   Downloads http(s) urls to a local files
   :param str inputs: Required, the seed url
@@ -158,7 +168,7 @@ def download_url_regex(inputs, outdir, regex = ".*"):
   :return: A list of local full path names (downloaded from inputs)
   """
   if not inputs or type(inputs) != str \
-    or not outdir or type(outdir) != str:
+     or not outdir or type(outdir) != str:
     logging.error("The call parameters are invalid.")
     return
   else:

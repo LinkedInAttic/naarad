@@ -96,8 +96,8 @@ class TestLuminol(unittest.TestCase):
   def setUp(self):
     self.anomaly = ['A', 'B']
     self.correlation = {
-      'A': ['m1', 'm2', 'm3'],
-      'B': ['m2', 'm1', 'm3']
+        'A': ['m1', 'm2', 'm3'],
+        'B': ['m2', 'm1', 'm3']
     }
     self.luminol = Luminol(self.anomaly, self.correlation)
 

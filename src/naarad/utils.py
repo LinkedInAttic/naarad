@@ -1,10 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 import argparse
 import calendar
 import ConfigParser
@@ -29,6 +39,7 @@ import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.utils')
 
+
 def import_modules(module_dict, is_class_type=True):
   return_dict = {}
   for module_name, module_string in module_dict.items():
@@ -42,6 +53,7 @@ def import_modules(module_dict, is_class_type=True):
     except ImportError:
       pass
   return return_dict
+
 
 def parse_user_defined_metric_classes(config_obj, metric_classes):
   """
@@ -68,6 +80,7 @@ def parse_user_defined_metric_classes(config_obj, metric_classes):
       logger.error('Something wrong with importing a user defined metric class. Skipping metric: ', metric_name)
       continue
 
+
 def is_valid_url(url):
   """
   Check if a given string is in the correct URL format or not
@@ -75,13 +88,15 @@ def is_valid_url(url):
   :param str url:
   :return: True or False
   """
-  regex = re.compile(
-      r'^(http|https|ftp)://[A-Za-z0-9]+(-[A-Za-z0-9]+)*([:][A-Za-z0-9]+(-[A-Za-z0-9]+)*){0,1}([@][A-Za-z0-9]+(-[A-Za-z0-9]+)*){0,1}(\.[A-Za-z0-9]+(-[A-Za-z0-9]+)*)*(:[0-9]{1,5}){0,1}(/[A-Za-z0-9=]*[A-Za-z0-9-._\(\)]*)*([?#&].*)*$')
+  regex = re.compile(r"^(http|https|ftp)://[A-Za-z0-9]+(-[A-Za-z0-9]+)*([:][A-Za-z0-9]+(-[A-Za-z0-9]+)*){0,1}"
+                     r"([@][A-Za-z0-9]+(-[A-Za-z0-9]+)*){0,1}(\.[A-Za-z0-9]+(-[A-Za-z0-9]+)*)*"
+                     r"(:[0-9]{1,5}){0,1}(/[A-Za-z0-9=]*[A-Za-z0-9-._\(\)]*)*([?#&].*)*$")
   if regex.match(url):
-    logger.info( "URL given as config")
+    logger.info("URL given as config")
     return True
   else:
     return False
+
 
 def download_file(url):
   """
@@ -96,10 +111,12 @@ def download_file(url):
     sys.exit("ERROR: Problem downloading config file. Please check the URL (" + url + "). Exiting...")
   return local_file
 
+
 def sanitize_string_section_name(string):
   string = string.replace('/', '_')
   string = string.replace('%', '_')
   return string
+
 
 def is_valid_metric_name(metric_name):
   """
@@ -107,11 +124,12 @@ def is_valid_metric_name(metric_name):
   :param str metric_name: metric_name
   :return: True if valid
   """
-  reg=re.compile('^[a-zA-Z0-9\.\-\_]+$')
+  reg = re.compile('^[a-zA-Z0-9\.\-\_]+$')
   if reg.match(metric_name) and not metric_name.startswith('.'):
     return True
   else:
     return False
+
 
 def get_run_time_period(run_steps):
   """
@@ -136,6 +154,7 @@ def get_run_time_period(run_steps):
   logger.info('get_run_time_period range returned ' + str(ts_start) + ' to ' + str(ts_end))
   return ts_start, ts_end
 
+
 def get_rule_strings(config_obj, section):
   """
   Extract rule strings from a section
@@ -147,9 +166,10 @@ def get_rule_strings(config_obj, section):
   kwargs = dict(config_obj.items(section))
   for key in kwargs.keys():
     if key.endswith('.sla'):
-      rule_strings[key.replace('.sla','')] = kwargs[key]
+      rule_strings[key.replace('.sla', '')] = kwargs[key]
       del kwargs[key]
   return rule_strings, kwargs
+
 
 def extract_diff_sla_from_config_file(obj, options_file):
   """
@@ -163,6 +183,7 @@ def extract_diff_sla_from_config_file(obj, options_file):
     rule_strings, kwargs = get_rule_strings(config_obj, section)
     for (key, val) in rule_strings.iteritems():
       set_sla(obj, section, key, val)
+
 
 def parse_basic_metric_options(config_obj, section):
   """
@@ -191,8 +212,8 @@ def parse_basic_metric_options(config_obj, section):
       hostname = config_obj.get(section, 'hostname')
       config_obj.remove_option(section, 'hostname')
 
-    #'infile' is not mandatory for aggregate metrics
-    if config_obj.has_option(section,'infile'):
+    # 'infile' is not mandatory for aggregate metrics
+    if config_obj.has_option(section, 'infile'):
       infile = config_obj.get(section, 'infile').split()
       config_obj.remove_option(section, 'infile')
 
@@ -206,7 +227,7 @@ def parse_basic_metric_options(config_obj, section):
     if config_obj.has_option(section, 'precision'):
       precision = config_obj.get(section, 'precision')
       config_obj.remove_option(section, 'precision')
-    #support aggregate metrics, which take aggr_hosts and aggr_metrics
+    # support aggregate metrics, which take aggr_hosts and aggr_metrics
     if config_obj.has_option(section, 'aggr_hosts'):
       aggr_hosts = config_obj.get(section, 'aggr_hosts')
       config_obj.remove_option(section, 'aggr_hosts')
@@ -214,16 +235,17 @@ def parse_basic_metric_options(config_obj, section):
       aggr_metrics = config_obj.get(section, 'aggr_metrics')
       config_obj.remove_option(section, 'aggr_metrics')
     if config_obj.has_option(section, 'anomaly_detection_metrics'):
-      anomaly_detection_metrics = config_obj.get(section,'anomaly_detection_metrics').split()
+      anomaly_detection_metrics = config_obj.get(section, 'anomaly_detection_metrics').split()
       config_obj.remove_option(section, 'anomaly_detection_metrics')
     rule_strings, other_options = get_rule_strings(config_obj, section)
   except ConfigParser.NoOptionError:
     logger.exception("Exiting.... some mandatory options are missing from the config file in section: " + section)
     sys.exit()
-  return hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
-         important_sub_metrics, anomaly_detection_metrics
+  return (hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings,
+          important_sub_metrics, anomaly_detection_metrics)
 
-def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregate_metric_classes, outdir_default, resource_path):
+
+def parse_metric_section(config_obj, section, metric_classes, metrics, aggregate_metric_classes, outdir_default, resource_path):
   """
   Parse a metric section and create a Metric object
   :param config_obj: ConfigParser object
@@ -235,15 +257,17 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
   :param resource_path: Default resource directory
   :return: An initialized Metric object
   """
-  hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options, rule_strings, \
-    important_sub_metrics, anomaly_detection_metrics = parse_basic_metric_options(config_obj, section)
+  (hostname, infile, aggr_hosts, aggr_metrics, label, ts_start, ts_end, precision, other_options,
+   rule_strings, important_sub_metrics, anomaly_detection_metrics) = parse_basic_metric_options(config_obj, section)
 
-  #TODO: Make user specify metric_type in config and not infer from section
+  # TODO: Make user specify metric_type in config and not infer from section
   metric_type = section.split('-')[0]
   if metric_type in aggregate_metric_classes:
-    new_metric = initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options)
+    new_metric = initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings,
+                                             important_sub_metrics, anomaly_detection_metrics, other_options)
   else:
-    new_metric = initialize_metric(section, infile , hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options)
+    new_metric = initialize_metric(section, infile, hostname, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics,
+                                   anomaly_detection_metrics, other_options)
 
   if config_obj.has_option(section, 'ignore') and config_obj.getint(section, 'ignore') == 1:
     new_metric.ignore = True
@@ -251,6 +275,7 @@ def parse_metric_section(config_obj, section, metric_classes,  metrics, aggregat
     new_metric.calc_metrics = config_obj.get(section, 'calc_metrics')
   new_metric.precision = precision
   return new_metric
+
 
 def parse_global_section(config_obj, section):
   """
@@ -268,6 +293,7 @@ def parse_global_section(config_obj, section):
     ts_end = get_standardized_timestamp(config_obj.get(section, 'ts_end'), None)
     config_obj.remove_option(section, 'ts_end')
   return ts_start, ts_end
+
 
 def parse_run_step_section(config_obj, section):
   """
@@ -311,6 +337,7 @@ def parse_run_step_section(config_obj, section):
     run_step_obj = None
   return run_step_obj
 
+
 def parse_graph_section(config_obj, section, outdir_default, indir_default):
   """
   Parse the GRAPH section of the config to extract useful values
@@ -343,6 +370,7 @@ def parse_graph_section(config_obj, section, outdir_default, indir_default):
       graph_timezone = "UTC"
   return graphing_library, crossplots, outdir_default, indir_default, graph_timezone
 
+
 def parse_report_section(config_obj, section):
   """
   parse the [REPORT] section of a config file to extract various reporting options to be passed to the Report object
@@ -373,6 +401,7 @@ def parse_report_section(config_obj, section):
     report_kwargs['diff_page_template'] = config_obj.get(section, 'diff_page_template')
   return report_kwargs
 
+
 def reconcile_timezones(begin_ts, ts_timezone, graph_timezone):
   if not graph_timezone:
     return begin_ts
@@ -384,25 +413,27 @@ def reconcile_timezones(begin_ts, ts_timezone, graph_timezone):
     if graph_timezone == "UTC":
       # Assume timezone is PDT
       try:
-        dt = pst.localize(datetime.datetime.strptime(begin_ts,"%Y-%m-%d %H:%M:%S"))
+        dt = pst.localize(datetime.datetime.strptime(begin_ts, "%Y-%m-%d %H:%M:%S"))
       except ValueError:
-        dt = pst.localize(datetime.datetime.strptime(begin_ts,"%Y-%m-%d %H:%M:%S.%f"))
+        dt = pst.localize(datetime.datetime.strptime(begin_ts, "%Y-%m-%d %H:%M:%S.%f"))
       begin_ts = dt.astimezone(utc).strftime("%Y-%m-%d %H:%M:%S.%f")
     else:
       # Assume timezone is UTC since graph_timezone is PDT
       try:
-        dt = utc.localize(datetime.datetime.strptime(begin_ts,"%Y-%m-%d %H:%M:%S"))
+        dt = utc.localize(datetime.datetime.strptime(begin_ts, "%Y-%m-%d %H:%M:%S"))
       except ValueError:
-        dt = utc.localize(datetime.datetime.strptime(begin_ts,"%Y-%m-%d %H:%M:%S.%f"))
+        dt = utc.localize(datetime.datetime.strptime(begin_ts, "%Y-%m-%d %H:%M:%S.%f"))
       begin_ts = dt.astimezone(pst).strftime("%Y-%m-%d %H:%M:%S.%f")
   return begin_ts
+
 
 def convert_to_unixts(ts_string):
   try:
     dt_obj = datetime.datetime.strptime(ts_string, "%Y-%m-%d %H:%M:%S.%f")
   except ValueError:
     dt_obj = datetime.datetime.strptime(ts_string, "%Y-%m-%d %H:%M:%S")
-  return float(calendar.timegm(dt_obj.utctimetuple())*1000.0 + dt_obj.microsecond/1000.0)
+  return float(calendar.timegm(dt_obj.utctimetuple()) * 1000.0 + dt_obj.microsecond / 1000.0)
+
 
 def is_number(string):
   try:
@@ -411,11 +442,12 @@ def is_number(string):
   except ValueError:
     return False
 
+
 def get_all_sar_objects(metrics, indir, hostname, output_directory, label, ts_start, ts_end, options):
   metrics = []
   sar_types = ('device', 'cpuusage', 'cpuhz', 'memory', 'memutil', 'paging')
   for sar_metric_type in sar_types:
-    #infile = indir + '/' + 'sar.' + sar_metric_type + '.out'
+    # infile = indir + '/' + 'sar.' + sar_metric_type + '.out'
     infile = os.path.join(indir, 'sar.' + sar_metric_type + '.out')
     if os.path.exists(infile):
       obj_type = 'SAR-' + sar_metric_type
@@ -423,18 +455,21 @@ def get_all_sar_objects(metrics, indir, hostname, output_directory, label, ts_st
       metrics.append(metric)
   return metrics
 
+
 def sanitize_string(string):
   string = string.replace('/', '-per-')
   if string.startswith('%'):
     string = string.replace('%', 'percent-')
   else:
-    string = string.replace('.%', '.percent-') #handle the cases of "all.%sys"
+    string = string.replace('.%', '.percent-')  # handle the cases of "all.%sys"
     string = string.replace('%', '-percent-')
   return string
+
 
 def get_default_csv(output_directory, val):
   val = sanitize_string(val)
   return os.path.join(output_directory, val + '.csv')
+
 
 def convert_to_24hr_format(ts):
   words = ts.split()
@@ -453,18 +488,23 @@ def convert_to_24hr_format(ts):
     ts = ":".join(tmp)
   return ts
 
+
 def get_merged_csvname(output_directory, vals):
   return os.path.join(output_directory, '-'.join(vals) + '.csv')
+
 
 def get_merged_charttitle(vals):
   return " vs ".join(vals)
 
+
 def get_merged_plot_link_name(vals):
   return '-'.join(vals)
+
 
 def get_merged_png_name(vals):
   # The merged_png_name format is relied upon by naarad.reporting.report.is_correlated_image method.
   return '-'.join(vals)
+
 
 def generate_html_report(output_directory, html_string):
   htmlfilename = os.path.join(output_directory, 'Report.html')
@@ -483,6 +523,7 @@ def generate_html_report(output_directory, html_string):
     htmlf.write(html_string)
     htmlf.write(footer)
 
+
 def tscsv_nway_file_merge(outfile, filelist, filler):
   logger.info('called nway merge with %s', filelist)
   with open(outfile, 'w') as outf:
@@ -492,12 +533,12 @@ def tscsv_nway_file_merge(outfile, filelist, filler):
       try:
         filehandlers[i] = open(filelist[i], 'r')
       except IOError:
-        logger.error('Cannot open: ' +  filelist[i])
+        logger.error('Cannot open: ' + filelist[i])
         return
       currlines[i] = filehandlers[i].readline().strip()
     while True:
       # Assuming logs won't have far future dates - 1 yr max since sometimes people have logs in near future dates
-      future_time = str( datetime.datetime.utcnow() + datetime.timedelta(days=365))
+      future_time = str(datetime.datetime.utcnow() + datetime.timedelta(days=365))
       min_ts = future_time
       for i in range(len(currlines)):
         if currlines[i] == "":
@@ -520,7 +561,8 @@ def tscsv_nway_file_merge(outfile, filelist, filler):
             currlines[i] = filehandlers[i].readline().strip()
           else:
             outwords.append(filler)
-      outf.write( ','.join(outwords) + '\n' )
+      outf.write(','.join(outwords) + '\n')
+
 
 def nway_plotting(crossplots, metrics, output_directory, resource_path, graphing_library):
   listlen = len(crossplots)
@@ -528,16 +570,17 @@ def nway_plotting(crossplots, metrics, output_directory, resource_path, graphing
     return ''
   i = 0
   correlated_plots = []
-  #GC.appstop,all GC.alloc,GC.alloc-rate GC.promo,GC.gen0t,GC.gen0sys
+  # GC.appstop,all GC.alloc,GC.alloc-rate GC.promo,GC.gen0t,GC.gen0sys
   while i < listlen:
     plot = crossplots[i]
     vals = plot.split(',')
     i += 1
-    if not 'all' in vals:
+    if 'all' not in vals:
       plot_data = []
       for val in vals:
         csv_file = get_default_csv(output_directory, val)
-        plot_data.append(PlotData(input_csv=csv_file, csv_column=1, series_name=sanitize_string(val), y_label=sanitize_string(val), precision=None, graph_height=500, graph_width=1200, graph_type='line'))
+        plot_data.append(PlotData(input_csv=csv_file, csv_column=1, series_name=sanitize_string(val), y_label=sanitize_string(val), precision=None,
+                                  graph_height=500, graph_width=1200, graph_type='line'))
       png_name = get_merged_plot_link_name(vals)
       graphed, div_file = Metric.graphing_modules[graphing_library].graph_data(plot_data, output_directory, resource_path, png_name)
       if graphed:
@@ -558,6 +601,7 @@ def nway_plotting(crossplots, metrics, output_directory, resource_path, graphing
           listlen += 1
   return correlated_plots
 
+
 def normalize_float_for_display(data_val):
   try:
     data_val = float(data_val)
@@ -568,7 +612,8 @@ def normalize_float_for_display(data_val):
   else:
     return '%s' % float('%.2g' % data_val)
 
-def calculate_stats(data_list, stats_to_calculate = ['mean', 'std'], percentiles_to_calculate = []):
+
+def calculate_stats(data_list, stats_to_calculate=['mean', 'std'], percentiles_to_calculate=[]):
   """
   Calculate statistics for given data.
 
@@ -578,14 +623,14 @@ def calculate_stats(data_list, stats_to_calculate = ['mean', 'std'], percentiles
   :return: tuple of dictionaries containing calculated statistics and percentiles
   """
   stats_to_numpy_method_map = {
-      'mean' : numpy.mean,
-      'avg' : numpy.mean,
-      'std' : numpy.std,
-      'standard_deviation' : numpy.std,
-      'median' : numpy.median,
-      'min' : numpy.amin,
-      'max' : numpy.amax
-      }
+      'mean': numpy.mean,
+      'avg': numpy.mean,
+      'std': numpy.std,
+      'standard_deviation': numpy.std,
+      'median': numpy.median,
+      'min': numpy.amin,
+      'max': numpy.amax
+  }
   calculated_stats = {}
   calculated_percentiles = {}
   if len(data_list) == 0:
@@ -601,6 +646,7 @@ def calculate_stats(data_list, stats_to_calculate = ['mean', 'std'], percentiles
     else:
       logger.error("Unsupported percentile requested (should be int or float): " + str(percentile))
   return calculated_stats, calculated_percentiles
+
 
 def is_valid_file(filename):
   """
@@ -618,6 +664,7 @@ def is_valid_file(filename):
     return False
   return True
 
+
 def detect_timestamp_format(timestamp):
   """
   Given an input timestamp string, determine what format is it likely in.
@@ -625,27 +672,31 @@ def detect_timestamp_format(timestamp):
   :param string timestamp: the timestamp string for which we need to determine format
   :return: best guess timestamp format
   """
-  time_formats = {'epoch': re.compile(r'^[0-9]{10}$'), 'epoch_ms': re.compile(r'^[0-9]{13}$'), 'epoch_fraction': re.compile(r'^[0-9]{10}\.[0-9]{3,9}$'),
-                  '%Y-%m-%d %H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
-                  '%Y-%m-%dT%H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
-                  '%Y-%m-%d_%H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
-                  '%Y-%m-%d %H:%M:%S.%f': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
-                  '%Y-%m-%dT%H:%M:%S.%f': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
-                  '%Y-%m-%d_%H:%M:%S.%f': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
-                  '%Y%m%d %H:%M:%S': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
-                  '%Y%m%dT%H:%M:%S': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
-                  '%Y%m%d_%H:%M:%S': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
-                  '%Y%m%d %H:%M:%S.%f': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
-                  '%Y%m%dT%H:%M:%S.%f': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
-                  '%Y%m%d_%H:%M:%S.%f': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
-                  '%H:%M:%S': re.compile(r'^[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
-                  '%H:%M:%S.%f': re.compile(r'^[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
-                  '%Y-%m-%dT%H:%M:%S.%f%z': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+[+-][0-9]{4}$'),
+  time_formats = {
+      'epoch': re.compile(r'^[0-9]{10}$'),
+      'epoch_ms': re.compile(r'^[0-9]{13}$'),
+      'epoch_fraction': re.compile(r'^[0-9]{10}\.[0-9]{3,9}$'),
+      '%Y-%m-%d %H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+      '%Y-%m-%dT%H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+      '%Y-%m-%d_%H:%M:%S': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+      '%Y-%m-%d %H:%M:%S.%f': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
+      '%Y-%m-%dT%H:%M:%S.%f': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
+      '%Y-%m-%d_%H:%M:%S.%f': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
+      '%Y%m%d %H:%M:%S': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+      '%Y%m%dT%H:%M:%S': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+      '%Y%m%d_%H:%M:%S': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+      '%Y%m%d %H:%M:%S.%f': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
+      '%Y%m%dT%H:%M:%S.%f': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
+      '%Y%m%d_%H:%M:%S.%f': re.compile(r'^[0-9]{4}[0-1][0-9][0-3][0-9]_[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
+      '%H:%M:%S': re.compile(r'^[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'),
+      '%H:%M:%S.%f': re.compile(r'^[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+$'),
+      '%Y-%m-%dT%H:%M:%S.%f%z': re.compile(r'^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9].[0-9]+[+-][0-9]{4}$')
   }
   for time_format in time_formats:
-    if re.match(time_formats[time_format],timestamp):
+    if re.match(time_formats[time_format], timestamp):
       return time_format
   return 'unknown'
+
 
 def get_standardized_timestamp(timestamp, ts_format):
   """
@@ -670,14 +721,15 @@ def get_standardized_timestamp(timestamp, ts_format):
       ts = int(timestamp[:10]) * 1000 + int(timestamp[11:])
     elif ts_format in ('%H:%M:%S', '%H:%M:%S.%f'):
       date_today = str(datetime.date.today())
-      dt_obj = datetime.datetime.strptime(date_today + ' ' + timestamp,'%Y-%m-%d ' + ts_format)
-      ts = calendar.timegm(dt_obj.utctimetuple())*1000 + dt_obj.microsecond/1000
+      dt_obj = datetime.datetime.strptime(date_today + ' ' + timestamp, '%Y-%m-%d ' + ts_format)
+      ts = calendar.timegm(dt_obj.utctimetuple()) * 1000 + dt_obj.microsecond / 1000
     else:
       dt_obj = datetime.datetime.strptime(timestamp, ts_format)
-      ts = calendar.timegm(dt_obj.utctimetuple())*1000 + dt_obj.microsecond/1000
+      ts = calendar.timegm(dt_obj.utctimetuple()) * 1000 + dt_obj.microsecond / 1000
   except ValueError:
     return -1
   return str(ts)
+
 
 def set_sla(obj, metric, sub_metric, rules):
   """
@@ -701,6 +753,7 @@ def set_sla(obj, metric, sub_metric, rules):
     if hasattr(obj, 'sla_list'):
       obj.sla_list.append(sla)  # TODO : remove this once report has grading done in the metric tables
   return True
+
 
 def check_slas(metric):
   """
@@ -735,6 +788,7 @@ def check_slas(metric):
           for stat, sla in metric.sla_map[metric_label][sub_metric].items():
             FH.write('%s\n' % (sla.get_csv_repr()))
 
+
 def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_default, graphing_library,
                                   skip_plots):
   metric.graph_timezone = graph_timezone
@@ -760,9 +814,10 @@ def parse_and_plot_single_metrics(metric, graph_timezone, outdir_default, indir_
         if not skip_plots:
           metric.graph(graphing_library)
       else:
-        logger.error('Parsing failed for metric: '  + metric.label)
+        logger.error('Parsing failed for metric: ' + metric.label)
     else:
       logger.error('Fetch/Collect failed for metric: ' + metric.label)
+
 
 def init_logging(logger, log_file, log_level):
   """
@@ -788,6 +843,7 @@ def init_logging(logger, log_file, log_level):
   logger.addHandler(ch)
   return CONSTANTS.OK
 
+
 def get_argument_parser():
   """
   Initialize list of valid arguments accepted by Naarad CLI
@@ -799,15 +855,22 @@ def get_argument_parser():
   arg_parser.add_argument('--end', help="End time in the format of HH:MM:SS or YYYY-mm-dd_HH:MM:SS")
   arg_parser.add_argument('-i', '--input_dir', help="input directory used to construct full path name of the metric infile")
   arg_parser.add_argument('-o', '--output_dir', help="output directory where the plots and Report.html will be generated")
-  arg_parser.add_argument('-V', '--variables', action="append", help="User defined variables (in form key=value) for substitution in the config file. Config should have the variable names in format %%(key)s")
+  arg_parser.add_argument('-V', '--variables', action="append",
+                          help="User defined variables (in form key=value) for substitution in the config file. "
+                               "Config should have the variable names in format %%(key)s")
   arg_parser.add_argument('-s', '--show_config', help="Print config associated with the provided template name", action="store_true")
   arg_parser.add_argument('-l', '--log', help="log level")
-  arg_parser.add_argument('-d', '--diff', nargs=2, help="Specify the location of two naarad reports to diff separated by a space. Can be local or http(s) locations. The first report is used as a baseline.", metavar=("report-1", "report-2"))
-  arg_parser.add_argument('-n', '--no_plots', help="Don't generate plot images. Useful when you only want SLA calculations. Note that on-demand charts can still be generated through client-charting.", action="store_true")
+  arg_parser.add_argument('-d', '--diff', nargs=2,
+                          help="Specify the location of two naarad reports to diff separated by a space. Can be local or http(s) "
+                               "locations. The first report is used as a baseline.", metavar=("report-1", "report-2"))
+  arg_parser.add_argument('-n', '--no_plots',
+                          help="Don't generate plot images. Useful when you only want SLA calculations. Note that on-demand charts can "
+                               "still be generated through client-charting.", action="store_true")
   arg_parser.add_argument('-e', '--exit_code', help="optional argument to enable exit_code for naarad", action="store_true")
-  #TODO(Ritesh) : Print a list of all templates supported with descriptions
-  #arg_parser.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
+  # TODO(Ritesh) : Print a list of all templates supported with descriptions
+  # arg_parser.add_argument('-l', '--list_templates', help="List all template configs", action="store_true")
   return arg_parser
+
 
 def get_variables(args):
   """
@@ -820,6 +883,7 @@ def get_variables(args):
       words = var.split('=')
       variables_dict[words[0]] = words[1]
   return variables_dict
+
 
 def validate_arguments(args):
   """
@@ -836,13 +900,15 @@ def validate_arguments(args):
     print_usage()
     sys.exit(0)
 
+
 def print_usage():
   """
   Print naarad CLI usage message
   """
   print ("Usage: "
-               "\n To generate a diff report      : naarad -d report1 report2 -o <output_location> -c <optional: config-file> -e <optional: turn on exit code>"
-               "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <optional: config_file> -e <optional: turn on exit code> -n <optional: disable plotting of images>")
+         "\n To generate a diff report      : naarad -d report1 report2 -o <output_location> -c <optional: config-file> -e <optional: turn on exit code>"
+         "\n To generate an analysis report : naarad -i <input_location> -o <output_location> -c <optional: config_file> -e <optional: turn on exit code> "
+         "-n <optional: disable plotting of images>")
 
 
 def discover_by_name(input_directory, output_directory):
@@ -855,12 +921,15 @@ def discover_by_name(input_directory, output_directory):
   log_files = os.listdir(input_directory)
   for log_file in log_files:
     if log_file in CONSTANTS.SUPPORTED_FILENAME_MAPPING.keys():
-      metric_list.append(initialize_metric(CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], [log_file], None, output_directory, CONSTANTS.RESOURCE_PATH, CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, {}, None, None, {}))
+      metric_list.append(initialize_metric(CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], [log_file], None, output_directory, CONSTANTS.RESOURCE_PATH,
+                                           CONSTANTS.SUPPORTED_FILENAME_MAPPING[log_file], None, None, {}, None, None, {}))
     else:
       logger.warning('Unable to determine metric type for file: %s', log_file)
   return metric_list
 
-def initialize_metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options):
+
+def initialize_metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics,
+                      anomaly_detection_metrics, other_options):
   """
   Initialize appropriate metric based on type of metric.
   :param: section: config section name or auto discovered metric type
@@ -877,20 +946,25 @@ def initialize_metric(section, infile_list, hostname, output_directory, resource
   :param: other_options: kwargs
   :return: metric object
   """
-  bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
+  bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'bin'))
   metric = None
   metric_type = section.split('-')[0]
   if metric_type in metric_classes:
     if 'SAR' in metric_type:
-      metric = metric_classes['SAR'](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
+      metric = metric_classes['SAR'](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings,
+                                     important_sub_metrics, anomaly_detection_metrics, **other_options)
     else:
-      metric = metric_classes[metric_type](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
+      metric = metric_classes[metric_type](section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings,
+                                           important_sub_metrics, anomaly_detection_metrics, **other_options)
   else:
-    metric = Metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
+    metric = Metric(section, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics,
+                    anomaly_detection_metrics, **other_options)
   metric.bin_path = bin_path
   return metric
 
-def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, other_options):
+
+def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings,
+                                important_sub_metrics, anomaly_detection_metrics, other_options):
   """
   Initialize aggregate metric
   :param: section: config section name
@@ -907,9 +981,10 @@ def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outd
   :param: other_options: kwargs
   :return: metric object
   """
-  bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'bin'))
+  bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'bin'))
   metric = None
   metric_type = section.split('-')[0]
-  metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end, rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
+  metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end,
+                                                 rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
   metric.bin_path = bin_path
   return metric

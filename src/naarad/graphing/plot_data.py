@@ -1,15 +1,25 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 
 class PlotData:
   """Class to hold details of the metrics to be plotted"""
-  def __init__(self, input_csv, csv_column, series_name, y_label, precision, graph_height, graph_width, graph_type, x_label=None, plot_label=None, highlight_regions=None):
+  def __init__(self, input_csv, csv_column, series_name, y_label, precision, graph_height, graph_width, graph_type, x_label=None, plot_label=None,
+               highlight_regions=None):
     self.input_csv = input_csv
     self.csv_column = csv_column
     self.graph_title = series_name

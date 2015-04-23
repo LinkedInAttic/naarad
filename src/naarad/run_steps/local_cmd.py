@@ -1,9 +1,18 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import logging
@@ -15,6 +24,7 @@ from naarad.run_steps.run_step import Run_Step
 import naarad.naarad_constants as CONSTANTS
 
 logger = logging.getLogger('naarad.run_steps.local_cmd')
+
 
 class Local_Cmd(Run_Step):
   """
@@ -35,7 +45,7 @@ class Local_Cmd(Run_Step):
     logger.info('Local command RUN-STEP starting with rank %d', self.run_rank)
     logger.info('Running subprocess command with following args: ' + str(cmd_args))
 
-    #TODO: Add try catch blocks. Kill process on CTRL-C
+    # TODO: Add try catch blocks. Kill process on CTRL-C
     # Infer time period for analysis. Assume same timezone between client and servers.
     self.ts_start = time.strftime("%Y-%m-%d %H:%M:%S")
     try:
@@ -43,7 +53,7 @@ class Local_Cmd(Run_Step):
       if self.kill_after_seconds:
         self.timer = Timer(self.kill_after_seconds, self.kill)
         self.timer.start()
-      #Using 2nd method here to stream output:
+      # Using 2nd method here to stream output:
       # http://stackoverflow.com/questions/2715847/python-read-streaming-input-from-subprocess-communicate
       for line in iter(self.process.stdout.readline, b''):
         logger.info(line.strip())
@@ -74,4 +84,3 @@ class Local_Cmd(Run_Step):
         logger.warning('Waited %d seconds for run_step to terminate. Killing now....', CONSTANTS.SECONDS_TO_KILL_AFTER_SIGTERM)
     except OSError, e:
       logger.error('Error while trying to kill the subprocess: %s', e)
-

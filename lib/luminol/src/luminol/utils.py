@@ -20,6 +20,7 @@ import time
 
 from luminol import constants, exceptions
 
+
 def compute_ema(smoothing_factor, points):
   """
   Compute exponential moving average of a list of points.
@@ -34,6 +35,7 @@ def compute_ema(smoothing_factor, points):
   for i in range(1, len(points)):
     ema.append(smoothing_factor * points[i] + (1 - smoothing_factor) * ema[i - 1])
   return ema
+
 
 def read_csv(csv_name):
   """
@@ -55,6 +57,7 @@ def read_csv(csv_name):
         pass
   return data
 
+
 def to_epoch(t_str):
   """
   Covert a timestamp string to an epoch number.
@@ -68,7 +71,7 @@ def to_epoch(t_str):
     for format in constants.TIMESTAMP_STR_FORMATS:
       try:
         t = datetime.datetime.strptime(t_str, format)
-        return float(time.mktime(t.utctimetuple())*1000.0 + t.microsecond/1000.0)
+        return float(time.mktime(t.utctimetuple()) * 1000.0 + t.microsecond / 1000.0)
       except:
         pass
   raise exceptions.InvalidDataFormat

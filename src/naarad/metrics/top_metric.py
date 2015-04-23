@@ -1,13 +1,18 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
+Copyright 2013 LinkedIn Corp. All rights reserved.
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import gc
@@ -19,9 +24,10 @@ import naarad.utils
 
 logger = logging.getLogger('naarad.metrics.top_metric')
 
+
 class TopMetric(Metric):
-  def __init__ (self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
-                rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
+  def __init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
+               rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
     Metric.__init__(self, metric_type, infile, hostname, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings, important_sub_metrics, anomaly_detection_metrics)
 
@@ -41,39 +47,39 @@ class TopMetric(Metric):
     self.ts_time = ''
     self.saw_pid = False   # Controls when to process individual commands;
 
-    self.data = {} # Stores all data to be written out
+    self.data = {}  # Stores all data to be written out
 
     for key, val in other_options.iteritems():
       setattr(self, key, val.split())
 
     self.sub_metric_description = {
-      'uptime_minute' : 'uptime of the machine',
-      'num_users' : 'users sessions logged in',
-      'load_aver_1_minute' : 'average load on the system (last 1 minute)',
-      'load_aver_5_minute' : 'average load on the system (last 5 minutes)',
-      'load_aver_15_minute' : 'average load on the system (last 15 minutes)',
-      'tasks_total' : 'total processes',
-      'tasks_running' : 'processes running',
-      'tasks_sleeping' : 'processes sleeping',
-      'tasks_stopped' : 'processes stopped',
-      'tasks_zombie' : 'zombies',
-      'cpu_us' : 'cpu percentage of running user processes',
-      'cpu_sy' : 'cpu percentage of running system processes',
-      'cpu_id' : 'cpu percentage of idel time',
-      'cpu_ni' : 'cpu percentage of running niced processes',
-      'cpu_wa' : 'cpu percentage of waiting for IO',
-      'cpu_hi' : 'cpu percentage of serving hardware IRQ',
-      'cpu_si' : 'cpu percentage of serving software IRQ',
-      'cpu_st' : 'cpu percentage of being stolen',
-      'mem_total' : 'total memory in GB',
-      'mem_used' : 'total memory in use in GB',
-      'mem_free' : 'total free memory in GB',
-      'mem_buffers' : 'total buffers in GB',
-      'swap_total' : 'total swap size in GB',
-      'swap_used' : 'total swap in use in GB',
-      'swap_free' : 'total free swap in GB',
-      'swap_cached' : 'total swap cache in GB',
-     }
+        'uptime_minute': 'uptime of the machine',
+        'num_users': 'users sessions logged in',
+        'load_aver_1_minute': 'average load on the system (last 1 minute)',
+        'load_aver_5_minute': 'average load on the system (last 5 minutes)',
+        'load_aver_15_minute': 'average load on the system (last 15 minutes)',
+        'tasks_total': 'total processes',
+        'tasks_running': 'processes running',
+        'tasks_sleeping': 'processes sleeping',
+        'tasks_stopped': 'processes stopped',
+        'tasks_zombie': 'zombies',
+        'cpu_us': 'cpu percentage of running user processes',
+        'cpu_sy': 'cpu percentage of running system processes',
+        'cpu_id': 'cpu percentage of idel time',
+        'cpu_ni': 'cpu percentage of running niced processes',
+        'cpu_wa': 'cpu percentage of waiting for IO',
+        'cpu_hi': 'cpu percentage of serving hardware IRQ',
+        'cpu_si': 'cpu percentage of serving software IRQ',
+        'cpu_st': 'cpu percentage of being stolen',
+        'mem_total': 'total memory in GB',
+        'mem_used': 'total memory in use in GB',
+        'mem_free': 'total free memory in GB',
+        'mem_buffers': 'total buffers in GB',
+        'swap_total': 'total swap size in GB',
+        'swap_used': 'total swap in use in GB',
+        'swap_free': 'total free swap in GB',
+        'swap_cached': 'total swap cache in GB',
+    }
 
   def put_values_into_data(self, values):
     """
@@ -103,7 +109,7 @@ class TopMetric(Metric):
     up_days = int(words[4])
     up_hour_minute = words[6].split(':')  # E.g. '4:02,'
     up_minutes = int(up_hour_minute[0]) * 60 + int(up_hour_minute[1].split(',')[0])
-    uptime_minute = up_days * 24 * 60   + up_minutes  # Converting days to minutes
+    uptime_minute = up_days * 24 * 60 + up_minutes  # Converting days to minutes
 
     values = {}
     values['uptime_minute'] = str(uptime_minute)
@@ -113,13 +119,13 @@ class TopMetric(Metric):
     values['load_aver_15_minute'] = words[13]
     self.put_values_into_data(values)
 
-  def process_tasks_line(self,words):
+  def process_tasks_line(self, words):
     """
     Process the line starting with "Tasks:"
     Example log:   Tasks: 446 total,   1 running, 442 sleeping,   2 stopped,   1 zombie
     """
     words = words[1:]
-    length = len(words) / 2 # The number of pairs
+    length = len(words) / 2  # The number of pairs
     values = {}
     for offset in range(length):
       k = words[2 * offset + 1].strip(',')
@@ -150,7 +156,7 @@ class TopMetric(Metric):
       value = float(word[:-1]) / 1000.0
     elif word[-1] == 'K' or word[-1] == 'k':
       value = float(word[:-1]) / 1000.0 / 1000.0
-    else: # No unit
+    else:  # No unit
       value = float(word) / 1000.0 / 1000.0 / 1000.0
     return str(value)
 
@@ -161,7 +167,7 @@ class TopMetric(Metric):
     For each value, needs to convert to 'G' (needs to handle cases of K, M)
     """
     words = words[1:]
-    length = len(words) / 2 # The number of pairs
+    length = len(words) / 2  # The number of pairs
     values = {}
     for offset in range(length):
       k = words[2 * offset + 1].strip(',')
@@ -176,7 +182,7 @@ class TopMetric(Metric):
     For each value, needs to convert to 'G' (needs to handle cases of K, M)
     """
     words = words[1:]
-    length = len(words) / 2 # The number of pairs
+    length = len(words) / 2  # The number of pairs
     values = {}
     for offset in range(length):
       k = words[2 * offset + 1].strip(',')
@@ -204,14 +210,14 @@ class TopMetric(Metric):
       values = {}
       for word_col in self.process_headers:
         word_index = self.process_headers.index(word_col)
-        if word_col in ['VIRT', 'RES', 'SHR']: # These values need to convert to 'G'
+        if word_col in ['VIRT', 'RES', 'SHR']:  # These values need to convert to 'G'
           values[process_name + '_' + pid + '_' + word_col] = self.convert_to_G(words[word_index])
-        elif word_col in ['PR', 'NI', '%CPU', '%MEM']: # These values will be assigned later or ignored
+        elif word_col in ['PR', 'NI', '%CPU', '%MEM']:  # These values will be assigned later or ignored
           values[process_name + '_' + pid + '_' + word_col.strip('%')] = words[word_index]
 
         uptime_index = self.process_headers.index('TIME+')
         uptime = words[uptime_index].split(':')
-        uptime_sec = float(uptime[0]) * 60  + float(uptime[1])
+        uptime_sec = float(uptime[0]) * 60 + float(uptime[1])
         values[process_name + '_' + pid + '_' + 'TIME'] = str(uptime_sec)
       self.put_values_into_data(values)
 
@@ -267,8 +273,8 @@ class TopMetric(Metric):
             elif prefix_word == 'PID':
               self.saw_pid = True  # Turn on the processing of individual process line
               self.process_headers = words
-            else: # Each individual process line
-              if self.saw_pid and len(words) >= len(self.process_headers): # Only valid process lines
+            else:  # Each individual process line
+              if self.saw_pid and len(words) >= len(self.process_headers):  # Only valid process lines
                 self.process_individual_command(words)
 
     # Putting data in csv files;

@@ -1,10 +1,20 @@
 # coding=utf-8
 """
-© 2013 LinkedIn Corp. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at  http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2013 LinkedIn Corp. All rights reserved.
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 import datetime
 import logging
 import os
@@ -15,6 +25,7 @@ import naarad.utils
 from naarad.naarad_constants import important_sub_metrics_import
 
 logger = logging.getLogger('naarad.metrics.ProcInterruptsMetric')
+
 
 class ProcInterruptsMetric(Metric):
   """
@@ -35,7 +46,7 @@ class ProcInterruptsMetric(Metric):
   """
   def __init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                important_sub_metrics, anomaly_detection_metrics, **other_options):
-    Metric.__init__(self, metric_type, infile_list,  hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
+    Metric.__init__(self, metric_type, infile_list, hostname, outdir, resource_path, label, ts_start, ts_end, rule_strings,
                     important_sub_metrics, anomaly_detection_metrics)
     if not self.important_sub_metrics and self.metric_type in important_sub_metrics_import.keys():
       self.important_sub_metrics = important_sub_metrics_import[self.metric_type]
@@ -98,18 +109,18 @@ class ProcInterruptsMetric(Metric):
     :return cpus: A list of the core names so in this example ['CPU0', 'CPU1', ...]
     """
     cpus = []
-    for line in infile: # Pre-processing - Try to find header
+    for line in infile:  # Pre-processing - Try to find header
       if not is_header_line(line):
         continue
       # Verifying correctness of the header
       cpu_header = line.split()
       for cpu_h in cpu_header[2:]:
         if not cpu_h.startswith('CPU'):
-          cpus = [] # Bad header so reset to nothing
+          cpus = []  # Bad header so reset to nothing
           break
         else:
           cpus.append(cpu_h)
-      if len(cpus) > 0: # We found the header
+      if len(cpus) > 0:  # We found the header
         break
     return cpus
 
@@ -143,7 +154,7 @@ class ProcInterruptsMetric(Metric):
       with open(input_file, 'r') as infile:
         # Get the header for this file
         cpus = self.find_header(infile)
-        if len(cpus) == 0: # Make sure we have header otherwise go to next file
+        if len(cpus) == 0:  # Make sure we have header otherwise go to next file
           logger.error("Header not found for file: %s", input_file)
           continue
 
@@ -152,7 +163,7 @@ class ProcInterruptsMetric(Metric):
         curr_data = {}      # Stores the current interval's log data
         eth_data = {}
         for line in infile:
-          if is_header_line(line): # New section so save old and aggregate ETH
+          if is_header_line(line):  # New section so save old and aggregate ETH
             prev_data = curr_data
             curr_data = {}
             # New section so store the collected Ethernet data
@@ -166,7 +177,7 @@ class ProcInterruptsMetric(Metric):
             continue
 
           words = line.split()
-          if len(words) <= 4: # Does not have any CPU data so skip
+          if len(words) <= 4:  # Does not have any CPU data so skip
             continue
 
           # Process timestamp or determine timestamp
@@ -176,7 +187,7 @@ class ProcInterruptsMetric(Metric):
           if timestamp_format == 'unknown':
             continue
           ts = naarad.utils.get_standardized_timestamp(ts, timestamp_format)
-          if self.ts_out_of_range(ts): # See if time is in range
+          if self.ts_out_of_range(ts):  # See if time is in range
             continue
 
           # Process data lines
@@ -194,7 +205,7 @@ class ProcInterruptsMetric(Metric):
 
           # Deal with each column worth of data
           for (cpu, datum) in zip(cpus, words[3:]):
-            if self.CPUS and cpu not in self.CPUS: # Skip if config defines which CPUs to look at
+            if self.CPUS and cpu not in self.CPUS:  # Skip if config defines which CPUs to look at
               continue
             outcsv = self.get_csv(cpu, device)
             curr_data[outcsv] = int(datum)

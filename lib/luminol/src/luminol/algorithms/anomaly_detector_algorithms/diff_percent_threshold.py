@@ -15,6 +15,7 @@ from luminol.algorithms.anomaly_detector_algorithms import AnomalyDetectorAlgori
 from luminol.constants import *
 from luminol.modules.time_series import TimeSeries
 
+
 class DiffPercentThreshold(AnomalyDetectorAlgorithm):
   """
   In this algorithm, anomalies are those data points that are above a percentage threshold as compared to the baseline.
@@ -35,7 +36,8 @@ class DiffPercentThreshold(AnomalyDetectorAlgorithm):
     self.percent_threshold_upper = percent_threshold_upper
     self.percent_threshold_lower = percent_threshold_lower
     if not self.percent_threshold_upper and not self.percent_threshold_lower:
-      raise exceptions.RequiredParametersNotPassed('luminol.algorithms.anomaly_detector_algorithms.diff_percent_threshold: Either percent_threshold_upper or percent_threshold_lower needed')
+      raise exceptions.RequiredParametersNotPassed('luminol.algorithms.anomaly_detector_algorithms.diff_percent_threshold: \
+          Either percent_threshold_upper or percent_threshold_lower needed')
 
   def _set_scores(self):
     """
