@@ -110,7 +110,7 @@ class ProcInterruptsMetric(Metric):
     """
     cpus = []
     for line in infile:  # Pre-processing - Try to find header
-      if not is_header_line(line):
+      if not self.is_header_line(line):
         continue
       # Verifying correctness of the header
       cpu_header = line.split()
@@ -163,7 +163,7 @@ class ProcInterruptsMetric(Metric):
         curr_data = {}      # Stores the current interval's log data
         eth_data = {}
         for line in infile:
-          if is_header_line(line):  # New section so save old and aggregate ETH
+          if self.is_header_line(line):  # New section so save old and aggregate ETH
             prev_data = curr_data
             curr_data = {}
             # New section so store the collected Ethernet data
