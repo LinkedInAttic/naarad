@@ -39,9 +39,9 @@ class NetstatMetric(Metric):
   processes = ''
   input_processes = []
 
-  def __init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
+  def __init__(self, metric_type, infile_list, hostname, aggr_metrics, output_directory, resource_path, label, ts_start, ts_end,
                rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options):
-    Metric.__init__(self, metric_type, infile_list, hostname, output_directory, resource_path, label, ts_start, ts_end,
+    Metric.__init__(self, metric_type, infile_list, hostname, aggr_metrics, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings, important_sub_metrics, anomaly_detection_metrics)
     self.sub_metrics = None
     for (key, val) in other_options.iteritems():
