@@ -190,7 +190,7 @@ class Metric(object):
     :param string granularity: aggregation granularity used for plots.
     :return: string aggregate_timestamp: timestamp used for metrics aggregation in all functions
     """
-    if granularity.lower() == 'none':
+    if granularity is None or granularity.lower() == 'none':
       return int(timestamp), 1
     elif granularity == 'hour':
       return (int(timestamp) / (3600 * 1000)) * 3600 * 1000, 3600
