@@ -332,13 +332,15 @@ class Metric(object):
       for group, time_store in groups_store.items():
         data = metric_store[column][group].values()
         if self.groupby:
-          column = group + '.' + column
-        if column.startswith('qps'):
-          self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
+          column_name = group + '.' + column
         else:
-          self.calculated_stats[column], self.calculated_percentiles[column] = naarad.utils.calculate_stats(list(heapq.merge(*data)), stats_to_calculate,
+          column_name = column
+        if column.startswith('qps'):
+          self.calculated_stats[column_name], self.calculated_percentiles[column_name] = naarad.utils.calculate_stats(data, stats_to_calculate, percentiles_to_calculate)
+        else:
+          self.calculated_stats[column_name], self.calculated_percentiles[column_name] = naarad.utils.calculate_stats(list(heapq.merge(*data)), stats_to_calculate,
                                                                                                             percentiles_to_calculate)
-        self.update_summary_stats(column)
+        self.update_summary_stats(column_name)
 
   def calculate_stats(self):
     """
