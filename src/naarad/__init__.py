@@ -71,6 +71,15 @@ class Naarad(object):
     naarad.reporting.diff.Diff.graphing_modules = self.available_graphing_modules
     naarad.metrics.metric.Metric.device_types = CONSTANTS.device_type_metrics
 
+  def create_analysis(self, config):
+    """
+    Create Analysis and save in Naarad from config
+    :param config:
+    :return:
+    """
+    self._default_test_id += 1
+    self._analyses[self._default_test_id] = _Analysis(ts_start=None, config=config, test_id=self._default_test_id)
+
   def signal_start(self, config, test_id=None, **kwargs):
     """
     Initialize an analysis object and set ts_start for the analysis represented by test_id
@@ -214,7 +223,9 @@ class Naarad(object):
 
   def analyze(self, input_directory, output_directory, **kwargs):
     """
-    Run all the analysis saved in self._analyses, sorted by test_id
+    Run all the analysis saved in self._analyses, sorted by test_id.
+    This is useful when Naarad() is used by other programs and multiple analyses are run
+    In naarad CLI mode, len(_analyses) == 1
     :param: input_directory: location of log files
     :param: output_directory: root directory for analysis output
     :param: **kwargs: Optional keyword args
@@ -224,7 +235,7 @@ class Naarad(object):
     if len(self._analyses) == 0:
       if 'config' not in kwargs.keys():
         return CONSTANTS.ERROR
-      self._analyses[0] = _Analysis(None, kwargs['config'], test_id=0)
+      self.create_analysis(kwargs['config'])
     if 'args' in kwargs:
       self._process_args(self._analyses[0], kwargs['args'])
       is_api_call = False
@@ -232,6 +243,7 @@ class Naarad(object):
     self._input_directory = input_directory
     self._output_directory = output_directory
     for test_id in sorted(self._analyses.keys()):
+      # Setup
       if not self._analyses[test_id].input_directory:
         self._analyses[test_id].input_directory = input_directory
       if not self._analyses[test_id].output_directory:
@@ -242,10 +254,13 @@ class Naarad(object):
       if('config' in kwargs.keys()) and (not self._analyses[test_id].config):
         self._analyses[test_id].config = kwargs['config']
       self._create_output_directories(self._analyses[test_id])
+      # Actually run analysis
       self._analyses[test_id].status = self.run(self._analyses[test_id], is_api_call, **kwargs)
       if self._analyses[test_id].status != CONSTANTS.OK:
         error_count += 1
-    if error_count > 0:
+    if len(self._analyses) == 1:
+      return self._analyses[0].status
+    elif error_count > 0:
       return CONSTANTS.ERROR
     else:
       return CONSTANTS.OK
