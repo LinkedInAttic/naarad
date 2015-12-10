@@ -467,8 +467,6 @@ class Naarad(object):
             new_metric.ts_start = ts_start
           if new_metric.ts_end is None and (new_metric.ts_start is None or ts_end > new_metric.ts_start):
             new_metric.ts_end = ts_end
-          new_metric.bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(
-              os.path.dirname(os.path.abspath(__file__)))), 'bin'))
           metric_type = section.split('-')[0]
           if metric_type in aggregate_metric_classes:
             metrics['aggregate_metrics'].append(new_metric)

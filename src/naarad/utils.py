@@ -949,7 +949,6 @@ def initialize_metric(section, infile_list, hostname, aggr_metrics, output_direc
   :param: other_options: kwargs
   :return: metric object
   """
-  bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'bin'))
   metric = None
   metric_type = section.split('-')[0]
   if metric_type in metric_classes:
@@ -962,7 +961,6 @@ def initialize_metric(section, infile_list, hostname, aggr_metrics, output_direc
   else:
     metric = Metric(section, infile_list, hostname, aggr_metrics, output_directory, resource_path, label, ts_start, ts_end, rule_strings,
                     important_sub_metrics, anomaly_detection_metrics, **other_options)
-  metric.bin_path = bin_path
   return metric
 
 
@@ -984,10 +982,8 @@ def initialize_aggregate_metric(section, aggr_hosts, aggr_metrics, metrics, outd
   :param: other_options: kwargs
   :return: metric object
   """
-  bin_path = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'bin'))
   metric = None
   metric_type = section.split('-')[0]
   metric = aggregate_metric_classes[metric_type](section, aggr_hosts, aggr_metrics, metrics, outdir_default, resource_path, label, ts_start, ts_end,
                                                  rule_strings, important_sub_metrics, anomaly_detection_metrics, **other_options)
-  metric.bin_path = bin_path
   return metric

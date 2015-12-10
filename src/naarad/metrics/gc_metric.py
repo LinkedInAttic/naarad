@@ -31,6 +31,8 @@ logger = logging.getLogger('naarad.metrics.GCMetric')
 
 class GCMetric(Metric):
   """ Class for GC logs, deriving from class Metric """
+
+  bin_path = os.path.dirname(sys.argv[0])
   clock_format = '%Y-%m-%d %H:%M:%S'
   rate_types = ()
   val_types = ('alloc', 'promo', 'used0', 'used1', 'used', 'commit0', 'commit1', 'commit', 'gen0', 'gen0t', 'gen0usr', 'gen0sys', 'gen0real',
