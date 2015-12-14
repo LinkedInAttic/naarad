@@ -50,7 +50,6 @@ class SignTest(AnomalyDetectorAlgorithm):
                  TimeSeries > shift +  (1 + percent_threshold_upper/100) * Baseline
                  or for lower value
                  TimeSeries < shift +  (1 + percent_threshold_lower/100) * Baseline
-
     :param scan_window: number of data points to evaluate for anomalies
     :param confidence: Confidence to use for determining anomaly, default is 0.01
     :return:
@@ -76,7 +75,7 @@ class SignTest(AnomalyDetectorAlgorithm):
   def _set_scores(self):
     """
     Compute anomaly scores for the time series
-    anomaly regions are computed with sign test which also assigns a liklihood
+    anomaly regions are computed with sign test which also assigns a likelihood
     to the entire region
     """
 
@@ -114,7 +113,7 @@ class SignTest(AnomalyDetectorAlgorithm):
     Merge ranges which are closer than max_gap
     :param ranges: assumed to be sorted on start
     :param max_gap: allowed gap between ranges
-    :return:
+    :return: new ranges
     """
     merged_ranges = []
     for range in ranges:
