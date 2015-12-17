@@ -21,6 +21,7 @@ import gc
 import logging
 import os
 import re
+from xml.etree import ElementTree
 import numpy
 import heapq
 from naarad.metrics.metric import Metric
@@ -40,27 +41,27 @@ class JmeterMetric(Metric):
     Metric.__init__(self, metric_type, infile_list, hostname, aggr_metrics, output_directory, resource_path, label, ts_start, ts_end,
                     rule_strings, important_sub_metrics, anomaly_detection_metrics)
     self.sub_metric_description = {
-        'lb': 'Transaction Name',
-        'lt': 'Time to First byte',
-        'ts': 'Timestamp',
-        'tn': 'Transaction Name (Parent)',
-        's': 'Status',
-        'ResponseTime': 'Response Time',
-        'rc': 'Response Code',
-        'rm': 'Response Message',
-        'dt': 'Data Type',
-        'ResponseSize': 'Response Size',
-        'qps': 'Successful Transactions per second',
-        'ErrorsPerSecond': 'Errors per second',
-        'DataThroughput': 'Data Throughput'
+      'lb': 'Transaction Name',
+      'lt': 'Time to First byte',
+      'ts': 'Timestamp',
+      'tn': 'Transaction Name (Parent)',
+      's': 'Status',
+      'ResponseTime': 'Response Time',
+      'rc': 'Response Code',
+      'rm': 'Response Message',
+      'dt': 'Data Type',
+      'ResponseSize': 'Response Size',
+      'qps': 'Successful Transactions per second',
+      'ErrorsPerSecond': 'Errors per second',
+      'DataThroughput': 'Data Throughput'
     }
     self.sub_metric_units = {
-        'lt': 'ms',
-        'ResponseTime': 'ms',
-        'ResponseSize': 'bytes',
-        'qps': 'qps',
-        'DataThroughput': 'mbps',
-        'ErrorsPerSecond': 'qps'
+      'lt': 'ms',
+      'ResponseTime': 'ms',
+      'ResponseSize': 'bytes',
+      'qps': 'qps',
+      'DataThroughput': 'mbps',
+      'ErrorsPerSecond': 'qps'
     }
     self.calculated_stats = {}
     self.aggregation_granularity = 'second'
@@ -102,7 +103,7 @@ class JmeterMetric(Metric):
     :return: None
     """
     for transaction in transaction_list:
-      if line_data['s'] == 'true':
+      if line_data.get('s') == 'true':
         all_qps = metric_store['qps']
       else:
         all_qps = metric_store['eqps']
@@ -127,7 +128,7 @@ class JmeterMetric(Metric):
     for metric in metric_list:
       for transaction in transaction_list:
         metric_data = reduce(defaultdict.__getitem__, [metric, transaction, aggregate_timestamp], metric_store)
-        metric_data.append(float(line_data[metric]))
+        metric_data.append(float(line_data.get(metric)))
     return None
 
   def average_values_for_plot(self, metric_store, data, averaging_factor):
@@ -169,30 +170,30 @@ class JmeterMetric(Metric):
       # For ResponseTime and ResponseSize, each timestamp has a list of values associated with it.
       # Using heapq.merge to merge all the lists into a single list to be passed to numpy.
       self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
-          naarad.utils.calculate_stats(list(heapq.merge(*metric_store['t'][transaction].values())),
-                                       stats_to_calculate, percentiles_to_calculate)
+        naarad.utils.calculate_stats(list(heapq.merge(*metric_store['t'][transaction].values())),
+                                     stats_to_calculate, percentiles_to_calculate)
       self.update_summary_stats(transaction_key)
       transaction_key = transaction + '.' + 'qps'
       if len(metric_store['qps'][transaction].values()) > 0:
         self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
-            naarad.utils.calculate_stats(metric_store['qps'][transaction].values(),
-                                         stats_to_calculate, percentiles_to_calculate)
+          naarad.utils.calculate_stats(metric_store['qps'][transaction].values(),
+                                       stats_to_calculate, percentiles_to_calculate)
         self.update_summary_stats(transaction_key)
       transaction_key = transaction + '.' + 'ResponseSize'
       self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
-          naarad.utils.calculate_stats(list(heapq.merge(*metric_store['by'][transaction].values())),
-                                       stats_to_calculate, percentiles_to_calculate)
+        naarad.utils.calculate_stats(list(heapq.merge(*metric_store['by'][transaction].values())),
+                                     stats_to_calculate, percentiles_to_calculate)
       self.update_summary_stats(transaction_key)
       if 'eqps' in metric_store.keys() and transaction in metric_store['eqps'].keys():
         transaction_key = transaction + '.' + 'ErrorsPerSecond'
         self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
-            naarad.utils.calculate_stats(metric_store['eqps'][transaction].values(),
-                                         stats_to_calculate, percentiles_to_calculate)
+          naarad.utils.calculate_stats(metric_store['eqps'][transaction].values(),
+                                       stats_to_calculate, percentiles_to_calculate)
         self.update_summary_stats(transaction + '.' + 'ErrorsPerSecond')
       transaction_key = transaction + '.' + 'DataThroughput'
       self.calculated_stats[transaction_key], self.calculated_percentiles[transaction_key] = \
-          naarad.utils.calculate_stats(metric_store['thr'][transaction].values(),
-                                       stats_to_calculate, percentiles_to_calculate)
+        naarad.utils.calculate_stats(metric_store['thr'][transaction].values(),
+                                     stats_to_calculate, percentiles_to_calculate)
       self.update_summary_stats(transaction_key)
     return None
 
@@ -228,23 +229,22 @@ class JmeterMetric(Metric):
     for input_file in self.infile_list:
       logger.info('Processing : %s', input_file)
       timestamp_format = None
-      with open(input_file) as infile:
-        for line in infile:
-          if '<httpSample' not in line and '<sample' not in line:
-            continue
-          line_data = dict(re.findall(line_regex, line))
-          if not timestamp_format or timestamp_format == 'unknown':
-            timestamp_format = naarad.utils.detect_timestamp_format(line_data['ts'])
-          if timestamp_format == 'unknown':
-            continue
-          ts = naarad.utils.get_standardized_timestamp(line_data['ts'], timestamp_format)
-          if ts == -1:
-            continue
-          ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
-          aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(ts, granularity)
-          self.aggregate_count_over_time(processed_data, line_data, [self._sanitize_label(line_data['lb']), 'Overall_Summary'], aggregate_timestamp)
-          self.aggregate_values_over_time(processed_data, line_data, [self._sanitize_label(line_data['lb']), 'Overall_Summary'], ['t', 'by'],
-                                          aggregate_timestamp)
+
+      #use xml parser
+      tree = ElementTree.parse(input_file)
+      samples = tree.findall('./httpSample')
+      for sample in samples:
+        if not timestamp_format or timestamp_format == 'unknown':
+          timestamp_format = naarad.utils.detect_timestamp_format(sample.get('ts'))
+        if timestamp_format == 'unknown':
+          continue
+        ts = naarad.utils.get_standardized_timestamp(sample.get('ts'), timestamp_format)
+        if ts == -1:
+          continue
+        ts = naarad.utils.reconcile_timezones(ts, self.timezone, self.graph_timezone)
+        aggregate_timestamp, averaging_factor = self.get_aggregation_timestamp(ts, granularity)
+        self.aggregate_count_over_time(processed_data, sample, [self._sanitize_label(sample.get('lb')), 'Overall_Summary'], aggregate_timestamp)
+        self.aggregate_values_over_time(processed_data, sample, [self._sanitize_label(sample.get('lb')), 'Overall_Summary'], ['t', 'by'], aggregate_timestamp)
         logger.info('Finished parsing : %s', input_file)
     logger.info('Processing metrics for output to csv')
     self.average_values_for_plot(processed_data, data, averaging_factor)
@@ -293,7 +293,7 @@ class JmeterMetric(Metric):
 
   def plot_timeseries(self, graphing_library='matplotlib'):
     if graphing_library != 'matplotlib':
-     return Metric.plot_timeseries(self, graphing_library)
+      return Metric.plot_timeseries(self, graphing_library)
     else:
       logger.info('Using graphing_library {lib} for metric {name}'.format(lib=graphing_library, name=self.label))
       plot_data = {}
