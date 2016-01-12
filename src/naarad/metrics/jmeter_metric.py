@@ -227,7 +227,7 @@ class JmeterMetric(Metric):
       logger.info('Processing : %s', input_file)
       timestamp_format = None
       tree = ElementTree.parse(input_file)
-      samples = tree.findall('./httpSample')
+      samples = tree.findall('./httpSample') + tree.findall('./sample')
       for sample in samples:
         if not timestamp_format or timestamp_format == 'unknown':
           timestamp_format = naarad.utils.detect_timestamp_format(sample.get('ts'))
